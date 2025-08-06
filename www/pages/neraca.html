@@ -1,0 +1,605 @@
+<div class="page" data-name="neraca" class="">
+  <!-- Scrollable page content-->
+  <div class="page-content theme-dark">
+    <!-- In data-popup attribute we specify CSS selector of popup we need to open -->
+    <!-- And somewhere in DOM -->
+
+    <div class="popup edit-kas-jurnal">
+      <div class="view view-init">
+        <div class="page">
+          <div class="navbar">
+            <div class="navbar-bg"></div>
+            <div class="navbar-inner bg-dark-gray-medium">
+              <div class="title">Edit Kas Jurnal</div>
+              <div class="right">
+                <!-- Link to close popup -->
+                <p class="text-add-colour-white link popup-close" id="back-edit-kas-jurnal"
+                  data-popup=".edit-kas-jurnal"><i style="margin-right:5px;" class="f7-icons">xmark_rectangle_fill</i>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="page-content">
+            <div class="card card-outline margin-top">
+              <div class="card-content">
+                <div class="row">
+                  <div class="col-100">
+                    <div class="card-content">
+                      <div class="list no-hairlines-md">
+                        <div class="list">
+                          <form id="form_edit_kas_jurnal_acc">
+                            <ul>
+                              <li class="item-content item-input">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <input type="hidden" id="id_transaksi_acc_jurnal" name="id_transaksi_acc">
+                                  <input type="hidden" id="id_tr_kas_acc_jurnal" name="id_tr_kas_acc">
+                                  <div class="item-input-wrap">
+                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
+                                      data-searchbar-placeholder="Cari Kas Keluar" data-open-in="popup"
+                                      data-close-on-select="true">
+                                      <select class="clear_edit_kas_jurnal" id="edit_kas_jurnal_asal"
+                                        name="edit_kas_jurnal_asal" placeholder="Kas Keluar"
+                                        onchange="colorDropKasAsalJurnal('edit');" required validate
+                                        style="color: white;">
+                                      </select>
+                                      <div class="item-content"
+                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
+                                        <div class="item-inner">
+                                          <div class="item-after item_after_edit_kas_jurnal_asal"
+                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </a>
+                                  </div>
+                                </div>
+                              </li>
+                            </ul>
+                          </form>
+                        </div>
+
+                        <div class="row" style="padding: 5px;margin-top:10px;">
+                          <button onclick="updateJurnalKas();" style="width:100%;"
+                            class="text-add-colour-black-soft bg-dark-gray-young button-large col button text-bold"
+                            id="edit_jurnal_kas_button_save">SIMPAN
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup edit-transaksi-jurnal">
+      <div class="view view-init">
+        <div class="page">
+          <div class="navbar">
+            <div class="navbar-bg"></div>
+            <div class="navbar-inner bg-dark-gray-medium">
+              <div class="title"><span id="judul-popup-edit-transaksi-jurnal"></span></div>
+              <div class="right">
+                <!-- Link to close popup -->
+                <p class="text-add-colour-white link popup-close" id="back-edit-transaksi-jurnal"
+                  data-popup=".edit-transaksi-jurnal">
+                  <i style="margin-right:5px;" class="f7-icons">xmark_rectangle_fill</i>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="page-content">
+            <div class="card card-outline margin-top">
+              <div class="card-content">
+                <div class="row">
+                  <div class="col-100">
+                    <div class="card-content">
+                      <div class="list no-hairlines-md">
+                        <div class="list">
+                          <form id="form_edit_jurnal_acc">
+                            <ul>
+                              <li class="item-content item-input">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
+                                      id="smart_select_edit_kategori_jurnal" data-searchbar-placeholder="Cari Kategori"
+                                      data-open-in="popup" data-close-on-select="true">
+                                      <select class="clear_edit_jurnal edit_kategori_jurnal_att"
+                                        id="edit_kategori_jurnal" name="edit_kategori_jurnal" placeholder="Kategori"
+                                        onchange="hideLunas('edit');" required validate>
+                                      </select>
+                                      <div class="item-content"
+                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
+                                        <div class="item-inner">
+                                          <div class="item-after item_after_edit_kategori_jurnal"
+                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </a>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <div class="item-input-wrap">
+                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
+                                      id="smart_select_edit_perusahaan_jurnal"
+                                      data-searchbar-placeholder="Cari Expedisi" data-open-in="popup"
+                                      data-close-on-select="true">
+                                      <select class="clear_edit_jurnal edit_expedisi_jurnal_att"
+                                        id="edit_perusahaan_jurnal" onchange="colorDropPerusahaanJurnal('edit');"
+                                        name="edit_perusahaan_jurnal" placeholder="Perusahaan" required validate>
+                                      </select>
+                                      <div class="item-content"
+                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
+                                        <div class="item-inner">
+                                          <div class="item-after item_after_edit_perusahaan_jurnal"
+                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold;">
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </a>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <input type="text" class="clear_edit_jurnal edit_expedisi_jurnal_att"
+                                      id="edit_pic_jurnal" placeholder="PIC" name="edit_pic_jurnal" required validate>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <input type="text" class="clear_edit_jurnal edit_expedisi_jurnal_att"
+                                      oninput="this.value = this.value.toUpperCase()" id="edit_plat_jurnal"
+                                      placeholder="No. Plat" name="edit_plat_jurnal" required validate>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <input type="text" class="clear_edit_jurnal edit_expedisi_jurnal_att"
+                                      id="edit_nohp_jurnal" placeholder="No. HP" minlength="10" name="edit_nohp_jurnal" required
+                                      validate>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="text" class="clear_edit_jurnal edit_expedisi_jurnal_att"
+                                      id="edit_expedisi_keterangan_jurnal" name="edit_expedisi_keterangan_jurnal"
+                                      placeholder="Uraian" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_uraian_transaksi_jurnal">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="text" class="clear_edit_jurnal edit_uraian_jurnal_att"
+                                      id="edit_keterangan_jurnal" placeholder="Uraian" name="edit_keterangan_jurnal"
+                                      required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="hidden" class="clear_edit_jurnal edit_nominal_jurnal_att"
+                                      id="edit_id_transaksi_jurnal_acc" name="edit_id_transaksi_jurnal_acc" required
+                                      validate>
+                                    <input type="hidden" class="clear_edit_jurnal edit_nominal_jurnal_att"
+                                      id="edit_tanggal_transaksi_jurnal_acc" name="edit_tanggal_transaksi_jurnal_acc"
+                                      required validate>
+                                    <input type="text" class="clear_edit_jurnal edit_nominal_jurnal_att"
+                                      id="edit_nominal_jurnal" placeholder="Nominal" name="edit_nominal_jurnal" required
+                                      validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input" id="show_keterangan_reject">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="text" id="edit_keterangan_reject_jurnal"
+                                      name="edit_keterangan_reject_jurnal" placeholder="Keterangan Reject" readonly>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                            </ul>
+                            <div class="row" style="padding: 5px;">
+                              <div class="col-100 display-flex justify-content-center">
+                                <img onclick="zoom_view(this.src);" width="250px" style="border-radius:10px;"
+                                  id="file_bukti_edit_jurnal_view_now" />
+                              </div>
+                            </div>
+                            <div class="row" style="padding: 5px;" id="show_button_foto_jurnal">
+                              <div class="col" id="button_edit_jurnal_fill_camera">
+                                <label onclick="openCameraJurnalTerimaUpdate();"
+                                  class="text-add-colour-black-soft bg-dark-gray-young button-large button text-bold"
+                                  id="text_file_path_terima_jurnal_update" style="width: 100%;">Camera</label>
+                              </div>
+                              <div class="col" id="button_edit_jurnal_fill_file">
+                                <label for="edit_file_jurnal_acc_1" id="edit_value_jurnal_acc_1" style="width: 100%;"
+                                  class="text-add-colour-black-soft bg-dark-gray-young button-large button text-bold custom-file-upload edit_value_jurnal_acc">
+                                  File
+                                </label>
+                                <input
+                                  class="clear_edit_jurnal acc-input input-item-file text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold"
+                                  type="file" style="display:none;" onchange="gambarAcc(1,'edit');"
+                                  name="edit_file_jurnal_acc_1" id="edit_file_jurnal_acc_1"
+                                  accept="image/*;capture=camera">
+                              </div>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                      <div class="row" style="padding: 5px;" id="show_button_update_jurnal">
+                        <div class="col-100 text-right">
+                          <button onclick="updateTransaksiJurnal();" style="width:100%;"
+                            class="text-add-colour-black-soft bg-dark-gray-young button-large col button text-bold"
+                            id="valid_transaksi_jurnal_reject_button_save">SIMPAN
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup detail-transaksi-jurnal">
+      <div class="view view-init">
+        <div class="page">
+          <div class="navbar">
+            <div class="navbar-bg"></div>
+            <div class="navbar-inner bg-dark-gray-medium">
+              <div class="title">Detail Data</div>
+              <div class="right">
+                <!-- Link to close popup -->
+                <p class="text-add-colour-white link popup-close" id="back-detail-transaksi-jurnal"
+                  data-popup=".detail-transaksi-jurnal"><i style="margin-right:5px;"
+                    class="f7-icons">xmark_rectangle_fill</i>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="page-content">
+            <div class="card card-outline margin-top">
+              <div class="card-content">
+                <div class="row">
+                  <div class="col-100">
+                    <div class="card-content">
+                      <div class="list no-hairlines-md">
+                        <div class="list">
+                          <form id="form_detail_transaksi_jurnal_acc">
+                            <ul>
+                              <li class="item-content item-input">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
+                                      id="smart_select_detail_kategori_jurnal"
+                                      data-searchbar-placeholder="Cari Kategori" data-open-in="popup"
+                                      data-close-on-select="true">
+                                      <select class="clear_detail_transaksi_jurnal detail_kategori_att_jurnal"
+                                        id="detail_kategori_jurnal" name="detail_kategori_jurnal" placeholder="Kategori"
+                                        required validate>
+                                      </select>
+                                      <div class="item-content"
+                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
+                                        <div class="item-inner">
+                                          <div class="item-after item_after_detail_kategori_jurnal"
+                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </a>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input detail_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <div class="item-input-wrap">
+                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
+                                      id="smart_select_detail_perusahaan_jurnal"
+                                      data-searchbar-placeholder="Cari Expedisi" data-open-in="popup"
+                                      data-close-on-select="true">
+                                      <select class="clear_detail_transaksi_jurnal detail_expedisi_att_jurnal"
+                                        id="detail_perusahaan_jurnal" name="detail_perusahaan_jurnal"
+                                        placeholder="Perusahaan" required validate>
+                                      </select>
+                                      <div class="item-content"
+                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
+                                        <div class="item-inner">
+                                          <div class="item-after item_after_detail_perusahaan_jurnal"
+                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </a>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input detail_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <input type="text" class="clear_detail_transaksi detail_expedisi_att_jurnal"
+                                      id="detail_pic_jurnal" placeholder="PIC" name="detail_pic_jurnal" required
+                                      validate>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input detail_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <input type="text" class="clear_detail_transaksi_jurnal detail_expedisi_att_jurnal"
+                                      oninput="this.value = this.value.toUpperCase()" id="detail_plat_jurnal"
+                                      placeholder="No. Plat" name="detail_plat_jurnal" required validate>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input detail_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <input type="text" class="clear_detail_transaksi_jurnal detail_expedisi_att_jurnal"
+                                      id="detail_nohp_jurnal" placeholder="No. HP" minlength="10" name="detail_nohp_jurnal" required
+                                      validate>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input detail_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="text" class="clear_detail_transaksi_jurnal detail_expedisi_att_jurnal"
+                                      id="detail_expedisi_keterangan_jurnal" name="detail_expedisi_keterangan_jurnal"
+                                      placeholder="Uraian" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input detail_uraian_transaksi_jurnal">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="text" class="clear_detail_transaksi_jurnal detail_uraian_att_jurnal"
+                                      id="detail_keterangan_jurnal" placeholder="Uraian" name="detail_keterangan_jurnal"
+                                      required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="hidden" id="detail_id_transaksi_acc_jurnal"
+                                      name="detail_id_transaksi_acc_jurnal" required validate>
+                                    <input type="text" class="clear_detail_transaksi_jurnal detail_nominal_att_jurnal"
+                                      id="detail_nominal_jurnal" placeholder="Nominal" name="detail_nominal_jurnal"
+                                      readonly required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                            </ul>
+                            <div class="row" style="padding: 5px;">
+                              <div class="col-100 display-flex justify-content-center">
+                                <img onclick="zoom_view(this.src);" width="250px" style="border-radius:10px;"
+                                  id="file_bukti_terima_detail_jurnal_view_now" />
+                              </div>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="menu-ninda">
+        <div style="text-align: center;" class="row no-gap bg-dark-gray-young">
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/data-kas">Data</a>
+          </div>
+          <div class="col col-border text-bold bg-dark-gray-medium"><a class="text-add-colour-white"
+              href="/neraca">Jurnal</a>
+          </div>
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/master">Master</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-owner">
+        <div style="text-align: center;" class="row no-gap bg-dark-gray-young">
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/data-kas">Data</a>
+          </div>
+          <div class="col col-border text-bold bg-dark-gray-medium"><a class="text-add-colour-white"
+              href="/neraca">Jurnal</a>
+          </div>
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/master">Master</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-manan">
+        <div style="text-align: center;" class="row no-gap bg-dark-gray-young">
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/data">Data</a>
+          </div>
+          <div class="col col-border text-bold bg-dark-gray-medium"><a class="text-add-colour-white"
+              href="/neraca">Jurnal</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-100" style="margin-top: 5px;">
+          <div class="item-content item-input">
+            <div class="item-inner" id="hide_total_jurnal">
+              <h2 style="margin-bottom: 0px;margin-left: auto;margin-right:auto;">TOTAL</h2>
+              <h2 id="total-jurnal" style="margin-top: 0px;margin-left: auto;margin-right:auto;margin-bottom: 0px;">
+              </h2>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-100" style="margin-top: 5px;">
+          <div class="card-content">
+            <div class="card border-actived">
+              <div class="card-header bg-dark-gray-young" style="padding:5px ;">
+                <table width="100%">
+                  <tr>
+                    <td width="90%">
+                      <div class="data-table-title" style="height:2px;">
+                        <h3 class="margin-15" style="font-size: 18px;"><span id="periode-neraca"></span></h3>
+                      </div>
+                    </td>
+                    <td width="5%">
+                      <div class="data-table-title">
+                        <label id="change-color-eye" onclick="downloadJurnalAcc();"><i
+                            class="f7-icons">arrow_down_doc_fill</i></label>
+                      </div>
+                    </td>
+                    <td width="5%">
+                      <div class="data-table-title">
+                        <label id="change-color-eye" onclick="resetDataJurnal(1);"><i
+                            class="f7-icons" style=" color:green;">arrow_2_circlepath_circle_fill</i></label>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <div class="card-content" style="width:100%;">
+                <table cellspacing="1" cellpadding="1" width="100%">
+                  <thead class="bg-dark-gray-medium text-align-center">
+                    <tr>
+                      <th width="50%" class="label-cell bg-dark-gray-young" style="padding:3px; font-size:16px; ">
+                        <center>
+                          <select onchange="getDataJurnal()" style="font-weight:bold;text-align: center;"
+                            name="operasional_bulan" class="operasional_bulan text-add-colour-black-soft"
+                            id="operasional_bulan">
+                            <option value="all" >All Bulan</option>
+                          </select>
+                        </center>
+                      </th>
+                      <th width="50%" class="label-cell bg-dark-gray-young"
+                        style="padding:5px; font-size:16px; font-weight:bold;">
+                        <center>
+                          <select onchange="getDataJurnal()" class="operasional_years text-add-colour-black-soft"
+                            style="font-weight:bold;text-align: center;" name="operasional_years"
+                            id="operasional_years">
+                            <option value="all" >All Tahun</option>
+                          </select>
+                        </center>
+                      </th>
+                    </tr>
+                  </thead>
+                </table>
+                <table cellspacing="1" cellpadding="1" width="100%">
+                  <thead class="bg-dark-gray-medium text-align-center">
+                    <tr>
+                      <th style="padding:5px;" colspan="2" id="showFilterKasNeraca" style="width:50%">
+                        <center>
+                          <div class="item-input-wrap input-dropdown-wrap" style="padding-top: 5px;">
+                            <select class="clear_filter_kas_neraca" id="filter_kas_neraca"
+                              style="border-radius:3px; padding:6px; width:100%; color:black; background-color:lightgray;"
+                              name="filter_kas_neraca" onchange="getDataJurnal();">
+                            </select>
+                          </div>
+                        </center>
+                      </th>
+                      <th style="padding:5px;" colspan="2" style="width:50%" id="showKeteranganNeraca">
+                        <!-- <center>
+                          <input type="text" placeholder="Range Tanggal"
+                            style="border-radius:3px; padding:6px; width:100%; color:black; background-color:lightgray;"
+                            readonly="readonly" id="range-neraca" name="range-neraca" />
+                        </center> -->
+                        <center>
+                          <input onkeyup="doSearchByJurnal()" type="text"
+                            style="border-radius:3px; padding:6px; width:100%;  color:black; background-color:lightgray;"
+                            id="filter_kategori_neraca" name="filter_kategori_neraca" placeholder="Cari Keterangan">
+                        </center>
+                      </th>
+                    </tr>
+                  </thead>
+                </table>
+                <!-- <table cellspacing="1" cellpadding="1" width="100%">
+                  <thead class="bg-dark-gray-medium text-align-center">
+                    <tr>
+                      <th style="padding:5px;" width="1%">
+                        <center>
+                          <input onkeyup="doSearchByJurnal()" type="text"
+                            style="border-radius:3px; padding:6px; width:100%;  color:black; background-color:lightgray;"
+                            id="filter_kategori_neraca" name="filter_kategori_neraca" placeholder="Cari Keterangan">
+                        </center>
+                      </th>
+                    </tr>
+                  </thead>
+                </table> -->
+              </div>
+              <div class="card-content" style="overflow-x:auto;width:100%;">
+                <form id="form_send_broadcast">
+                  <table cellspacing="1" cellpadding="1" width="700px">
+                    <thead class="bg-dark-gray-medium text-align-center">
+                      <th class="label-cell" width="5%" style="border-bottom:1px solid gray;">No</th>
+                      <th class="label-cell" width="15%" style="border-bottom:1px solid gray;">Tanggal</th>
+                      <th class="label-cell" width="20%" style="border-bottom:1px solid gray;">Kategori</th>
+                      <th class="label-cell" width="24%" style="border-bottom:1px solid gray;">Keterangan</th>
+                      <th class="label-cell" width="18%" style="border-bottom:1px solid gray;">Debet</th>
+                      <th class="label-cell" width="18%" style="border-bottom:1px solid gray;">Kredit</th>
+                      <th class="label-cell" width="18%" style="border-bottom:1px solid gray;" colspan="3">Opsi</th>
+                    </thead>
+                    <tbody id="data_jurnal_accounting">
+
+                    </tbody>
+                  </table>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

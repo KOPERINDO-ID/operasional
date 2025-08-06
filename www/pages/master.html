@@ -1,0 +1,233 @@
+<div class="page" data-name="master" class="">
+  <!-- Scrollable page content-->
+  <div class="page-content theme-dark">
+    <!-- In data-popup attribute we specify CSS selector of popup we need to open -->
+    <!-- And somewhere in DOM -->
+    <div class="popup tambah-keterangan-popup">
+      <div class="view view-init">
+        <div class="page">
+          <div class="navbar">
+            <div class="navbar-bg"></div>
+            <div class="navbar-inner bg-dark-gray-medium">
+              <div class="title">Tambah Data Kategori</div>
+              <div class="right">
+                <!-- Link to close popup -->
+                <p class="text-add-colour-white link popup-close" id="back-tambah-keterangan"
+                  data-popup=".tambah-keterangan-popup"><i style="margin-right:5px;"
+                    class="f7-icons">xmark_rectangle_fill</i></p>
+              </div>
+            </div>
+          </div>
+          <div class="page-content">
+            <div class="card card-outline margin-top">
+              <div class="card-content">
+                <div class="row">
+                  <div class="col-100">
+                    <div class="card-content">
+                      <div class="list no-hairlines-md">
+                        <div class="list">
+                          <form id="form_tambah_kategori_acc">
+                            <ul>
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;"><b>Nama Kategori</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input class="clear_tambah_kategori_acc" type="text" id="tambah_kategori"
+                                      name="tambah_kategori" placeholder="Kategori" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                            </ul>
+                          </form>
+                        </div>
+                      </div>
+                      <div style="padding: 5px;">
+                        <button onclick="processTambahKategoriAcc();" style="width:100%;"
+                          class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold"
+                          id="tambah_kategori_button_save">SIMPAN
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup edit-keterangan-popup">
+      <div class="view view-init">
+        <div class="page">
+          <div class="navbar">
+            <div class="navbar-bg"></div>
+            <div class="navbar-inner bg-dark-gray-medium">
+              <div class="title">Edit Data Kategori</div>
+              <div class="right">
+                <!-- Link to close popup -->
+                <p class="text-add-colour-white link popup-close" id="back-edit-keterangan"
+                  data-popup=".edit-keterangan-popup"><i style="margin-right:5px;"
+                    class="f7-icons">xmark_rectangle_fill</i></p>
+              </div>
+            </div>
+          </div>
+          <div class="page-content">
+            <div class="card card-outline margin-top">
+              <div class="card-content">
+                <div class="row">
+                  <div class="col-100">
+                    <div class="card-content">
+                      <div class="list no-hairlines-md">
+                        <div class="list">
+                          <form id="form_edit_kategori">
+                            <ul>
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;"><b>Nama Kategori</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input class="clear_edit_kategori" type="hidden" id="edit_id_kategori"
+                                      name="edit_id_kategori" required validate>
+                                    <input class="clear_edit_kategori" type="text" id="edit_kategori"
+                                      name="edit_kategori" placeholder="Kategori" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                            </ul>
+                          </form>
+                        </div>
+                      </div>
+                      <div style="padding: 5px;">
+                        <button onclick="processEditKategoriAcc();" style="width:100%;"
+                          class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold"
+                          id="edit_kategori_button_save">SIMPAN
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="menu-ninda">
+        <div style="text-align: center;" class="row no-gap bg-dark-gray-young">
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/data-kas">Data</a>
+          </div>
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/neraca">Jurnal</a>
+          </div>
+          <div class="col col-border text-bold bg-dark-gray-medium"><a class="text-add-colour-white"
+              href="/master">Master</a>
+          </div>
+        </div>
+        <div style="text-align: center;" class="row no-gap bg-dark-gray-young">
+          <div class="col col-border text-bold bg-dark-gray-medium"><a class="text-add-colour-white"
+              href="/master">Kategori</a>
+          </div>
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/master-expedisi">Expedisi</a>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="menu-owner">
+        <div style="text-align: center;" class="row no-gap bg-dark-gray-young">
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/data-kas">Data</a>
+          </div>
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/neraca">Jurnal</a>
+          </div>
+          <div class="col col-border text-bold bg-dark-gray-medium"><a class="text-add-colour-white"
+              href="/master">Master</a>
+          </div>
+        </div>
+        <div style="text-align: center;" class="row no-gap bg-dark-gray-young">
+          <div class="col col-border text-bold bg-dark-gray-medium"><a class="text-add-colour-white"
+              href="/master">Kategori</a>
+          </div>
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/master-expedisi">Expedisi</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-manan">
+        <div style="text-align: center;" class="row no-gap bg-dark-gray-young menu-manan">
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/data">Data</a>
+          </div>
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/neraca">Jurnal</a>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-100" style="margin-top: 5px;">
+          <div class="card-content">
+            <div class="card border-actived">
+              <div class="card-header bg-dark-gray-young" style="padding:5px ;">
+                <table width="100%">
+                  <tr>
+                    <td width="90%">
+                      <div class="data-table-title" style="height:2px;">
+                        <h3 class="margin-15">Data | <span id="total-keterangan"></span></h3>
+                      </div>
+                    </td>
+                    <td width="5%">
+                      <div class="data-table-title">
+                        <label id="change-color-eye" onclick="resetDataKategori(1);"><i
+                            class="f7-icons" style=" color:green;">arrow_2_circlepath_circle_fill</i></label>
+                      </div>
+                    </td>
+                    <td width="5%">
+                      <div class="data-table-title">
+                        <a class="text-add-colour-white">
+                          <i class="text-align-right f7-icons popup-open" onclick="tambahDataKeterangan();"
+                            data-popup=".tambah-keterangan-popup"
+                            style="font-size:30px; color:green;">plus_circle_fill</i></a>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <div class="card-content" style="width:100%;">
+                <table cellspacing="1" cellpadding="1" width="100%">
+                  <thead class="bg-dark-gray-medium text-align-center">
+                    <tr>
+                      <th style="padding:5px;" colspan="2" width="50%">
+                        <center>
+                          <input onkeyup="doSearchByKeterangan()" type="text"
+                            style="border-radius:3px; padding:6px; width:100%;  color:black; background-color:lightgray;"
+                            id="keterangan_filter" name="keterangan_filter" placeholder="Cari Keterangan">
+                        </center>
+                      </th>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+              <div class="card-content" style="overflow-x:auto;width:100%;">
+                <form id="form_change_type">
+                  <table cellspacing="1" cellpadding="1" width="100%">
+                    <thead class="bg-dark-gray-medium text-align-center">
+                      <th class="label-cell" width="5%" style="border-bottom:1px solid gray;">No</th>
+                      <th class="label-cell" width="90%" style="border-bottom:1px solid gray;">Nama Kategori</th>
+                      <th class="label-cell" width="5%" style="border-bottom:1px solid gray;">M</th>
+                      <th class="label-cell" width="10%" style="border-bottom:1px solid gray;" colspan="2"
+                        id="show_opsi_master_kategori">Opsi</th>
+                    </thead>
+                    <tbody id="data_kategori_accounting">
+                    </tbody>
+                  </table>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
