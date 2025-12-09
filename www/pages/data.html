@@ -53,8 +53,9 @@
                                   <label style="height:17px; margin-top:-9px;"><b>No. Plat</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
-                                    <input type="text" id="detail_plat_acc" name="detail_plat_acc"
-                                      placeholder="No. Plat" readonly>
+                                    <input type="text" id="detail_plat_acc" style="text-transform: uppercase;"
+                                      oninput="this.value = this.value.toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '').replace(/^([A-Z]{1,2})(\d{0,4})([A-Z]{0,3}).*/, (m, p1, p2, p3) => p1 + p2 + p3);"
+                                      name="detail_plat_acc" placeholder="No. Plat" readonly>
                                   </div>
                                 </div>
                               </li>
@@ -63,7 +64,9 @@
                                   <label style="height:17px; margin-top:-9px;"><b>No. HP</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
-                                    <input type="text" id="detail_hp_acc" name="detail_hp_acc" placeholder="No. HP"
+                                    <input type="text" id="detail_hp_acc" name="detail_hp_acc" minlength="10"
+                                      maxlength="15" required validate class=" input_nohp"
+                                      oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="No. HP"
                                       readonly>
                                   </div>
                                 </div>
@@ -73,8 +76,8 @@
                                   <label style="height:17px; margin-top:-9px;"><b>Uraian</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
-                                    <input type="text" id="detail_uraian_acc" name="detail_uraian_acc"
-                                      placeholder="Uraian" readonly>
+                                    <textarea id="detail_uraian_acc" name="detail_uraian_acc" placeholder="Uraian"
+                                      readonly></textarea>
                                   </div>
                                 </div>
                               </li>
@@ -116,39 +119,70 @@
                       <div class="list no-hairlines-md">
                         <div class="list">
                           <form id="form_tambah_transaksi_acc">
-                            <ul>
+                            <ul style="margin-top: 5px;">
                               <li class="item-content item-input">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label>
                                   <div class="item-input-wrap">
-                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
-                                      data-searchbar-placeholder="Cari Kategori" data-open-in="popup"
-                                      data-close-on-select="true">
-                                      <select class="clear_tambah_transaksi" id="tambah_kategori" name="tambah_kategori"
-                                        placeholder="Kategori" onchange="hideLunas('tambah');" required validate
-                                        style="color: white;">
-                                      </select>
-                                      <div class="item-content"
-                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
-                                        <div class="item-inner">
-                                          <div class="item-after item_after_tambah_kategori"
-                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
+                                    <div class="row">
+                                      <div class="col-65">
+                                        <a class="item-link smart-select smart-select-init" data-searchbar="true"
+                                          data-searchbar-placeholder="Cari Kategori" data-open-in="popup"
+                                          data-close-on-select="true">
+                                          <select class="clear_tambah_transaksi" id="tambah_kategori"
+                                            name="tambah_kategori" placeholder="Kategori"
+                                            onchange="hideLunas('tambah');" required validate style="color: white;">
+                                          </select>
+                                          <div class="item-content"
+                                            style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
+                                            <div class="item-inner">
+                                              <div class="item-after item_after_tambah_kategori"
+                                                style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
+                                              </div>
+                                            </div>
                                           </div>
+                                        </a>
+                                      </div>
+                                      <div class="col-35"
+                                        style="display:flex; align-items:center; justify-content:center;">
+                                        <div class="custom-dd" style="position:relative; width:130px;">
+                                          <!-- Select ASLI -->
+                                          <select id="tambah_tipe_transaksi" name="tambah_tipe_transaksi" required
+                                            validate class="hidden-native-select"
+                                            onchange="updateTipeTransaksiColor(this)">
+                                            <option value="Payment" data-color="#007bff" data-text="#fff" selected>
+                                              PAYMENT</option>
+                                            <option value="Pengajuan" data-color="#FF7A1A" data-text="#fff">PENGAJUAN
+                                            </option>
+                                          </select>
+
+                                          <!-- Tombol tampilan -->
+                                          <button type="button" class="custom-dd-toggle" id="dd-toggle-tipe"
+                                            style="padding:6px 28px 6px 8px;">
+                                            <span class="custom-dd-label">PAYMENT</span>
+                                            <span class="custom-dd-caret">▼</span>
+                                          </button>
+
+                                          <!-- Panel opsi -->
+                                          <ul class="custom-dd-menu" id="dd-menu-tipe" role="listbox"
+                                            aria-labelledby="dd-toggle-tipe" style="padding-left:0px;"></ul>
                                         </div>
                                       </div>
-                                    </a>
+                                    </div>
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input tambah_expedisi">
                                 <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Perusahaan</b></label>
                                   <div class="item-input-wrap">
                                     <a class="item-link smart-select smart-select-init" data-searchbar="true"
                                       data-searchbar-placeholder="Cari Expedisi" data-open-in="popup"
                                       data-close-on-select="true">
                                       <select class="clear_tambah_transaksi tambah_expedisi_att" id="tambah_perusahaan"
-                                        onchange="colorDropPerusahaan('tambah');" name="tambah_perusahaan"
-                                        placeholder="Perusahaan" required validate style="color: white;">
+                                        onchange="colorDropPerusahaan('tambah');onPerusahaanChangedTambah('tambah');"
+                                        name="tambah_perusahaan" placeholder="Perusahaan" required validate
+                                        style="color: white;">
                                       </select>
                                       <div class="item-content"
                                         style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
@@ -164,7 +198,7 @@
                               </li>
                               <li class="item-content item-input tambah_expedisi">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>Pic</b></label>
                                   <div class="item-input-wrap">
                                     <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
                                       id="tambah_pic" placeholder="PIC" name="tambah_pic" required validate>
@@ -173,51 +207,93 @@
                               </li>
                               <li class="item-content item-input tambah_expedisi">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>No. Plat</b></label>
                                   <div class="item-input-wrap">
                                     <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
-                                      oninput="this.value = this.value.toUpperCase()" id="tambah_plat"
-                                      placeholder="No. Plat" name="tambah_plat" required validate>
+                                      id="tambah_plat" placeholder="No. Plat" name="tambah_plat" required validate
+                                      minlength="4" maxlength="10" style="text-transform: uppercase;"
+                                      oninput="this.value = this.value.toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '').replace(/^([A-Z]{1,2})(\d{0,4})([A-Z]{0,3}).*/, (m, p1, p2, p3) => p1 + p2 + p3);">
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input tambah_expedisi">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>No. Hp</b></label>
                                   <div class="item-input-wrap">
-                                    <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
-                                      id="tambah_nohp" placeholder="No. HP" name="tambah_nohp" minlength="10" required
-                                      validate>
+                                    <input type="text" class="clear_tambah_transaksi tambah_expedisi_att input_nohp"
+                                      id="tambah_nohp" placeholder="No. HP" name="tambah_nohp" minlength="10"
+                                      maxlength="15" required validate
+                                      oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input tambah_expedisi">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
                                   <div class="item-input-wrap">
-                                    <label></label>
-                                    <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
-                                      id="tambah_expedisi_keterangan" name="tambah_expedisi_keterangan"
-                                      placeholder="Uraian" required validate>
-                                    <span class="input-clear-button"></span>
+                                    <div class="row">
+                                      <div class="col-50"
+                                        style="border: 1px solid gray;border-radius: 5px;padding: 5px;">
+                                        <label>Pengirim</label>
+                                        <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
+                                          id="tambah_expedisi_pengirim" name="tambah_expedisi_pengirim"
+                                          placeholder="Pengirim" required validate style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                      <div class="col-50"
+                                        style="border: 1px solid gray;border-radius: 5px;padding: 5px;">
+                                        <label>Penerima</label>
+                                        <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
+                                          id="tambah_expedisi_penerima" name="tambah_expedisi_penerima"
+                                          placeholder="Penerima" required validate value="KOPERINDO"
+                                          style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()" onclick="this.value='';">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </li>
-                              <li class="item-content item-input tambah_uraian_transaksi">
+                              <li class="item-content item-input tambah_expedisi">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <div class="row">
+                                      <div class="col-50"
+                                        style="border: 1px solid gray;border-radius: 5px;padding: 5px;">
+                                        <label>Dari - Kota</label>
+                                        <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
+                                          id="tambah_expedisi_dari" name="tambah_expedisi_dari" placeholder="Dari"
+                                          required validate style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                      <div class="col-50"
+                                        style="border: 1px solid gray;border-radius: 5px;padding: 5px;">
+                                        <label>Tujuan - Kota</label>
+                                        <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
+                                          id="tambah_expedisi_tujuan" name="tambah_expedisi_tujuan" placeholder="Tujuan"
+                                          required validate value="SURABAYA" style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()" onclick="this.value='';">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input tambah_expedisi">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Alamat</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
-                                    <input type="text" class="clear_tambah_transaksi tambah_uraian_att"
-                                      id="tambah_keterangan" name="tambah_keterangan" placeholder="Uraian" required
-                                      validate>
+                                    <textarea class="clear_tambah_transaksi tambah_expedisi_att" id="tambah_alamat"
+                                      rows="2" name="tambah_alamat" placeholder="Alamat" required validate></textarea>
                                     <span class="input-clear-button"></span>
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
                                     <input type="text" class="clear_tambah_transaksi" id="tambah_nominal"
@@ -226,14 +302,42 @@
                                   </div>
                                 </div>
                               </li>
+                              <li class="item-content item-input tambah_uraian_transaksi">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Uraian</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <textarea class="clear_tambah_transaksi tambah_uraian_att" id="tambah_keterangan"
+                                      name="tambah_keterangan" placeholder="Uraian" required validate></textarea>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input tambah_expedisi">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <textarea type="text" class="clear_tambah_transaksi tambah_expedisi_att"
+                                      id="tambah_expedisi_keterangan" name="tambah_expedisi_keterangan"
+                                      placeholder="Uraian" required validate rows="2"></textarea>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
                             </ul>
                             <div class="row" style="padding: 5px;">
-                              <div class="col" id="button_tambah_fill_camera">
+                              <div class="col-100 display-flex justify-content-center">
+                                <label style="height:17px; margin-top:-9px;margin-bottom: 10px;"
+                                  id="tambah-change-text-label-foto"><b>Foto
+                                    Bukti</b></label>
+                              </div>
+                              <div class="col-50" id="button_tambah_fill_camera">
                                 <label onclick="openCameraTerima();"
                                   class="text-add-colour-black-soft bg-dark-gray-young button-large button text-bold"
                                   id="text_file_path_terima" style="width: 100%;">Camera</label>
                               </div>
-                              <div class="col" id="button_tambah_fill_file">
+                              <div class="col-50" id="button_tambah_fill_file">
                                 <label for="tambah_file_acc_1" id="tambah_value_acc_1" style="width: 100%;"
                                   class="text-add-colour-black-soft bg-dark-gray-young button-large button text-bold custom-file-upload tambah_value_acc ">
                                   File
@@ -305,6 +409,20 @@
                         <tbody>
                           <div class="card">
                             <form id="upload_foto_pembayaran_form">
+                              <ul id="hide_keterangan_reject">
+                                <li class="item-content item-input">
+                                  <div class="item-inner">
+                                    <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
+                                    <div class="item-input-wrap">
+                                      <label>Keterangan Reject :</label>
+                                      <input type="text" class="clear_detail_transaksi_cicilan"
+                                        id="keterangan_reject_cicilan" placeholder="-" readonly
+                                        name="keterangan_reject_cicilan" required validate>
+                                      <span class="input-clear-button"></span>
+                                    </div>
+                                  </div>
+                                </li>
+                              </ul>
                               <input type="hidden" id="penjualan_id_foto_pembayaran" name="penjualan_id_foto_pembayaran"
                                 value="">
                               <input type="hidden" id="foto_urutan" name="foto_urutan" value="">
@@ -387,7 +505,13 @@
                                 <td id="popup-pembayaran-penjualan_jumlah_pembayaran"
                                   class="numeric-cell text-align-right"></td>
                               </tr>
-
+                              <tr>
+                                <td colspan="3" height="10px" class="numeric-cell text-align-left">Admin
+                                </td>
+                                <td class="numeric-cell text-align-left">:</td>
+                                <td id="popup-pembayaran-admin" class="numeric-cell text-align-right">
+                                </td>
+                              </tr>
                               <tr>
                                 <td colspan="3" class="numeric-cell text-align-left">
                                   Sisa
@@ -438,11 +562,13 @@
               <div class="right">
                 <!-- Link to close popup -->
                 <p class="text-add-colour-white link popup-close" id="back-detail-transaksi"
-                  data-popup=".detail-transaksi"><i style="margin-right:5px;" class="f7-icons">xmark_rectangle_fill</i>
+                  data-popup=".detail-transaksi">
+                  <i style="margin-right:5px;" class="f7-icons">xmark_rectangle_fill</i>
                 </p>
               </div>
             </div>
           </div>
+
           <div class="page-content">
             <div class="card card-outline margin-top">
               <div class="card-content">
@@ -452,121 +578,175 @@
                       <div class="list no-hairlines-md">
                         <div class="list">
                           <form id="form_detail_transaksi_acc">
-                            <ul>
-                              <li class="item-content item-input">
-                                <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
-                                  <div class="item-input-wrap">
-                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
-                                      id="smart_select_detail_kategori" data-searchbar-placeholder="Cari Kategori"
-                                      data-open-in="popup" data-close-on-select="true">
-                                      <select class="clear_detail_transaksi detail_kategori_att" id="detail_kategori"
-                                        name="detail_kategori" placeholder="Kategori" onchange="hideLunas('detail');"
-                                        required validate>
+                            <!-- hidden field -->
+                            <input type="hidden" id="detail_id_transaksi_acc" name="detail_id_transaksi_acc" />
+                            <input type="hidden" id="detail_pembayaran" name="detail_pembayaran" />
+
+                            <ul style="padding: 10px;">
+
+                              <!-- Kategori + Status di kanan -->
+                              <li>
+                                <div class="detail-header">
+                                  <!-- kiri: kategori -->
+                                  <div class="detail-header-left">
+                                    <div class="label">Kategori</div>
+                                    <div class="pembatas">:</div>
+                                    <div class="value" id="detail_kategori" style="margin-left: 6px;"></div>
+                                  </div>
+
+                                  <!-- kanan: dropdown status -->
+                                  <div class="status-wrapper">
+                                    <div class="custom-dd" style="width:130px;">
+                                      <!-- Select ASLI -->
+                                      <select id="detail_tipe_transaksi" name="detail_tipe_transaksi" required validate
+                                        class="hidden-native-select" onchange="updateTipeTransaksiColor(this)" disabled>
+                                        <option value="Payment" data-color="#007bff" data-text="#fff" selected>PAYMENT
+                                        </option>
+                                        <option value="Pengajuan" data-color="#FF7A1A" data-text="#fff">PENGAJUAN
+                                        </option>
                                       </select>
-                                      <div class="item-content"
-                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
-                                        <div class="item-inner">
-                                          <div class="item-after item_after_detail_kategori"
-                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
-                                          </div>
-                                        </div>
-                                      </div>
+
+                                      <!-- Tombol tampilan -->
+                                      <button type="button" class="custom-dd-toggle" id="dd-toggle-tipe">
+                                        <span class="custom-dd-label">PAYMENT</span>
+                                        <span class="custom-dd-caret">▼</span>
+                                      </button>
+
+                                      <!-- Panel opsi -->
+                                      <ul class="custom-dd-menu" id="dd-menu-tipe" role="listbox"
+                                        aria-labelledby="dd-toggle-tipe"></ul>
+                                    </div>
+                                  </div>
+                                </div>
+                              </li>
+
+                              <!-- Perusahaan -->
+                              <li class="detail_expedisi">
+                                <div class="detail-line">
+                                  <div class="label">Perusahaan</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_perusahaan"></div>
+                                </div>
+                              </li>
+
+                              <!-- PIC -->
+                              <li class="detail_expedisi">
+                                <div class="detail-line">
+                                  <div class="label">PIC</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_pic"></div>
+                                </div>
+                              </li>
+
+                              <!-- No. Plat -->
+                              <li class="detail_expedisi">
+                                <div class="detail-line">
+                                  <div class="label">No. Plat</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_plat"></div>
+                                </div>
+                              </li>
+
+                              <!-- No. HP as green button -->
+                              <li class="detail_expedisi">
+                                <div class="detail-line">
+                                  <div class="label">No. HP</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value-hp">
+                                    <a id="detail_nohp_btn" style="cursor: pointer;font-size: 14px;"
+                                      class="btn-phone text-bold"><img src="img/logo/whatsapp-white-icon.png"
+                                        style="width:15px;cursor: pointer;vertical-align: middle;" /> <span
+                                        id="wa-text"></span></a>
+                                    <a class="btn-phone-x text-bold" id="detail_nohp_reject_btn"
+                                      style="cursor: pointer;font-size: 14px;">
+                                      <span id="wa-text">X</span>
                                     </a>
                                   </div>
                                 </div>
                               </li>
-                              <li class="item-content item-input detail_expedisi">
-                                <div class="item-inner">
-                                  <div class="item-input-wrap">
-                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
-                                      id="smart_select_detail_perusahaan" data-searchbar-placeholder="Cari Expedisi"
-                                      data-open-in="popup" data-close-on-select="true">
-                                      <select class="clear_detail_transaksi detail_expedisi_att" id="detail_perusahaan"
-                                        onchange="colorDropPerusahaan('detail');" name="detail_perusahaan"
-                                        placeholder="Perusahaan" required validate>
-                                      </select>
-                                      <div class="item-content"
-                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
-                                        <div class="item-inner">
-                                          <div class="item-after item_after_detail_perusahaan"
-                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
+
+                              <!-- Pengirim (khusus ekspedisi) -->
+                              <li class="detail_expedisi">
+                                <div class="detail-line">
+                                  <div class="label">Pengirim</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_expedisi_pengirim"></div>
                                 </div>
                               </li>
-                              <li class="item-content item-input detail_expedisi">
-                                <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
-                                  <div class="item-input-wrap">
-                                    <input type="text" class="clear_detail_transaksi detail_expedisi_att"
-                                      id="detail_pic" placeholder="PIC" name="detail_pic" required validate>
-                                  </div>
+
+                              <!-- Penerima (khusus ekspedisi) -->
+                              <li class="detail_expedisi">
+                                <div class="detail-line">
+                                  <div class="label">Penerima</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_expedisi_penerima"></div>
                                 </div>
                               </li>
-                              <li class="item-content item-input detail_expedisi">
-                                <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
-                                  <div class="item-input-wrap">
-                                    <input type="text" class="clear_detail_transaksi detail_expedisi_att"
-                                      oninput="this.value = this.value.toUpperCase()" id="detail_plat"
-                                      placeholder="No. Plat" name="detail_plat" required validate>
-                                  </div>
+
+                              <!-- Dari Kota (khusus ekspedisi) -->
+                              <li class="detail_expedisi">
+                                <div class="detail-line">
+                                  <div class="label">Dari - Kota</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_expedisi_dari"></div>
                                 </div>
                               </li>
-                              <li class="item-content item-input detail_expedisi">
-                                <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
-                                  <div class="item-input-wrap">
-                                    <input type="text" class="clear_detail_transaksi detail_expedisi_att"
-                                      id="detail_nohp" placeholder="No. HP" name="detail_nohp" minlength="10" required
-                                      validate>
-                                  </div>
+
+                              <!-- Tujuan Kota (khusus ekspedisi) -->
+                              <li class="detail_expedisi">
+                                <div class="detail-line">
+                                  <div class="label">Tujuan - Kota</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_expedisi_tujuan"></div>
                                 </div>
                               </li>
-                              <li class="item-content item-input detail_expedisi">
-                                <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input type="text" class="clear_detail_transaksi detail_expedisi_att"
-                                      id="detail_expedisi_keterangan" name="detail_expedisi_keterangan"
-                                      placeholder="Uraian" required validate>
-                                    <span class="input-clear-button"></span>
-                                  </div>
+
+                              <!-- Alamat (khusus ekspedisi) -->
+                              <li class="detail_expedisi">
+                                <div class="detail-line">
+                                  <div class="label">Alamat</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_alamat"></div>
                                 </div>
                               </li>
-                              <li class="item-content item-input detail_uraian_transaksi">
-                                <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input type="text" class="clear_detail_transaksi detail_uraian_att"
-                                      id="detail_keterangan" placeholder="Uraian" name="detail_keterangan" required
-                                      validate>
-                                    <span class="input-clear-button"></span>
-                                  </div>
+
+                              <!-- Nominal -->
+                              <li>
+                                <div class="detail-line">
+                                  <div class="label">Nominal</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_nominal"></div>
                                 </div>
                               </li>
-                              <li class="item-content item-input">
-                                <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label> -->
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input type="hidden" id="detail_id_transaksi_acc" name="detail_id_transaksi_acc"
-                                      required validate>
-                                    <input type="text" class="clear_detail_transaksi detail_nominal_att"
-                                      id="detail_nominal" placeholder="Nominal" name="detail_nominal" readonly required
-                                      validate>
-                                    <span class="input-clear-button"></span>
-                                  </div>
+
+                              <!-- Uraian Ekspedisi -->
+                              <li class="detail_expedisi">
+                                <div class="detail-line align-top uraian-line">
+                                  <div class="label">Uraian</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value uraian-value" id="detail_expedisi_keterangan"></div>
                                 </div>
                               </li>
+
+                              <!-- Uraian Transaksi Non-Expedisi -->
+                              <li class="detail_uraian_transaksi">
+                                <div class="detail-line align-top uraian-line">
+                                  <div class="label">Keterangan</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value uraian-value" id="detail_keterangan"></div>
+                                </div>
+                              </li>
+
                             </ul>
+
+                            <!-- FOTO BUKTI -->
                             <div class="row" style="padding: 5px;">
+                              <div class="col-100 display-flex justify-content-center">
+                                <label style="height:17px; margin-top:-9px;margin-bottom: 10px;"
+                                  id="detail-change-text-label-foto">
+                                  <b>Foto Bukti</b>
+                                </label>
+                              </div>
                               <div class="col-100 display-flex justify-content-center">
                                 <img onclick="zoom_view(this.src);" width="250px" style="border-radius:10px;"
                                   id="file_bukti_terima_view_now" />
@@ -575,21 +755,26 @@
                           </form>
                         </div>
                       </div>
+
+                      <!-- BUTTON REJECT / VALID -->
                       <div class="row" style="padding: 5px;" id="show_button_valid">
                         <div class="col-50 text-right">
                           <button onclick="validTransaksi(2);" style="width:100%;"
                             class="card-color-red button-small col button text-bold"
-                            id="valid_transaksi_reject_button_save">REJECT
+                            id="valid_transaksi_reject_button_save">
+                            REJECT
                           </button>
                         </div>
                         <div class="col-50 text-left">
                           <button onclick="validTransaksi(1);" style="width:100%;"
                             class="btn-color-blueWhite button-small col button text-bold"
-                            id="valid_transaksi_accept_button_save">VALID
+                            id="valid_transaksi_accept_button_save">
+                            VALID
                           </button>
                         </div>
                       </div>
-                    </div>
+
+                    </div><!-- /.card-content -->
                   </div>
                 </div>
               </div>
@@ -626,36 +811,65 @@
                             <ul>
                               <li class="item-content item-input">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label>
                                   <div class="item-input-wrap">
-                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
-                                      id="smart_select_edit_kategori" data-searchbar-placeholder="Cari Kategori"
-                                      data-open-in="popup" data-close-on-select="true">
-                                      <select class="clear_edit_transaksi edit_kategori_att" id="edit_kategori"
-                                        name="edit_kategori" placeholder="Kategori" onchange="hideLunas('edit');"
-                                        required validate>
-                                      </select>
-                                      <div class="item-content"
-                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
-                                        <div class="item-inner">
-                                          <div class="item-after item_after_edit_kategori"
-                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
+                                    <div class="row">
+                                      <div class="col-65">
+                                        <a class="item-link smart-select smart-select-init" data-searchbar="true"
+                                          data-searchbar-placeholder="Cari Kategori" data-open-in="popup"
+                                          id="smart_select_edit_kategori" data-close-on-select="true">
+                                          <select class="clear_edit_transaksi edit_kategori_att" id="edit_kategori"
+                                            name="edit_kategori" placeholder="Kategori" onchange="hideLunas('edit');"
+                                            required validate style="color: white;">
+                                          </select>
+                                          <div class="item-content"
+                                            style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
+                                            <div class="item-inner">
+                                              <div class="item-after item_after_edit_kategori"
+                                                style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
+                                              </div>
+                                            </div>
                                           </div>
+                                        </a>
+                                      </div>
+                                      <div class="col-35"
+                                        style="display:flex; align-items:center; justify-content:center;">
+                                        <div class="custom-dd" style="position:relative; width:130px;">
+                                          <!-- Select ASLI -->
+                                          <select id="edit_tipe_transaksi" name="edit_tipe_transaksi" required validate
+                                            class="hidden-native-select" onchange="updateTipeTransaksiColor(this)">
+                                            <option value="Payment" data-color="#007bff" data-text="#fff" selected>
+                                              PAYMENT</option>
+                                            <option value="Pengajuan" data-color="#FF7A1A" data-text="#fff">PENGAJUAN
+                                            </option>
+                                          </select>
+
+                                          <!-- Tombol tampilan -->
+                                          <button type="button" class="custom-dd-toggle" id="dd-toggle-tipe"
+                                            style="padding:6px 28px 6px 8px;">
+                                            <span class="custom-dd-label">PAYMENT</span>
+                                            <span class="custom-dd-caret">▼</span>
+                                          </button>
+
+                                          <!-- Panel opsi -->
+                                          <ul class="custom-dd-menu" id="dd-menu-tipe" role="listbox"
+                                            aria-labelledby="dd-toggle-tipe" style="padding-left:0px;"></ul>
                                         </div>
                                       </div>
-                                    </a>
+                                    </div>
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input edit_expedisi">
                                 <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Perusahaan</b></label>
                                   <div class="item-input-wrap">
                                     <a class="item-link smart-select smart-select-init" data-searchbar="true"
                                       id="smart_select_edit_perusahaan" data-searchbar-placeholder="Cari Expedisi"
                                       data-open-in="popup" data-close-on-select="true">
                                       <select class="clear_edit_transaksi edit_expedisi_att" id="edit_perusahaan"
-                                        onchange="colorDropPerusahaan('edit');" name="edit_perusahaan"
-                                        placeholder="Perusahaan" required validate>
+                                        onchange="colorDropPerusahaan('edit');onPerusahaanChangedTambah('edit');"
+                                        name="edit_perusahaan" placeholder="Perusahaan" required validate>
                                       </select>
                                       <div class="item-content"
                                         style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
@@ -671,7 +885,7 @@
                               </li>
                               <li class="item-content item-input edit_expedisi">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>PIC</b></label>
                                   <div class="item-input-wrap">
                                     <input type="text" class="clear_edit_transaksi edit_expedisi_att" id="edit_pic"
                                       placeholder="PIC" name="edit_pic" required validate>
@@ -680,49 +894,91 @@
                               </li>
                               <li class="item-content item-input edit_expedisi">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>No. Plat</b></label>
                                   <div class="item-input-wrap">
-                                    <input type="text" class="clear_edit_transaksi edit_expedisi_att"
-                                      oninput="this.value = this.value.toUpperCase()" id="edit_plat"
-                                      placeholder="No. Plat" name="edit_plat" required validate>
+                                    <input type="text" class="clear_edit_transaksi edit_expedisi_att" id="edit_plat"
+                                      placeholder="No. Plat" name="edit_plat" required validate minlength="4"
+                                      maxlength="10" style="text-transform: uppercase;"
+                                      oninput="this.value = this.value.toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '').replace(/^([A-Z]{1,2})(\d{0,4})([A-Z]{0,3}).*/, (m, p1, p2, p3) => p1 + p2 + p3);">
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input edit_expedisi">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>No. HP</b></label>
                                   <div class="item-input-wrap">
-                                    <input type="text" class="clear_edit_transaksi edit_expedisi_att" id="edit_nohp"
-                                      placeholder="No. HP" name="edit_nohp" minlength="10" required validate>
+                                    <input type="text" class="clear_edit_transaksi edit_expedisi_att input_nohp"
+                                      id="edit_nohp" placeholder="No. HP" name="edit_nohp" minlength="10" maxlength="15"
+                                      required validate oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input edit_expedisi">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
                                   <div class="item-input-wrap">
-                                    <label></label>
-                                    <input type="text" class="clear_edit_transaksi edit_expedisi_att"
-                                      id="edit_expedisi_keterangan" name="edit_expedisi_keterangan" placeholder="Uraian"
-                                      required validate>
-                                    <span class="input-clear-button"></span>
+                                    <div class="row">
+                                      <div class="col-50"
+                                        style="border: 1px solid gray;border-radius: 5px;padding: 5px;">
+                                        <label>Pengirim</label>
+                                        <input type="text" class="clear_edit_transaksi edit_expedisi_att"
+                                          id="edit_expedisi_pengirim" name="edit_expedisi_pengirim"
+                                          placeholder="Pengirim" required validate style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                      <div class="col-50"
+                                        style="border: 1px solid gray;border-radius: 5px;padding: 5px;">
+                                        <label>Penerima</label>
+                                        <input type="text" class="clear_edit_transaksi edit_expedisi_att"
+                                          id="edit_expedisi_penerima" name="edit_expedisi_penerima"
+                                          placeholder="Penerima" required validate style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </li>
-                              <li class="item-content item-input edit_uraian_transaksi">
+                              <li class="item-content item-input edit_expedisi">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <div class="row">
+                                      <div class="col-50"
+                                        style="border: 1px solid gray;border-radius: 5px;padding: 5px;">
+                                        <label>Dari - Kota</label>
+                                        <input type="text" class="clear_edit_transaksi edit_expedisi_att"
+                                          id="edit_expedisi_dari" name="edit_expedisi_dari" placeholder="Dari" required
+                                          validate style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                      <div class="col-50"
+                                        style="border: 1px solid gray;border-radius: 5px;padding: 5px;">
+                                        <label>Tujuan - Kota</label>
+                                        <input type="text" class="clear_edit_transaksi edit_expedisi_att"
+                                          id="edit_expedisi_tujuan" name="edit_expedisi_tujuan" placeholder="Tujuan"
+                                          required validate value="SURABAYA" style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()" onclick="this.value='';">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_expedisi">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Alamat</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
-                                    <input type="text" class="clear_edit_transaksi edit_uraian_att" id="edit_keterangan"
-                                      placeholder="Uraian" name="edit_keterangan" required validate>
+                                    <textarea class="clear_edit_transaksi edit_expedisi_att" id="edit_alamat" rows="2"
+                                      name="edit_alamat" placeholder="Alamat" required validate></textarea>
                                     <span class="input-clear-button"></span>
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
                                     <input type="hidden" class="clear_edit_transaksi edit_nominal_att"
@@ -736,8 +992,48 @@
                                   </div>
                                 </div>
                               </li>
+                              <li class="item-content item-input edit_expedisi">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Uraian</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <textarea class="clear_edit_transaksi edit_expedisi_att"
+                                      id="edit_expedisi_keterangan" name="edit_expedisi_keterangan" placeholder="Uraian"
+                                      required validate></textarea>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_uraian_transaksi">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Uraian</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <textarea class="clear_edit_transaksi edit_uraian_att" id="edit_keterangan"
+                                      placeholder="Uraian" name="edit_keterangan" required validate></textarea>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_keterangan_reject_transaksi">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;color:red;"><b>Keterangan
+                                      Reject</b></label>
+                                  <div class="item-input-wrap">
+                                    <input type="text" class="clear_edit_transaksi edit_keterangan_reject_att"
+                                      id="edit_keterangan_reject" readonly name="edit_keterangan_reject" required
+                                      validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
                             </ul>
                             <div class="row" style="padding: 5px;">
+                              <div class="col-100 display-flex justify-content-center">
+                                <label style="height:17px; margin-top:-9px;margin-bottom: 10px;"
+                                  id="edit-change-text-label-foto"><b>Foto
+                                    Bukti</b></label>
+                              </div>
                               <div class="col-100 display-flex justify-content-center">
                                 <img onclick="zoom_view(this.src);" width="250px" style="border-radius:10px;"
                                   id="file_bukti_edit_view_now" />
@@ -765,7 +1061,7 @@
                       </div>
                       <div class="row" style="padding: 5px;" id="show_button_update">
                         <div class="col-100 text-right">
-                          <button onclick="updateTransaksi();" style="width:100%;"
+                          <button onclick="updateTransaksi('edit');" style="width:100%;"
                             class="text-add-colour-black-soft bg-dark-gray-young button-large col button text-bold"
                             id="valid_transaksi_reject_button_save">SIMPAN
                           </button>
@@ -812,8 +1108,10 @@
           </div>
         </div>
         <div style="text-align: center;" class="row no-gap bg-dark-gray-young">
-          <div class="col col-border text-bold  bg-dark-gray-medium"><a class="text-add-colour-white"
-              href="/data-kas">Kas</a>
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/data-kas">Kas</a>
+          </div>
+          <div class="col col-border text-bold bg-dark-gray-medium"><a class="text-add-colour-white"
+              href="/data">Transaksi</a>
           </div>
         </div>
       </div>
@@ -839,7 +1137,7 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-100" style="margin-top: 5px;">
+        <div class="col-100">
           <div class="card-content">
             <div class="card border-actived">
               <div class="card-header bg-dark-gray-young" style="padding:5px ;">
@@ -852,15 +1150,15 @@
                     </td>
                     <td width="5%">
                       <div class="data-table-title">
-                        <label id="change-color-eye" onclick="resetDataTransaksi(1);"><i
-                            class="f7-icons" style=" color:green;">arrow_2_circlepath_circle_fill</i></label>
+                        <label id="change-color-eye" onclick="resetDataTransaksi(1);"><i class="f7-icons"
+                            style=" color:green;">arrow_2_circlepath_circle_fill</i></label>
                       </div>
                     </td>
                     <td width="5%" id="hide-tambah-button">
                       <div class="data-table-title">
                         <a class="text-add-colour-white">
-                          <i class="text-align-right f7-icons popup-open" onclick="openTambahPopup();"
-                            data-popup=".tambah-transaksi" style="font-size:30px; color:green;">plus_circle_fill</i></a>
+                          <i class="text-align-right f7-icons" onclick="openTambahPopup();"
+                            style="font-size:30px; color:green;">plus_circle_fill</i></a>
                       </div>
                     </td>
                   </tr>
@@ -897,7 +1195,7 @@
                       <th style="padding:5px;" colspan="2" id="showFilterKasData">
                         <center>
                           <div class="item-input-wrap input-dropdown-wrap" style="padding-top: 5px;">
-                            <select class="clear_filter_kas_kas" id="filter_kas"
+                            <select class="clear_filter_kas_kas input-filter-kas" id="filter_kas"
                               style="border-radius:3px; padding:6px; width:100%; color:black; background-color:lightgray;"
                               name="filter_kas" onchange="filterDataTransaksi();">
                             </select>
@@ -917,13 +1215,14 @@
               </div>
               <div class="card-content" style="overflow-x:auto;width:100%;">
                 <form id="form_send_broadcast">
-                  <table cellspacing="1" cellpadding="1" width="750px">
+                  <table cellspacing="1" cellpadding="1" width="800px">
                     <thead class="bg-dark-gray-medium text-align-center">
                       <th class="label-cell" width="5%" style="border-bottom:1px solid gray;">No</th>
                       <th class="label-cell" width="17%" style="border-bottom:1px solid gray;">Tanggal</th>
                       <th class="label-cell" width="18%" style="border-bottom:1px solid gray;">Kategori</th>
                       <th class="label-cell" width="33%" style="border-bottom:1px solid gray;">Keterangan</th>
                       <th class="label-cell" width="17%" style="border-bottom:1px solid gray;">Nominal</th>
+                      <th class="label-cell" width="17%" style="border-bottom:1px solid gray;">Admin</th>
                       <th class="label-cell" width="10%" style="border-bottom:1px solid gray;" colspan="4">Opsi</th>
                     </thead>
                     <tbody id="data_transaksi_accounting">

@@ -181,19 +181,28 @@ function gambarAccKas(acc_table_id, type) {
 
 function resetDataTransaksiKas(reset) {
 	if (reset == 1) {
-		jQuery('#filter_kas_in_asal').val('')
+		jQuery('#filter_kas_in_asal').val(localStorage.getItem("primary_kas"))
 		jQuery('#range-penjualan-in').val('')
 		filterDataTransaksiKas();
 	}
 }
 
 function filterDataTransaksiKas() {
-	// if (jQuery('#filter_kas_in_asal').val() == localStorage.getItem("primary_kas")) {
-	// 	$("#hide-tambah-kas-button").show();
-	// } else {
-	// 	$("#hide-tambah-kas-button").hide();
-	// }
+	cekMinusKas();
 	getDataTransaksiKas()
+}
+
+function openKategori() {
+	if ($("#tambah_kas_transfer").val() == 8) {
+		$('#input_kategori_data_kas').show();
+		comboKategoriKas('tambah');
+		$$('#tambah_kategori_data_kas').prop('required', true)
+		$$('#tambah_kategori_data_kas').prop('validate', true)
+	} else {
+		$('#input_kategori_data_kas').hide();
+		$$('#tambah_kategori_data_kas').prop('required', false)
+		$$('#tambah_kategori_data_kas').prop('validate', false)
+	}
 }
 
 function getDataTransaksiKas() {
@@ -286,13 +295,25 @@ function getDataTransaksiKas() {
 						var btn_detail = 'bg-dark-gray-young text-add-colour-black-soft';
 					}
 
-					data_tools += '		<td style="border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
-					data_tools += '			<a onclick="getDetailTransaksiKasAcc(\'' + val.id_tr_kas_acc + '\')" class="' + btn_detail + ' button-small col button popup-open text-bold" data-popup=".detail-transaksi-in">Detail</a>';
-					data_tools += '		</td>';
+
+					if (localStorage.getItem("user_id") == 260) {
+						// if (val.valid == 1) {
+						// 	data_tools += '		<td style="border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
+						// 	data_tools += '			<a onclick="getDetailTransaksiKasAcc(\'' + val.id_tr_kas_acc + '\')" class="' + btn_detail + ' button-small col button popup-open text-bold" data-popup=".detail-transaksi-in">Detail</a>';
+						// 	data_tools += '		</td>';
+						// } else {
+						// 	data_tools += '		<td style="border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
+						// 	data_tools += '			<a onclick="getEditTransaksiKasAcc(\'' + val.id_tr_kas_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button popup-open text-bold" data-popup=".edit-transaksi-in">Edit</a>';
+						// 	data_tools += '		</td>';
+						// }
+						data_tools += '		<td style="border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
+						data_tools += '			<a onclick="getDetailTransaksiKasAcc(\'' + val.id_tr_kas_acc + '\')" class="' + btn_detail + ' button-small col button popup-open text-bold" data-popup=".detail-transaksi-in">Detail</a>';
+						data_tools += '		</td>';
+					}
 					if (localStorage.getItem("user_id") == 262) {
 						data_tools += '		<td style="border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
 						data_tools += '			<a onclick="getEditTransaksiKasAcc(\'' + val.id_tr_kas_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button popup-open text-bold" data-popup=".edit-transaksi-in">Edit</a>';
-						data_tools += '		</td>';
+						data_tools += '		</td>'
 						data_tools += '		<td style="border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
 						data_tools += '			<a onclick="deleteTransaksiKasAcc(\'' + val.id_tr_kas_acc + '\',\'' + val.kategori_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold">Delete</a>';
 						data_tools += '		</td>';
@@ -311,6 +332,7 @@ function getDataTransaksiKas() {
 				jQuery("#tunai_value_kas").html(number_format(data.kas_tunai));
 				jQuery("#marketing_value_kas").html(number_format(data.kas_marketing));
 				jQuery("#sisa_utama_value_kas").html(number_format(parseFloat(data.kas_tunai + data.kas_utama + data.kas_backup)));
+				cekMinusKas();
 			} else {
 				jQuery("#data_transaksi_in_accounting").html('<tr><td colspan="5" align="center">Tidak Ada Data</td></tr>');
 			}
@@ -321,8 +343,25 @@ function getDataTransaksiKas() {
 	});
 }
 
-function openTambahKasPopup() {
+function cekMinusKas() {
+	// daftar id nominal yang ingin dicek
+	var ids = ['#utama_value_kas', '#backup_value_kas', '#tunai_value_kas', '#marketing_value_kas'];
 
+	$.each(ids, function (i, id) {
+		var $el = $(id);
+		var val = parseFloat(String($el.text()).replace(/[^0-9\-\.]/g, '')) || 0;
+
+		if (val < 0) {
+			$el.css('color', '#FF3B30'); // merah
+		} else {
+			$el.css('color', 'white'); // normal kembali
+		}
+	});
+}
+
+function openTambahKasPopup() {
+	cleanupRekomendasiKeteranganKas();
+	$('#input_kategori_data_kas').hide();
 	jQuery(".clear_tambah_transaksi_in").val('');
 	$('#button_tambah_fill_camera_kas').show();
 	$('#button_tambah_fill_file_kas').show();
@@ -337,7 +376,7 @@ function openTambahKasPopup() {
 	$(".item_after_tambah_kas_asal").css("color", "white");
 	$(".item_after_tambah_kas_transfer").css("color", "gray");
 	$(".item_after_tambah_kas_asal").html($("#filter_kas_in_asal option:selected").text());
-
+	comboKategoriKas('tambah');
 }
 
 function colorDropKasAsal(type) {
@@ -520,6 +559,33 @@ function comboKasFilterOut() {
 	});
 }
 
+function comboKategoriKas(type) {
+	// start koding ajax
+	jQuery.ajax({
+		type: "POST", //pake post jangan  get rawan di hack
+		url: "" + BASE_API + "/get-kategori-acc",
+		dataType: 'JSON',
+		timeout: 10000,
+		data: {
+			user_id: localStorage.getItem("user_id"),
+			kas: jQuery('#' + type + '_kas_transfer').val()
+		},
+		beforeSend: function () {
+			jQuery('#' + type + '_kategori_data_kas').html('');
+		},
+		success: function (data) {
+			var optionsValues = "";
+			optionsValues += '<option value="">Kategori</option>';
+			jQuery.each(data.data, function (i, item) {
+				optionsValues += '<option value="' + item.id_kategori_acc + '" data-id="' + item.flag_lunas + '" >' + item.kategori_acc + '</option>';
+			});
+			jQuery('#' + type + '_kategori_data_kas').html(optionsValues);
+		},
+		error: function (xmlhttprequest, textstatus, message) {
+		}
+	});
+	$$('.item_after_' + type + '_kategori_data_kas').html('~ Pilih Kategori ~');
+}
 
 function simpanTransaksiKas() {
 	if (localStorage.getItem("internet_koneksi") == 'fail') {
@@ -553,6 +619,7 @@ function simpanTransaksiKas() {
 							app.popup.close();
 							getDataTransaksiKas()
 							localStorage.removeItem('file_foto_terima_pabrik_kas');
+							cleanupRekomendasiKeteranganKas();
 						} else if (data.status == 'failed') {
 							app.popup.close();
 						}
@@ -606,6 +673,7 @@ function updateTransaksiKas() {
 							app.popup.close();
 							getDataTransaksiKas()
 							localStorage.removeItem('file_foto_update_terima_pabrik_kas');
+							cleanupRekomendasiKeteranganKas();
 						} else if (data.status == 'failed') {
 							app.popup.close();
 						}
@@ -717,3 +785,212 @@ function getYearTransaksiKas() {
 		}
 	}
 }
+
+// ===============================
+// REKOMENDASI KETERANGAN KAS (GLOBAL, GAYA KODE KAMU)
+// ===============================
+function initRekomendasiKeteranganKas(type) {
+	// ===== helpers =====
+	function firstExistingSelector(arr) {
+		for (var i = 0; i < arr.length; i++) if (jQuery(arr[i]).length) return arr[i];
+		return null;
+	}
+	function ensureDropdownContainer(id) {
+		if (jQuery('#' + id).length === 0) {
+			jQuery('body').append(
+				'<div id="' + id + '" class="custom-datalist" ' +
+				// Naikkan z-index agar di atas Framework7 popup/overlays
+				'style="display:none;position:absolute;background:#222;color:#fff;border:1px solid #444;border-radius:8px;padding:4px 0;z-index:30001;max-height:260px;overflow:auto;"></div>'
+			);
+		}
+	}
+	function escapeHtml(s) {
+		return String(s).replace(/[&<>"']/g, function (m) {
+			return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+		});
+	}
+	// === NEW: helper untuk show kalau sedang fokus
+	function showIfFocused(selKet, dropId) {
+		var $inp = jQuery(selKet);
+		if ($inp.length && document.activeElement === $inp.get(0)) {
+			positionDropdown();
+			jQuery('#' + dropId).show();
+		}
+	}
+
+	function renderOptions(dropId, arr) {
+		var html = '';
+		for (var i = 0; i < (arr || []).length; i++) {
+			var v = ((arr[i] || {}).keterangan || '').toString();
+			if (!v) continue;
+			html += '' +
+				'<div class="option-item" style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;cursor:pointer;">' +
+				'<span class="opt-text" style="pointer-events:none;">' + escapeHtml(v) + '</span>' +
+				'<span class="opt-del" data-val="' + escapeHtml(v) + '" ' +
+				'style="margin-left:8px;padding:0 6px;border-radius:4px;cursor:pointer;color:#FF4F04;font-weight:bold;">✕</span>' +
+				'</div>' +
+				'<div style="height:1px;background:#333;margin:0;"></div>';
+		}
+		jQuery('#' + dropId).html(html || '<div style="padding:8px 10px;color:#aaa;">Tidak ada rekomendasi</div>');
+	}
+
+	// ===== targets =====
+	var KAS_ASAL_IDS = ['#' + type + '_kas_asal'];
+	var KAS_TRANSFER_IDS = ['#' + type + '_kas_transfer'];
+	var KET_IDS = ['#' + type + '_keterangan_kas'];
+
+	var selKas = firstExistingSelector(KAS_ASAL_IDS);
+	var selKasTra = firstExistingSelector(KAS_TRANSFER_IDS);
+	var selKet = firstExistingSelector(KET_IDS);
+	if (!selKas || !selKet) return;
+	if (!selKasTra) return; // <— fix typo
+
+	var DROP_ID = 'list_keterangan_kas_' + type + '_dropdown';
+	ensureDropdownContainer(DROP_ID);
+
+	function positionDropdown() {
+		var $inp = jQuery(selKet), $drop = jQuery('#' + DROP_ID);
+		var pos = $inp.offset();
+		$drop.css({
+			top: pos.top + $inp.outerHeight(),
+			left: pos.left,
+			width: $inp.outerWidth()
+		});
+	}
+
+	function loadRekomendasi() {
+		var idKas = jQuery(selKas).val() || '';
+		var idKasTj = jQuery(selKasTra).val() || '';
+		if (!idKas) {
+			renderOptions(DROP_ID, []);
+			jQuery('#' + DROP_ID).hide();   // <— sembunyikan kalau kosong
+			return;
+		}
+		jQuery.ajax({
+			type: 'POST',
+			url: '' + BASE_API + '/rekomendasi-keterangan',
+			dataType: 'JSON',
+			data: { id_kas_acc_asal: idKas, id_kas_acc_tujuan: idKasTj },
+			success: function (res) {
+				var rows = (res && res.status === 'success') ? (res.data || []) : [];
+				renderOptions(DROP_ID, rows);
+				// === NEW: auto show kalau input sedang fokus, supaya langsung terlihat
+				showIfFocused(selKet, DROP_ID);
+			},
+			error: function () {
+				renderOptions(DROP_ID, []);
+				jQuery('#' + DROP_ID).hide();
+			}
+		});
+	}
+
+	// ==== EVENTS ====
+
+	// 1) Ubah kas_asal ATAU kas_transfer -> reload
+	jQuery(document).off('change.rekoKasAsal' + type, selKas)
+		.on('change.rekoKasAsal' + type, selKas, function () {
+			loadRekomendasi();
+			if (jQuery('#' + DROP_ID).is(':visible')) positionDropdown();
+		});
+
+	jQuery(document).off('change.rekoKasTj' + type, selKasTra)
+		.on('change.rekoKasTj' + type, selKasTra, function () {
+			loadRekomendasi();
+			if (jQuery('#' + DROP_ID).is(':visible')) positionDropdown();
+		});
+
+	// 2) Fokus/ketik pada input -> buka & filter
+	jQuery(document).off('focus.rekoKas' + type, selKet)
+		.on('focus.rekoKas' + type, selKet, function () {
+			positionDropdown();
+			jQuery('#' + DROP_ID).show();
+		});
+
+	jQuery(document).off('input.rekoKas' + type, selKet)
+		.on('input.rekoKas' + type, selKet, function () {
+			var q = (jQuery(this).val() || '').toLowerCase();
+			jQuery('#' + DROP_ID + ' .option-item').each(function () {
+				var t = jQuery(this).find('.opt-text').text().toLowerCase();
+				var vis = (t.indexOf(q) !== -1);
+				jQuery(this).toggle(vis);
+				jQuery(this).next().toggle(vis);
+			});
+			if (!jQuery('#' + DROP_ID).is(':visible')) {
+				positionDropdown();
+				jQuery('#' + DROP_ID).show();
+			}
+		});
+
+	// 3) Klik item -> set nilai
+	jQuery(document).off('click.rekoKasPick' + type, '#' + DROP_ID + ' .option-item')
+		.on('click.rekoKasPick' + type, '#' + DROP_ID + ' .option-item', function (e) {
+			if (jQuery(e.target).hasClass('opt-del')) return;
+			var val = jQuery(this).find('.opt-text').text();
+			jQuery(selKet).val(val).trigger('change');
+			jQuery('#' + DROP_ID).hide();
+		});
+
+	// 4) Klik X per item
+	jQuery(document).off('click.rekoKasDel' + type, '#' + DROP_ID + ' .opt-del')
+		.on('click.rekoKasDel' + type, '#' + DROP_ID + ' .opt-del', function (e) {
+			e.stopPropagation();
+			var val = jQuery(this).data('val');
+			jQuery(this).closest('.option-item').next().remove();
+			jQuery(this).closest('.option-item').remove();
+			// contoh kalau mau panggil API hapus rekomendasi: 
+			jQuery.post(BASE_API + '/delete-rekomendasi-keterangan', { keterangan: val, id_kas_acc: jQuery(selKas).val() });
+			if (jQuery(selKet).val() === val) jQuery(selKet).val('').trigger('change');
+		});
+
+	// 5) Klik di luar -> tutup
+	jQuery(document).off('mousedown.rekoKasOutside' + type)
+		.on('mousedown.rekoKasOutside' + type, function (e) {
+			if (!jQuery(e.target).closest('#' + DROP_ID + ', ' + selKet).length) {
+				jQuery('#' + DROP_ID).hide();
+			}
+		});
+
+	// 6) Reposition saat resize/scroll
+	jQuery(window).off('resize.rekoKas' + type).on('resize.rekoKas' + type, function () {
+		if (jQuery('#' + DROP_ID).is(':visible')) positionDropdown();
+	});
+	jQuery(window).off('scroll.rekoKas' + type).on('scroll.rekoKas' + type, function () {
+		if (jQuery('#' + DROP_ID).is(':visible')) positionDropdown();
+	});
+
+	// === NEW: reposition saat scroll kontainer popup (.page-content)
+	var $scrollHost = jQuery(selKet).closest('.page-content');
+	if ($scrollHost.length) {
+		$scrollHost.off('scroll.rekoKasHost' + type).on('scroll.rekoKasHost' + type, function () {
+			if (jQuery('#' + DROP_ID).is(':visible')) positionDropdown();
+		});
+	}
+
+	// initial load (+ auto-show jika input fokus)
+	loadRekomendasi();
+}
+
+function cleanupRekomendasiKeteranganKas(type) {
+	var selKet = '#' + type + '_keterangan_kas';
+	var selKas = '#' + type + '_kas_asal';
+	var selKasTra = '#' + type + '_kas_transfer';
+	var DROP_ID = 'list_keterangan_kas_' + type + '_dropdown';
+
+	jQuery(document).off('change.rekoKasAsal' + type, selKas);
+	jQuery(document).off('change.rekoKasTj' + type, selKasTra);
+	jQuery(document).off('focus.rekoKas' + type, selKet);
+	jQuery(document).off('input.rekoKas' + type, selKet);
+	jQuery(document).off('click.rekoKasPick' + type, '#' + DROP_ID + ' .option-item');
+	jQuery(document).off('click.rekoKasDel' + type, '#' + DROP_ID + ' .opt-del');
+	jQuery(document).off('mousedown.rekoKasOutside' + type);
+	jQuery(window).off('resize.rekoKas' + type);
+	jQuery(window).off('scroll.rekoKas' + type);
+
+	// lepas scroll host
+	var $scrollHost = jQuery(selKet).closest('.page-content');
+	if ($scrollHost.length) $scrollHost.off('scroll.rekoKasHost' + type);
+
+	jQuery('#' + DROP_ID).remove();
+}
+
+

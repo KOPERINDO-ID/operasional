@@ -21,6 +21,10 @@ var routes = [
   url: './pages/master.html',
 },
 {
+  path: '/master-kas',
+  url: './pages/master-kas.html',
+},
+{
   path: '/master-expedisi',
   url: './pages/master_expedisi.html',
 },

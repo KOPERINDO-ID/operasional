@@ -1,3 +1,6 @@
+
+jQuery('.nominal_master').mask('000,000,000,000', { reverse: true });
+
 var delayTimer;
 function doSearchByKeterangan(text) {
     clearTimeout(delayTimer);
@@ -54,6 +57,9 @@ function getDataKategori() {
                     data_tools += '<tr>';
                     data_tools += '     <td align="center" style="border-left: 1px solid grey;border-bottom: 1px solid grey;"  class="label-cell"  >' + no + '</td>';
                     data_tools += '     <td align="left" style="border-left: 1px solid grey;border-bottom: 1px solid grey;"  class="label-cell"  >' + val.kategori_acc + '</td>';
+                    data_tools += '     <td align="center" style="border-left:1px solid grey;border-bottom:1px solid grey;" class="label-cell">' +
+                        ((val.tanggal_reminder != '0' && val.tanggal_reminder != 0) ? val.tanggal_reminder : '-') + '</td>';
+                    data_tools += '     <td align="right" style="border-left: 1px solid grey;border-bottom: 1px solid grey;"  class="label-cell"  >' + number_format(val.nominal_payment ? val.nominal_payment : 0) + '</td>';
                     // if (val.kategori_acc.includes('Cash in') != true) {
                     if (val.kredit == 3) {
                         data_tools += '	    <td style="border-left: 1px solid grey;border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
@@ -64,9 +70,14 @@ function getDataKategori() {
                         data_tools += '		    <input type="checkbox" id="check_type_' + no + '" name="check_type_' + no + '" onclick="processUpdateKasAcc(\'' + val.kategori_acc + '\',\'' + no + '\',1)">';
                         data_tools += '	    </td>';
                     }
+                    if (localStorage.getItem("user_id") == 260) {
+                        data_tools += '		<td style="border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
+                        data_tools += '			<a onclick="getDataEditKategori(\'' + val.id_kategori_acc + '\',\'' + val.kategori_acc + '\',\'' + val.flag_notif + '\',\'' + val.tanggal_reminder + '\',\'' + val.nominal_payment + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button popup-open text-bold" data-popup=".edit-keterangan-popup">Edit</a>';
+                        data_tools += '		</td>';
+                    }
                     if (localStorage.getItem("user_id") == 262) {
                         data_tools += '		<td style="border-left: 1px solid grey;border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
-                        data_tools += '			<a onclick="getDataEditKategori(\'' + val.id_kategori_acc + '\',\'' + val.kategori_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button popup-open text-bold" data-popup=".edit-keterangan-popup">Edit</a>';
+                        data_tools += '			<a onclick="getDataEditKategori(\'' + val.id_kategori_acc + '\',\'' + val.kategori_acc + '\',\'' + val.flag_notif + '\',\'' + val.tanggal_reminder + '\',\'' + val.nominal_payment + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button popup-open text-bold" data-popup=".edit-keterangan-popup">Edit</a>';
                         data_tools += '		</td>';
                         data_tools += '		<td style="border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
                         data_tools += '			<a onclick="deleteKategoriAcc(\'' + val.id_kategori_acc + '\',\'' + val.kategori_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold">Delete</a>';
@@ -86,10 +97,36 @@ function getDataKategori() {
     });
 }
 
-function getDataEditKategori(id_kategori_acc, kategori_acc) {
+function getDataEditKategori(id_kategori_acc, kategori_acc, flag_notif, tanggal_reminder, nominal_payment) {
     jQuery("#edit_kategori").val(kategori_acc);
     jQuery("#edit_id_kategori").val(id_kategori_acc);
+    jQuery("#edit_tanggal").val(tanggal_reminder);
+    jQuery("#edit_nominal_master").val(number_format(nominal_payment ? nominal_payment : 0));
+    if (flag_notif == 1) {
+        jQuery("#edit_ipl").prop("checked", true);
+    } else {
+        jQuery("#edit_ipl").prop("checked", false);
+    }
+    changeIpl('edit');
 }
+
+function changeIpl(type) {
+    if (jQuery('#' + type + '_ipl').is(':checked')) {
+        jQuery('.' + type + '_show_ipl').show();
+        $$('#' + type + '_tanggal').prop('required', true)
+        $$('#' + type + '_tanggal').prop('validate', true)
+        $$('#' + type + '_nominal').prop('required', true)
+        $$('#' + type + '_nominal').prop('validate', true)
+    } else {
+        jQuery('.' + type + '_show_ipl').hide();
+        $$('#' + type + '_tanggal').prop('required', false)
+        $$('#' + type + '_tanggal').prop('validate', false)
+        $$('#' + type + '_nominal').prop('required', false)
+        $$('#' + type + '_nominal').prop('validate', false)
+    }
+
+}
+
 function processTambahKategoriAcc() {
     if (localStorage.getItem("internet_koneksi") == 'fail') {
         app.dialog.alert('<font style="font-size:22px; color:white; font-weight:bold;">Gagal,Internet Tidak Stabil,Box Koneksi Harus Berwarna Hijau', function () {

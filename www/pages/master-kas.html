@@ -1,196 +1,18 @@
-<div class="page" data-name="master" class="">
+<div class="page" data-name="master-kas" class="">
   <!-- Scrollable page content-->
   <div class="page-content theme-dark">
     <!-- In data-popup attribute we specify CSS selector of popup we need to open -->
     <!-- And somewhere in DOM -->
-    <div class="popup tambah-keterangan-popup">
+    <div class="popup tambah-kas-popup">
       <div class="view view-init">
         <div class="page">
           <div class="navbar">
             <div class="navbar-bg"></div>
             <div class="navbar-inner bg-dark-gray-medium">
-              <div class="title">Tambah Data Kategori</div>
+              <div class="title">Tambah Data Kas</div>
               <div class="right">
                 <!-- Link to close popup -->
-                <p class="text-add-colour-white link popup-close" id="back-tambah-keterangan"
-                  data-popup=".tambah-keterangan-popup"><i style="margin-right:5px;"
-                    class="f7-icons">xmark_rectangle_fill</i></p>
-              </div>
-            </div>
-          </div>
-          <div class="page-content">
-            <div class="card card-outline margin-top">
-              <div class="card-content">
-                <div class="row">
-                  <div class="col-100">
-                    <div class="card-content">
-                      <div class="list no-hairlines-md">
-                        <div class="list">
-                          <form id="form_tambah_kategori_acc">
-                            <ul>
-                              <li class="item-content item-input">
-                                <div class="item-inner" style="padding-top: 20px;">
-                                  <label style="height:17px; margin-top:-9px;"><b>Nama Kategori</b></label>
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input class="clear_tambah_kategori_acc" type="text" id="tambah_kategori"
-                                      name="tambah_kategori" placeholder="Kategori" required validate>
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                              <li class="item-content item-input">
-                                <div class="item-inner" style="padding-top: 10px;">
-                                  <div class="item-input-wrap display-flex align-items-center">
-                                    <input class="clear_tambah_kategori_acc" type="checkbox" id="tambah_ipl"
-                                      name="tambah_ipl" placeholder="IPL" onclick="changeIpl('tambah');"
-                                      style="width: 20px;height: 20px;">
-                                    <label style="height:17px; margin-top:-9px;padding-left: 5px;"><b>IPL</b></label>
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                              <li class="item-content item-input tambah_show_ipl">
-                                <div class="item-inner" style="padding-top: 20px;">
-                                  <label style="height:17px; margin-top:-9px;"><b>Tanggal Reminder</b></label>
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input class="clear_tambah_kategori_acc" type="number" id="tambah_tanggal"
-                                      name="tambah_tanggal" placeholder="Tanggal">
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                              <li class="item-content item-input tambah_show_ipl">
-                                <div class="item-inner" style="padding-top: 20px;">
-                                  <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label>
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input class="clear_tambah_kategori_acc nominal_master" type="text" id="tambah_nominal_master"
-                                      name="tambah_nominal_master" placeholder="Nominal">
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                            </ul>
-                          </form>
-                        </div>
-                      </div>
-                      <div style="padding: 5px;">
-                        <button onclick="processTambahKategoriAcc();" style="width:100%;"
-                          class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold"
-                          id="tambah_kategori_button_save">SIMPAN
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="popup edit-keterangan-popup">
-      <div class="view view-init">
-        <div class="page">
-          <div class="navbar">
-            <div class="navbar-bg"></div>
-            <div class="navbar-inner bg-dark-gray-medium">
-              <div class="title">Edit Data Kategori</div>
-              <div class="right">
-                <!-- Link to close popup -->
-                <p class="text-add-colour-white link popup-close" id="back-edit-keterangan"
-                  data-popup=".edit-keterangan-popup"><i style="margin-right:5px;"
-                    class="f7-icons">xmark_rectangle_fill</i></p>
-              </div>
-            </div>
-          </div>
-          <div class="page-content">
-            <div class="card card-outline margin-top">
-              <div class="card-content">
-                <div class="row">
-                  <div class="col-100">
-                    <div class="card-content">
-                      <div class="list no-hairlines-md">
-                        <div class="list">
-                          <form id="form_edit_kategori">
-                            <ul>
-                              <li class="item-content item-input">
-                                <div class="item-inner" style="padding-top: 20px;">
-                                  <label style="height:17px; margin-top:-9px;"><b>Nama Kategori</b></label>
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input class="clear_edit_kategori" type="hidden" id="edit_id_kategori"
-                                      name="edit_id_kategori" required validate>
-                                    <input class="clear_edit_kategori" type="text" id="edit_kategori"
-                                      name="edit_kategori" placeholder="Kategori" required validate>
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                              <li class="item-content item-input">
-                                <div class="item-inner" style="padding-top: 10px;">
-                                  <div class="item-input-wrap display-flex align-items-center">
-                                    <input class="clear_edit_kategori_acc" type="checkbox" id="edit_ipl" name="edit_ipl"
-                                      placeholder="IPL" onclick="changeIpl('edit');" style="width: 20px;height: 20px;">
-                                    <label style="height:17px; margin-top:-9px;padding-left: 5px;"><b>IPL</b></label>
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                              <li class="item-content item-input edit_show_ipl">
-                                <div class="item-inner" style="padding-top: 20px;">
-                                  <label style="height:17px; margin-top:-9px;"><b>Tanggal Reminder</b></label>
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input class="clear_edit_kategori_acc" type="number" id="edit_tanggal"
-                                      name="edit_tanggal" placeholder="Tanggal">
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                              <li class="item-content item-input edit_show_ipl">
-                                <div class="item-inner" style="padding-top: 20px;">
-                                  <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label>
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input class="clear_edit_kategori_acc nominal_master" type="text" id="edit_nominal_master"
-                                      name="edit_nominal_master" placeholder="Nominal">
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                            </ul>
-                          </form>
-                        </div>
-                      </div>
-                      <div style="padding: 5px;">
-                        <button onclick="processEditKategoriAcc();" style="width:100%;"
-                          class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold"
-                          id="edit_kategori_button_save">SIMPAN
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- <div class="popup tambah-ipl-popup">
-      <div class="view view-init">
-        <div class="page">
-          <div class="navbar">
-            <div class="navbar-bg"></div>
-            <div class="navbar-inner bg-dark-gray-medium">
-              <div class="title">Tambah IPL</div>
-              <div class="right">
-                <p class="text-add-colour-white link popup-close" id="back-tambah-ipl" data-popup=".tambah-ipl-popup"><i
+                <p class="text-add-colour-white link popup-close" id="back-tambah-kas" data-popup=".tambah-kas-popup"><i
                     style="margin-right:5px;" class="f7-icons">xmark_rectangle_fill</i></p>
               </div>
             </div>
@@ -203,123 +25,25 @@
                     <div class="card-content">
                       <div class="list no-hairlines-md">
                         <div class="list">
-                          <form id="form_tambah_ipl_acc">
+                          <form id="form_tambah_kas_acc">
                             <ul>
                               <li class="item-content item-input">
                                 <div class="item-inner" style="padding-top: 20px;">
-                                  <label style="height:17px; margin-top:-9px;"><b>Nama IPL</b></label>
+                                  <label style="height:17px; margin-top:-9px;"><b>Nama Kas</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
-                                    <input class="clear_tambah_ipl_acc" type="text" id="tambah_ipl" name="tambah_ipl"
-                                      placeholder="Nama IPL" required validate>
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-
-                              <li class="item-content item-input">
-                                <div class="item-inner" style="padding-top: 10px;">
-                                  <div class="item-input-wrap display-flex align-items-center">
-                                    <input class="clear_tambah_kategori_acc" type="checkbox" id="tambah_ipl"
-                                      name="tambah_ipl" placeholder="IPL" onclick="changeIpl('tambah');"
-                                      style="width: 20px;height: 20px;">
-                                    <label style="height:17px; margin-top:-9px;padding-left: 5px;"><b>IPL</b></label>
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                              <li class="item-content item-input" id="tambah_show_ipl">
-                                <div class="item-inner" style="padding-top: 20px;">
-                                  <label style="height:17px; margin-top:-9px;"><b>Tanggal Reminder</b></label>
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input class="clear_tambah_kategori_acc" type="number" id="tambah_tanggal"
-                                      name="tambah_tanggal" placeholder="Tanggal">
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                            </ul>
-                          </form>
-                        </div>
-                      </div>
-                      <div style="padding: 5px;">
-                        <button onclick="processTambahIplAcc();" style="width:100%;"
-                          class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold"
-                          id="tambah_kas_button_save">SIMPAN
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div> -->
-
-    <!-- <div class="popup edit-ipl-popup">
-      <div class="view view-init">
-        <div class="page">
-          <div class="navbar">
-            <div class="navbar-bg"></div>
-            <div class="navbar-inner bg-dark-gray-medium">
-              <div class="title">Edit IPL</div>
-              <div class="right">
-                <p class="text-add-colour-white link popup-close" id="back-edit-ipl" data-popup=".edit-ipl-popup"><i
-                    style="margin-right:5px;" class="f7-icons">xmark_rectangle_fill</i></p>
-              </div>
-            </div>
-          </div>
-          <div class="page-content">
-            <div class="card card-outline margin-top">
-              <div class="card-content">
-                <div class="row">
-                  <div class="col-100">
-                    <div class="card-content">
-                      <div class="list no-hairlines-md">
-                        <div class="list">
-                          <form id="form_edit_ipl_acc">
-                            <ul>
-                              <li class="item-content item-input">
-                                <div class="item-inner" style="padding-top: 20px;">
-                                  <label style="height:17px; margin-top:-9px;"><b>Nama IPL</b></label>
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input class="clear_edit_ipl_acc" type="text" id="edit_ipl" name="edit_ipl"
+                                    <input class="clear_tambah_kas_acc" type="text" id="tambah_kas" name="tambah_kas"
                                       placeholder="kas" required validate>
                                     <span class="input-clear-button"></span>
                                   </div>
                                 </div>
                               </li>
-                              <li class="item-content item-input">
-                                <div class="item-inner" style="padding-top: 10px;">
-                                  <div class="item-input-wrap display-flex align-items-center">
-                                    <input class="clear_edit_kategori_acc" type="checkbox" id="edit_ipl" name="edit_ipl"
-                                      placeholder="IPL" onclick="changeIpl('edit');" style="width: 20px;height: 20px;">
-                                    <label style="height:17px; margin-top:-9px;padding-left: 5px;"><b>IPL</b></label>
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                              <li class="item-content item-input" id="edit_show_ipl">
-                                <div class="item-inner" style="padding-top: 20px;">
-                                  <label style="height:17px; margin-top:-9px;"><b>Tanggal Reminder</b></label>
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input class="clear_edit_kategori_acc" type="number" id="edit_tanggal"
-                                      name="edit_tanggal" placeholder="Tanggal">
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
                             </ul>
                           </form>
                         </div>
                       </div>
                       <div style="padding: 5px;">
-                        <button onclick="processTambahIplAcc();" style="width:100%;"
+                        <button onclick="processTambahKasAcc();" style="width:100%;"
                           class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold"
                           id="tambah_kas_button_save">SIMPAN
                         </button>
@@ -332,18 +56,233 @@
           </div>
         </div>
       </div>
-    </div> -->
+    </div>
 
-    <!-- <div class="popup detail-ipl-popup">
+    <div class="popup edit-kas-popup">
       <div class="view view-init">
         <div class="page">
           <div class="navbar">
             <div class="navbar-bg"></div>
             <div class="navbar-inner bg-dark-gray-medium">
-              <div class="title">IPL <span id="nama-kas-ipl"></span></div>
+              <div class="title">Edit Data Kas</div>
               <div class="right">
-                <p class="text-add-colour-white link popup-close" id="back-detail-ipl" data-popup=".detail-ipl-popup"><i
+                <!-- Link to close popup -->
+                <p class="text-add-colour-white link popup-close" id="back-edit-kas" data-popup=".edit-kas-popup"><i
                     style="margin-right:5px;" class="f7-icons">xmark_rectangle_fill</i></p>
+              </div>
+            </div>
+          </div>
+          <div class="page-content">
+            <div class="card card-outline margin-top">
+              <div class="card-content">
+                <div class="row">
+                  <div class="col-100">
+                    <div class="card-content">
+                      <div class="list no-hairlines-md">
+                        <div class="list">
+                          <form id="form_edit_kas">
+                            <ul>
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;"><b>Nama Kas</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input class="clear_edit_kas" type="hidden" id="edit_id_kas" name="edit_id_kas"
+                                      required validate>
+                                    <input class="clear_edit_kas" type="text" id="edit_kas" name="edit_kas"
+                                      placeholder="Kas" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                            </ul>
+                          </form>
+                        </div>
+                      </div>
+                      <div style="padding: 5px;">
+                        <button onclick="processEditKasAcc();" style="width:100%;"
+                          class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold"
+                          id="edit_kas_button_save">SIMPAN
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup tambah-karyawan-popup">
+      <div class="view view-init">
+        <div class="page">
+          <div class="navbar">
+            <div class="navbar-bg"></div>
+            <div class="navbar-inner bg-dark-gray-medium">
+              <div class="title">Tambah Karyawan</div>
+              <div class="right">
+                <!-- Link to close popup -->
+                <p class="text-add-colour-white link popup-close" id="back-tambah-karyawan"
+                  data-popup=".tambah-karyawan-popup"><i style="margin-right:5px;"
+                    class="f7-icons">xmark_rectangle_fill</i></p>
+              </div>
+            </div>
+          </div>
+          <div class="page-content">
+            <div class="card card-outline margin-top">
+              <div class="card-content">
+                <div class="row">
+                  <div class="col-100">
+                    <div class="card-content">
+                      <div class="list no-hairlines-md">
+                        <div class="list">
+                          <form id="form_tambah_karyawan_acc">
+                            <ul>
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;"><b>Nama Karyawan</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input class="clear_tambah_karyawan_acc" type="text" id="tambah_karyawan"
+                                      name="tambah_karyawan" placeholder="Nama Karyawan" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;"><b>Username</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input class="clear_tambah_karyawan_acc" type="text" id="tambah_username"
+                                      name="tambah_username" placeholder="Username" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;"><b>Password</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input class="clear_tambah_karyawan_acc" type="text" id="tambah_password"
+                                      name="tambah_password" placeholder="Password" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                            </ul>
+                          </form>
+                        </div>
+                      </div>
+                      <div style="padding: 5px;">
+                        <button onclick="processTambahKaryawanAcc();" style="width:100%;"
+                          class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold"
+                          id="tambah_kas_button_save">SIMPAN
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup edit-karyawan-popup">
+      <div class="view view-init">
+        <div class="page">
+          <div class="navbar">
+            <div class="navbar-bg"></div>
+            <div class="navbar-inner bg-dark-gray-medium">
+              <div class="title">Edit Karyawan</div>
+              <div class="right">
+                <!-- Link to close popup -->
+                <p class="text-add-colour-white link popup-close" id="back-edit-karyawan"
+                  data-popup=".edit-karyawan-popup"><i style="margin-right:5px;"
+                    class="f7-icons">xmark_rectangle_fill</i></p>
+              </div>
+            </div>
+          </div>
+          <div class="page-content">
+            <div class="card card-outline margin-top">
+              <div class="card-content">
+                <div class="row">
+                  <div class="col-100">
+                    <div class="card-content">
+                      <div class="list no-hairlines-md">
+                        <div class="list">
+                          <form id="form_edit_karyawan_acc">
+                            <ul>
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;"><b>Nama Karyawan</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input class="clear_edit_karyawan_acc" type="text" id="edit_karyawan"
+                                      name="edit_karyawan" placeholder="kas" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;"><b>Username</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input class="clear_edit_karyawan_acc" type="text" id="edit_username"
+                                      name="edit_username" placeholder="Username" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;"><b>Password</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input class="clear_edit_karyawan_acc" type="text" id="edit_password"
+                                      name="edit_password" placeholder="Password" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                            </ul>
+                          </form>
+                        </div>
+                      </div>
+                      <div style="padding: 5px;">
+                        <button onclick="processTambahKaryawanAcc();" style="width:100%;"
+                          class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold"
+                          id="tambah_kas_button_save">SIMPAN
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup detail-karyawan-popup">
+      <div class="view view-init">
+        <div class="page">
+          <div class="navbar">
+            <div class="navbar-bg"></div>
+            <div class="navbar-inner bg-dark-gray-medium">
+              <div class="title">Karyawan <span id="nama-kas-karyawan"></span></div>
+              <div class="right">
+                <!-- Link to close popup -->
+                <p class="text-add-colour-white link popup-close" id="back-detail-karyawan"
+                  data-popup=".detail-karyawan-popup"><i style="margin-right:5px;"
+                    class="f7-icons">xmark_rectangle_fill</i></p>
               </div>
             </div>
           </div>
@@ -353,8 +292,12 @@
                 <table width="100%;" cellspacing="0" cellpadding="1" style="border-color:gray;">
                   <tr class="bg-dark-gray-young">
                     <th style="padding:4px;" align="left">
-                      <h3 style="margin: 7px;">Data IPL</h3>
+                      <h3 style="margin: 7px;">Data Karyawan</h3>
                     </th>
+                    <!-- <th style="padding-right:20px;" align="right">
+                      <i class="f7-icons text-add-colour-white popup-open" onclick="openKaryawanPopup();"
+                        data-popup=".tambah-karyawan-popup" style="font-size:30px; color:white;">plus_circle_fill</i>
+                    </th> -->
                   </tr>
                 </table>
                 <div class="card">
@@ -362,17 +305,15 @@
                     <table cellspacing="1" cellpadding="1" width="100%">
                       <thead class="bg-dark-gray-medium text-align-center">
                         <tr>
-                          <th class="label-cell" style="border-bottom:1px solid gray;" width="10%">
+                          <th class="label-cell" style="border-bottom:1px solid gray;" width="5%">
                             No</th>
-                          <th class="label-cell" style="border-bottom:1px solid gray;" width="40%">
-                            Nama IPL</th>
-                          <th class="label-cell" style="border-bottom:1px solid gray;" width="25%">
-                            Tanggal Reminder</th>
-                          <th class="label-cell" style="border-bottom:1px solid gray;" colspan="2" width="25%">
+                          <th class="label-cell" style="border-bottom:1px solid gray;" width="8%">
+                            Nama Karyawan</th>
+                          <th class="label-cell" style="border-bottom:1px solid gray;" colspan="2" width="8%">
                             Opsi</th>
                         </tr>
                       </thead>
-                      <tbody class="text-align-center" id="detail_ipl_kas_values">
+                      <tbody class="text-align-center" id="detail_karyawan_kas_values">
                       </tbody>
                     </table>
                   </div>
@@ -382,7 +323,7 @@
           </div>
         </div>
       </div>
-    </div> -->
+    </div>
 
     <div class="card">
       <div class="menu-ninda">
@@ -396,10 +337,10 @@
           </div>
         </div>
         <div style="text-align: center;" class="row no-gap bg-dark-gray-young">
-          <div class="col col-border text-bold bg-dark-gray-medium"><a class="text-add-colour-white"
-              href="/master">Kategori</a>
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/master">Kategori</a>
           </div>
-          <!-- <div class="col col-border text-bold"><a class="text-add-colour-white" href="/master-kas">Kas</a>
+          <!-- <div class="col col-border text-bold bg-dark-gray-medium"><a class="text-add-colour-white"
+              href="/master-kas">Kas</a>
           </div> -->
           <div class="col col-border text-bold"><a class="text-add-colour-white" href="/master-expedisi">Expedisi</a>
           </div>
@@ -418,10 +359,10 @@
           </div>
         </div>
         <div style="text-align: center;" class="row no-gap bg-dark-gray-young">
-          <div class="col col-border text-bold bg-dark-gray-medium"><a class="text-add-colour-white"
-              href="/master">Kategori</a>
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/master">Kategori</a>
           </div>
-          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/master-kas">Kas</a>
+          <div class="col col-border text-bold bg-dark-gray-medium"><a class="text-add-colour-white"
+              href="/master-kas">Kas</a>
           </div>
           <div class="col col-border text-bold"><a class="text-add-colour-white" href="/master-expedisi">Expedisi</a>
           </div>
@@ -443,29 +384,22 @@
               <div class="card-header bg-dark-gray-young" style="padding:5px ;">
                 <table width="100%">
                   <tr>
-                    <td width="85%">
+                    <td width="90%">
                       <div class="data-table-title" style="height:2px;">
-                        <h3 class="margin-15">Data | <span id="total-keterangan"></span></h3>
+                        <h3 class="margin-15">Data</h3>
                       </div>
                     </td>
-                    <!-- <td width="5%">
-                      <div class="data-table-title">
-                        <label id="change-color-eye" onclick="openDataIpl();" data-popup=".detail-ipl-popup"
-                          class="popup-open"><i class="f7-icons" style=" color:green;">calendar</i></label>
-                      </div>
-                    </td> -->
                     <td width="5%">
                       <div class="data-table-title">
-                        <label id="change-color-eye" onclick="resetDataKategori(1);"><i class="f7-icons"
+                        <label id="change-color-eye" onclick="resetDataKas(1);"><i class="f7-icons"
                             style=" color:green;">arrow_2_circlepath_circle_fill</i></label>
                       </div>
                     </td>
                     <td width="5%">
                       <div class="data-table-title">
                         <a class="text-add-colour-white">
-                          <i class="text-align-right f7-icons popup-open" onclick="tambahDataKeterangan();"
-                            data-popup=".tambah-keterangan-popup"
-                            style="font-size:30px; color:green;">plus_circle_fill</i></a>
+                          <i class="text-align-right f7-icons popup-open" onclick="tambahDataKas();"
+                            data-popup=".tambah-kas-popup" style="font-size:30px; color:green;">plus_circle_fill</i></a>
                       </div>
                     </td>
                   </tr>
@@ -477,9 +411,9 @@
                     <tr>
                       <th style="padding:5px;" colspan="2" width="50%">
                         <center>
-                          <input onkeyup="doSearchByKeterangan()" type="text"
+                          <input onkeyup="doSearchByKeteranganKas()" type="text"
                             style="border-radius:3px; padding:6px; width:100%;  color:black; background-color:lightgray;"
-                            id="keterangan_filter" name="keterangan_filter" placeholder="Cari Keterangan">
+                            id="kas_filter" name="kas_filter" placeholder="Cari Kas">
                         </center>
                       </th>
                     </tr>
@@ -488,17 +422,13 @@
               </div>
               <div class="card-content" style="overflow-x:auto;width:100%;">
                 <form id="form_change_type">
-                  <table cellspacing="1" cellpadding="1" width="500px">
+                  <table cellspacing="1" cellpadding="1" width="100%">
                     <thead class="bg-dark-gray-medium text-align-center">
                       <th class="label-cell" width="5%" style="border-bottom:1px solid gray;">No</th>
-                      <th class="label-cell" width="50%" style="border-bottom:1px solid gray;">Nama Kategori</th>
-                      <th class="label-cell" width="15%" style="border-bottom:1px solid gray;">Tgl Reminder</th>
-                      <th class="label-cell" width="15%" style="border-bottom:1px solid gray;">Nominal</th>
-                      <th class="label-cell" width="5%" style="border-bottom:1px solid gray;">M</th>
-                      <th class="label-cell" width="10%" style="border-bottom:1px solid gray;" colspan="2"
-                        id="show_opsi_master_kategori">Opsi</th>
+                      <th class="label-cell" width="90%" style="border-bottom:1px solid gray;">Nama Kas</th>
+                      <th class="label-cell" width="10%" style="border-bottom:1px solid gray;" colspan="2">Opsi</th>
                     </thead>
-                    <tbody id="data_kategori_accounting">
+                    <tbody id="data_kas_accounting">
                     </tbody>
                   </table>
                 </form>

@@ -8,6 +8,61 @@
   background-color: forestgreen;
 }
 
+/* === Warna Dasar Aquamarine === */
+:root {
+  --aquamarine: #7FFFD4;
+  --aquamarine-dark: #66e0bb;
+  --aquamarine-light: #aaffeb;
+  --aquamarine-text: #004d40;
+}
+
+/* === Background & Text === */
+
+.bg-orange {
+  background-color: #FF7A1A !important;
+  /* orange khas Koperindo */
+  color: white !important;
+}
+
+.bg-aquamarine {
+  background-color: var(--aquamarine) !important;
+  color: var(--aquamarine-text) !important;
+}
+
+.text-aquamarine {
+  color: var(--aquamarine) !important;
+}
+
+.border-aquamarine {
+  border: 1px solid var(--aquamarine) !important;
+}
+
+/* === Tombol === */
+.btn-aquamarine {
+  background-color: var(--aquamarine);
+  color: var(--aquamarine-text);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+.btn-aquamarine:hover {
+  background-color: var(--aquamarine-dark);
+}
+
+.btn-aquamarine:active {
+  background-color: var(--aquamarine-light);
+}
+
+/* === Gradient versi lembut === */
+.bg-gradient-aquamarine {
+  background: linear-gradient(135deg, #7FFFD4 0%, #5FE7B5 100%);
+  color: #004d40;
+}
+
 .card-color-white {
   background-color: white;
 }
@@ -532,6 +587,177 @@ div[class*="col-border"] {
   to {
     background-color: transparent;
   }
+}
+
+.item-input-wrap textarea {
+  height: 80px;
+}
+
+
+/* dropdown pengajuan */
+.detail-popup .list ul {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.detail-line {
+  display: flex;
+  font-size: 14px;
+  margin: 4px 0;
+  align-items: center;
+}
+
+.detail-line .label {
+  font-weight: 600;
+  min-width: 110px;
+  white-space: nowrap;
+}
+
+.detail-line .pembatas {
+  font-weight: 600;
+  min-width: 30px;
+  white-space: nowrap;
+}
+
+.detail-line .value {
+  margin-left: 6px;
+  font-weight: 600;
+  flex: 1;
+  text-align: left;
+  word-break: break-word;
+}
+
+/* baris paling atas: kategori + status di kanan */
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.detail-header-left .label {
+  font-weight: 600;
+  min-width: 110px;
+  white-space: nowrap;
+}
+
+.detail-header-left .pembatas {
+  font-weight: 600;
+  min-width: 30px;
+  white-space: nowrap;
+}
+
+.detail-header-left .value {
+  font-weight: 600;
+}
+
+/* tombol nomor HP */
+.detail-line .value-hp {
+  margin-left: 6px;
+  flex: 1;
+  text-align: left;
+}
+
+.btn-phone {
+  background: #25D366;
+  /* hijau WhatsApp */
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 4px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-block;
+  font-weight: 600;
+}
+
+.btn-phone-x {
+  background: #d32525;
+  /* hijau WhatsApp */
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 4px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-block;
+  font-weight: 600;
+}
+
+#detail_keterangan {
+  white-space: pre-line;
+}
+
+/* Baris uraian — lurus dengan titik dua */
+.uraian-line {
+  align-items: flex-start !important;
+}
+
+.uraian-line .uraian-value {
+  margin-top: -2px;
+  /* tarik ke atas agar BARIS PERTAMA sejajar */
+  /* white-space: pre-line; */
+  /* multiline rapi */
+}
+
+/* biar select native-nya benar-benar tersembunyi */
+.hidden-native-select {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  width: 0;
+}
+
+/* minimal styling untuk custom dropdown (kalau belum ada) */
+.custom-dd {
+  position: relative;
+}
+
+.custom-dd-toggle {
+  border-radius: 16px;
+  border: none;
+  padding: 6px 28px 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.custom-dd-caret {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.custom-dd-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #222;
+  border-radius: 8px;
+  margin-top: 4px;
+  padding: 4px 0;
+  z-index: 9999;
+  display: none;
+}
+
+.custom-dd-menu li {
+  list-style: none;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.custom-dd-menu li:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /*end additional css by aris*/

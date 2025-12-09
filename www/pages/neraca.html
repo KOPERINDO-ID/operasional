@@ -104,7 +104,7 @@
                             <ul>
                               <li class="item-content item-input">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label>
                                   <div class="item-input-wrap">
                                     <a class="item-link smart-select smart-select-init" data-searchbar="true"
                                       id="smart_select_edit_kategori_jurnal" data-searchbar-placeholder="Cari Kategori"
@@ -127,13 +127,15 @@
                               </li>
                               <li class="item-content item-input edit_expedisi_jurnal">
                                 <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Perusahaan</b></label>
                                   <div class="item-input-wrap">
                                     <a class="item-link smart-select smart-select-init" data-searchbar="true"
                                       id="smart_select_edit_perusahaan_jurnal"
                                       data-searchbar-placeholder="Cari Expedisi" data-open-in="popup"
                                       data-close-on-select="true">
                                       <select class="clear_edit_jurnal edit_expedisi_jurnal_att"
-                                        id="edit_perusahaan_jurnal" onchange="colorDropPerusahaanJurnal('edit');"
+                                        id="edit_perusahaan_jurnal"
+                                        onchange="colorDropPerusahaanJurnal('edit');onPerusahaanChangedTambah('edit_jurnal');"
                                         name="edit_perusahaan_jurnal" placeholder="Perusahaan" required validate>
                                       </select>
                                       <div class="item-content"
@@ -150,7 +152,7 @@
                               </li>
                               <li class="item-content item-input edit_expedisi_jurnal">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>Pic</b></label>
                                   <div class="item-input-wrap">
                                     <input type="text" class="clear_edit_jurnal edit_expedisi_jurnal_att"
                                       id="edit_pic_jurnal" placeholder="PIC" name="edit_pic_jurnal" required validate>
@@ -159,51 +161,91 @@
                               </li>
                               <li class="item-content item-input edit_expedisi_jurnal">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>No. Plat</b></label>
                                   <div class="item-input-wrap">
                                     <input type="text" class="clear_edit_jurnal edit_expedisi_jurnal_att"
-                                      oninput="this.value = this.value.toUpperCase()" id="edit_plat_jurnal"
-                                      placeholder="No. Plat" name="edit_plat_jurnal" required validate>
+                                      id="edit_plat_jurnal" placeholder="No. Plat" name="edit_plat_jurnal" required
+                                      validate minlength="4" maxlength="10" style="text-transform: uppercase;"
+                                      oninput="this.value = this.value.toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '').replace(/^([A-Z]{1,2})(\d{0,4})([A-Z]{0,3}).*/, (m, p1, p2, p3) => p1 + p2 + p3);">
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input edit_expedisi_jurnal">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
                                   <div class="item-input-wrap">
-                                    <input type="text" class="clear_edit_jurnal edit_expedisi_jurnal_att"
-                                      id="edit_nohp_jurnal" placeholder="No. HP" minlength="10" name="edit_nohp_jurnal" required
-                                      validate>
+                                    <div class="row">
+                                      <div class="col-50">
+                                        <label>Pengirim</label>
+                                        <input type="text" class="clear_edit_jurnal edit_expedisi_att_jurnal"
+                                          id="edit_expedisi_pengirim_jurnal" name="edit_expedisi_pengirim_jurnal"
+                                          placeholder="Pengirim" required validate style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                      <div class="col-50">
+                                        <label>Penerima</label>
+                                        <input type="text" class="clear_edit_jurnal edit_expedisi_att_jurnal"
+                                          id="edit_expedisi_penerima_jurnal" name="edit_expedisi_penerima_jurnal"
+                                          placeholder="Penerima" required validate value="KOPERINDO"
+                                          style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()" onclick="this.value='';">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input edit_expedisi_jurnal">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <div class="row">
+                                      <div class="col-50">
+                                        <label>Dari - Kota</label>
+                                        <input type="text" class="clear_edit_jurnal edit_expedisi_att_jurnal"
+                                          id="edit_expedisi_dari_jurnal" name="edit_expedisi_dari_jurnal"
+                                          placeholder="Dari" required validate style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                      <div class="col-50">
+                                        <label>Tujuan - Kota</label>
+                                        <input type="text" class="clear_edit_jurnal edit_expedisi_att_jurnal"
+                                          id="edit_expedisi_tujuan_jurnal" name="edit_expedisi_tujuan_jurnal"
+                                          placeholder="Tujuan" required validate value="KOPERINDO"
+                                          style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()" onclick="this.value='';">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Alamat</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
-                                    <input type="text" class="clear_edit_jurnal edit_expedisi_jurnal_att"
-                                      id="edit_expedisi_keterangan_jurnal" name="edit_expedisi_keterangan_jurnal"
-                                      placeholder="Uraian" required validate>
+                                    <textarea class="clear_edit_jurnal edit_expedisi_att_jurnal" id="edit_alamat_jurnal"
+                                      rows="2" name="edit_alamat_jurnal" placeholder="Alamat" required
+                                      validate></textarea>
                                     <span class="input-clear-button"></span>
                                   </div>
                                 </div>
                               </li>
-                              <li class="item-content item-input edit_uraian_transaksi_jurnal">
+                              <li class="item-content item-input edit_expedisi_jurnal">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>No. HP</b></label>
                                   <div class="item-input-wrap">
-                                    <label></label>
-                                    <input type="text" class="clear_edit_jurnal edit_uraian_jurnal_att"
-                                      id="edit_keterangan_jurnal" placeholder="Uraian" name="edit_keterangan_jurnal"
-                                      required validate>
-                                    <span class="input-clear-button"></span>
+                                    <input type="text" class="clear_edit_jurnal edit_expedisi_jurnal_att input_nohp"
+                                      id="edit_nohp_jurnal" placeholder="No. HP" minlength="10" maxlength="15" required
+                                      validate oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                      name="edit_nohp_jurnal">
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
                                     <input type="hidden" class="clear_edit_jurnal edit_nominal_jurnal_att"
@@ -219,9 +261,34 @@
                                   </div>
                                 </div>
                               </li>
+                              <li class="item-content item-input edit_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Uraian</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="text" class="clear_edit_jurnal edit_expedisi_jurnal_att"
+                                      id="edit_expedisi_keterangan_jurnal" name="edit_expedisi_keterangan_jurnal"
+                                      placeholder="Uraian" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_uraian_transaksi_jurnal">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Uraian</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="text" class="clear_edit_jurnal edit_uraian_jurnal_att"
+                                      id="edit_keterangan_jurnal" placeholder="Uraian" name="edit_keterangan_jurnal"
+                                      required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
                               <li class="item-content item-input" id="show_keterangan_reject">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;color: red;"><b>Keterangan
+                                      Reject</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
                                     <input type="text" id="edit_keterangan_reject_jurnal"
@@ -245,12 +312,12 @@
                               </div>
                               <div class="col" id="button_edit_jurnal_fill_file">
                                 <label for="edit_file_jurnal_acc_1" id="edit_value_jurnal_acc_1" style="width: 100%;"
-                                  class="text-add-colour-black-soft bg-dark-gray-young button-large button text-bold custom-file-upload edit_value_jurnal_acc">
+                                  class="text-add-colour-black-soft bg-dark-gray-young button-large button text-bold custom-file-upload edit_value_jurnal_acc_1">
                                   File
                                 </label>
                                 <input
                                   class="clear_edit_jurnal acc-input input-item-file text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold"
-                                  type="file" style="display:none;" onchange="gambarAcc(1,'edit');"
+                                  type="file" style="display:none;" onchange="gambarAccJurnal(1,'edit');"
                                   name="edit_file_jurnal_acc_1" id="edit_file_jurnal_acc_1"
                                   accept="image/*;capture=camera">
                               </div>
@@ -304,7 +371,7 @@
                             <ul>
                               <li class="item-content item-input">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label>
                                   <div class="item-input-wrap">
                                     <a class="item-link smart-select smart-select-init" data-searchbar="true"
                                       id="smart_select_detail_kategori_jurnal"
@@ -328,6 +395,7 @@
                               </li>
                               <li class="item-content item-input detail_expedisi_jurnal">
                                 <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Perusahaan</b></label>
                                   <div class="item-input-wrap">
                                     <a class="item-link smart-select smart-select-init" data-searchbar="true"
                                       id="smart_select_detail_perusahaan_jurnal"
@@ -351,7 +419,7 @@
                               </li>
                               <li class="item-content item-input detail_expedisi_jurnal">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>Pic</b></label>
                                   <div class="item-input-wrap">
                                     <input type="text" class="clear_detail_transaksi detail_expedisi_att_jurnal"
                                       id="detail_pic_jurnal" placeholder="PIC" name="detail_pic_jurnal" required
@@ -361,27 +429,114 @@
                               </li>
                               <li class="item-content item-input detail_expedisi_jurnal">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>No. Plat</b></label>
                                   <div class="item-input-wrap">
                                     <input type="text" class="clear_detail_transaksi_jurnal detail_expedisi_att_jurnal"
-                                      oninput="this.value = this.value.toUpperCase()" id="detail_plat_jurnal"
-                                      placeholder="No. Plat" name="detail_plat_jurnal" required validate>
+                                      id="detail_plat_jurnal" placeholder="No. Plat" name="detail_plat_jurnal" required
+                                      validate minlength="4" maxlength="10" style="text-transform: uppercase;"
+                                      oninput="this.value = this.value.toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '').replace(/^([A-Z]{1,2})(\d{0,4})([A-Z]{0,3}).*/, (m, p1, p2, p3) => p1 + p2 + p3);">
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input detail_expedisi_jurnal">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>No. HP</b></label>
                                   <div class="item-input-wrap">
-                                    <input type="text" class="clear_detail_transaksi_jurnal detail_expedisi_att_jurnal"
-                                      id="detail_nohp_jurnal" placeholder="No. HP" minlength="10" name="detail_nohp_jurnal" required
-                                      validate>
+                                    <input type="text"
+                                      class="clear_detail_transaksi_jurnal detail_expedisi_att_jurnal input_nohp"
+                                      id="detail_nohp_jurnal" placeholder="No. HP" minlength="10" maxlength="15"
+                                      required validate oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                      name="detail_nohp_jurnal">
+                                  </div>
+                                </div>
+                              </li>
+
+                              <li class="item-content item-input detail_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <div class="item-input-wrap">
+                                    <div class="row">
+                                      <div class="col-50"
+                                        style="border: 1px solid gray;border-radius: 5px;padding: 5px;">
+                                        <label>Pengirim</label>
+                                        <input type="text"
+                                          class="clear_detail_transaksi_jurnal detail_expedisi_att_jurnal"
+                                          id="detail_expedisi_pengirim_jurnal" name="detail_expedisi_pengirim_jurnal"
+                                          placeholder="Pengirim" required validate style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                      <div class="col-50"
+                                        style="border: 1px solid gray;border-radius: 5px;padding: 5px;">
+                                        <label>Penerima</label>
+                                        <input type="text"
+                                          class="clear_detail_transaksi_jurnal detail_expedisi_att_jurnal"
+                                          id="detail_expedisi_penerima_jurnal" name="detail_expedisi_penerima_jurnal"
+                                          placeholder="Penerima" required validate style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input detail_expedisi_jurnal">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <div class="row">
+                                      <div class="col-50"
+                                        style="border: 1px solid gray;border-radius: 5px;padding: 5px;">
+                                        <label>Dari - Kota</label>
+                                        <input type="text"
+                                          class="clear_detail_transaksi_jurnal detail_expedisi_att_jurnal"
+                                          id="detail_expedisi_dari_jurnal" name="detail_expedisi_dari_jurnal"
+                                          placeholder="Dari" required validate style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                      <div class="col-50"
+                                        style="border: 1px solid gray;border-radius: 5px;padding: 5px;">
+                                        <label>Tujuan - Kota</label>
+                                        <input type="text"
+                                          class="clear_detail_transaksi_jurnal detail_expedisi_att_jurnal"
+                                          id="detail_expedisi_tujuan_jurnal" name="detail_expedisi_tujuan_jurnal"
+                                          placeholder="Tujuan" required validate value="KOPERINDO"
+                                          style="text-transform: uppercase;"
+                                          oninput="this.value = this.value.toUpperCase()" onclick="this.value='';">
+                                        <span class="input-clear-button"></span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input detail_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Alamat</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <textarea class="clear_detail_transaksi_jurnal detail_expedisi_att_jurnal"
+                                      id="detail_alamat_jurnal" rows="2" name="detail_alamat_jurnal"
+                                      placeholder="Alamat" required validate></textarea>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="hidden" id="detail_id_transaksi_acc_jurnal"
+                                      name="detail_id_transaksi_acc_jurnal" required validate>
+                                    <input type="text" class="clear_detail_transaksi_jurnal detail_nominal_att_jurnal"
+                                      id="detail_nominal_jurnal" placeholder="Nominal" name="detail_nominal_jurnal"
+                                      readonly required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input detail_expedisi_jurnal">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Uraian</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
                                     <input type="text" class="clear_detail_transaksi_jurnal detail_expedisi_att_jurnal"
@@ -393,26 +548,12 @@
                               </li>
                               <li class="item-content item-input detail_uraian_transaksi_jurnal">
                                 <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
+                                  <label style="height:17px; margin-top:-9px;"><b>Uraian</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
                                     <input type="text" class="clear_detail_transaksi_jurnal detail_uraian_att_jurnal"
                                       id="detail_keterangan_jurnal" placeholder="Uraian" name="detail_keterangan_jurnal"
                                       required validate>
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                              <li class="item-content item-input">
-                                <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label> -->
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input type="hidden" id="detail_id_transaksi_acc_jurnal"
-                                      name="detail_id_transaksi_acc_jurnal" required validate>
-                                    <input type="text" class="clear_detail_transaksi_jurnal detail_nominal_att_jurnal"
-                                      id="detail_nominal_jurnal" placeholder="Nominal" name="detail_nominal_jurnal"
-                                      readonly required validate>
                                     <span class="input-clear-button"></span>
                                   </div>
                                 </div>
@@ -503,8 +644,8 @@
                     </td>
                     <td width="5%">
                       <div class="data-table-title">
-                        <label id="change-color-eye" onclick="resetDataJurnal(1);"><i
-                            class="f7-icons" style=" color:green;">arrow_2_circlepath_circle_fill</i></label>
+                        <label id="change-color-eye" onclick="resetDataJurnal(1);"><i class="f7-icons"
+                            style=" color:green;">arrow_2_circlepath_circle_fill</i></label>
                       </div>
                     </td>
                   </tr>
@@ -517,9 +658,10 @@
                       <th width="50%" class="label-cell bg-dark-gray-young" style="padding:3px; font-size:16px; ">
                         <center>
                           <select onchange="getDataJurnal()" style="font-weight:bold;text-align: center;"
-                            name="operasional_bulan" class="operasional_bulan text-add-colour-black-soft"
+                            name="operasional_bulan"
+                            class="operasional_bulan text-add-colour-black-soft input-filter-kas"
                             id="operasional_bulan">
-                            <option value="all" >All Bulan</option>
+                            <option value="all">All Bulan</option>
                           </select>
                         </center>
                       </th>
@@ -529,7 +671,7 @@
                           <select onchange="getDataJurnal()" class="operasional_years text-add-colour-black-soft"
                             style="font-weight:bold;text-align: center;" name="operasional_years"
                             id="operasional_years">
-                            <option value="all" >All Tahun</option>
+                            <option value="all">All Tahun</option>
                           </select>
                         </center>
                       </th>

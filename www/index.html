@@ -31,8 +31,8 @@
       <div class="navbar">
         <div class="navbar-bg"></div>
         <div class="navbar-inner bg-dark-gray-medium">
-          <div class="title" id="title-nama" style="margin-left:5px;">Admin</div>
-          <div class="kotak" id="box_internet" style="float:right;">
+          <div class="kotak" id="box_internet" style="float:right;margin-left:5px;">
+            <div class="title" id="title-nama" style="margin-left:30px;">Admin</div>
 
           </div>
           <div class="popup popup-pengumuman">
@@ -61,15 +61,64 @@
               </div>
             </div>
           </div>
-
+          <div class="popup popup-pengajuan">
+            <div class="view">
+              <div class="page">
+                <div class="navbar">
+                  <div class="navbar-bg"></div>
+                  <div class="navbar-inner">
+                    <div class="title">Pengajuan</div>
+                    <div class="right">
+                      <!-- Link to close popup -->
+                      <a class="link popup-close">Close</a>
+                    </div>
+                  </div>
+                </div>
+                <div class="page-content">
+                  <div class="card card-outline margin-top">
+                    <div class="card-content">
+                      <div class="row">
+                        <div class="col-100">
+                          <div class="card-content" style="overflow-x:auto;width:100%;">
+                            <table cellspacing="1" cellpadding="1" width="750px">
+                              <thead class="bg-dark-gray-medium text-align-center">
+                                <th class="label-cell" width="5%" style="border-bottom:1px solid gray;">No</th>
+                                <th class="label-cell" width="17%" style="border-bottom:1px solid gray;">Tanggal</th>
+                                <th class="label-cell" width="18%" style="border-bottom:1px solid gray;">Kategori</th>
+                                <th class="label-cell" width="33%" style="border-bottom:1px solid gray;">Keterangan
+                                </th>
+                                <th class="label-cell" width="17%" style="border-bottom:1px solid gray;">Nominal</th>
+                                <th class="label-cell" width="10%" style="border-bottom:1px solid gray;">
+                                  Opsi</th>
+                              </thead>
+                              <tbody id="data_pengajuan">
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <audio id="reminder-audio" preload="auto">
+            <source src="img/sound/audio.mp3" type="audio/mpeg">
+            <source src="img/sound/audio.ogg" type="audio/ogg">
+            <source src="img/sound/audio.wav" type="audio/wav">
+          </audio>
           <!-- <div style="color:#dcdcdcfa; font-size:14px; padding:8px; float:right;" class="right" id="clock_view"></div> -->
           <div style="color:#dcdcdcfa; font-size:14px; padding:8px; float:right;" class="right">
+            <div style="width:45px;cursor: pointer;" id="pengajuan_logo" data-popup=".popup-pengajuan"
+              class="popup-open"><i class="f7-icons">tray_full_fill<span
+                  style="left:18% !important;margin-top: 20px !important;" class="badge color-red"
+                  id="count_pengajuan"></span></i></div>
             <div style="width:45px;cursor: pointer;" id="pengumuman_logo" data-popup=".popup-pengumuman"
-              class="popup-open"><i class="f7-icons">bell<span style="left:40% !important;margin-top: 12px !important;"
+              class="popup-open"><i class="f7-icons">bell<span style="left:16% !important;margin-top: 20px !important;"
                   class="badge color-red" id="count_pengumuman"></span></i></div>
-            <div style="width:45px;cursor: pointer;" onclick="logOut();" id="logout_logo"><i
-                class="f7-icons">square_arrow_right</i>
-            </div>
+            <div style="color:#dcdcdcfa; font-size:14px; padding:8px; float:right;" id="clock_view"></div>
+            <img onclick="logOut();" id="logout_logo" src="img/logo/logout.png" style="width:45px;cursor: pointer;" />
           </div>
 
         </div>
@@ -107,6 +156,7 @@
   <script src="js/neraca.js"></script>
   <script src="js/master.js"></script>
   <script src="js/master_expedisi.js"></script>
+  <script src="js/master_kas.js"></script>
   <script src="js/additional/moment/moment.js"></script>
   <script src="js/additional/download.js"></script>
   <!-- End Additional JS -->

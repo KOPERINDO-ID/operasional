@@ -179,6 +179,7 @@ function getDataJurnal() {
 				var no = 0;
 				var nominal_debet = 0;
 				var nominal_kredit = 0;
+				var nominal_admin_acc = 0;
 				jQuery.each(data.data, function (i, val) {
 					no++
 
@@ -192,6 +193,8 @@ function getDataJurnal() {
 						}
 					}
 
+					nominal_admin_acc += parseFloat(val.admin_acc);
+
 					if (val.valid_spy == 1) {
 						var btn_valid = 'btn-color-blueWhite';
 					} else if (val.valid_spy == 2) {
@@ -202,6 +205,7 @@ function getDataJurnal() {
 
 					console.log('Nominal Debet = ' + nominal_debet);
 					console.log('Nominal Kredit = ' + nominal_kredit);
+					console.log('Nominal Admin = ' + nominal_admin_acc);
 					data_tools += '<tr>';
 					data_tools += '     <td align="center" style="border-left: 1px solid grey;border-bottom: 1px solid grey;"  class="label-cell"  >' + no + '</td>';
 					data_tools += '     <td align="center" style="border-left: 1px solid grey;border-bottom: 1px solid grey;"  class="label-cell"  >' + moment(val.tanggal_transaksi).format('DD-MMM-YYYY') + '</td>';
@@ -215,29 +219,29 @@ function getDataJurnal() {
 					data_tools += '     <td align="left" style="border-left: 1px solid grey;border-bottom: 1px solid grey;"  class="label-cell"  >' + val.keterangan + '</td>';
 
 					if (val.type_acc == 'Debet') {
-						data_tools += '     <td align="right" style="border-left: 1px solid grey;border-bottom: 1px solid grey;"  class="label-cell"  >' + number_format(nominal_acc) + '</td>';
+						data_tools += '     <td align="right" style="border-left: 1px solid grey;border-bottom: 1px solid grey;"  class="label-cell"  >' + number_format(parseFloat(nominal_acc) + parseFloat(val.admin_acc)) + '</td>';
 						data_tools += '     <td align="right" style="border-left: 1px solid grey;border-bottom: 1px solid grey;border-right: 1px solid grey;"  class="label-cell"  ></td>';
 					} else {
 						data_tools += '     <td align="right" style="border-left: 1px solid grey;border-bottom: 1px solid grey;"  class="label-cell"  ></td>';
-						data_tools += '     <td align="right" style="border-left: 1px solid grey;border-bottom: 1px solid grey;border-right: 1px solid grey;"  class="label-cell"  >' + number_format(nominal_acc) + '</td>';
+						data_tools += '     <td align="right" style="border-left: 1px solid grey;border-bottom: 1px solid grey;border-right: 1px solid grey;"  class="label-cell"  >' + number_format(parseFloat(nominal_acc) +  + parseFloat(val.admin_acc)) + '</td>';
 					}
 					if (localStorage.getItem("user_id") == 262) {
 						data_tools += '		<td style="border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
-						data_tools += '			<a onclick="getEditTransaksiJurnalAcc(\'' + val.id_transaksi_acc + '\',\'' + val.id_perusahaan_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button popup-open text-bold" data-popup=".edit-transaksi-jurnal">Edit</a>';
+						data_tools += '			<a onclick="getEditTransaksiJurnalAcc(' + val.id_transaksi_acc + ',\'' + val.id_perusahaan_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button popup-open text-bold" data-popup=".edit-transaksi-jurnal">Edit</a>';
 						data_tools += '		</td>';
 						data_tools += '		<td style="border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
-						data_tools += '			<a onclick="getEditKasAcc(\'' + val.id_transaksi_acc + '\',\'' + val.id_tr_kas_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold popup-open" data-popup=".edit-kas-jurnal">Kas</a>';
+						data_tools += '			<a onclick="getEditKasAcc(' + val.id_transaksi_acc + ',\'' + val.id_tr_kas_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold popup-open" data-popup=".edit-kas-jurnal">Kas</a>';
 						data_tools += '		</td>';
 						data_tools += '		<td style="border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
-						data_tools += '			<a onclick="deleteJurnalTransaksiAcc(\'' + val.id_transaksi_acc + '\',\'' + val.kategori_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold">Delete</a>';
+						data_tools += '			<a onclick="deleteJurnalTransaksiAcc(' + val.id_transaksi_acc + ',\'' + val.kategori_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold">Delete</a>';
 						data_tools += '		</td>';
 					} else if (localStorage.getItem("user_id") == 260) {
 						data_tools += '		<td style="border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
-						data_tools += '			<a onclick="getEditTransaksiJurnalAcc(\'' + val.id_transaksi_acc + '\',\'' + val.id_perusahaan_acc + '\')" class="' + btn_valid + ' button-small col button popup-open text-bold" data-popup=".edit-transaksi-jurnal">Detail</a>';
+						data_tools += '			<a onclick="getDetailTransaksiJurnalAcc(' + val.id_transaksi_acc + ',\'' + val.id_perusahaan_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button popup-open text-bold" data-popup=".detail-transaksi-jurnal">Detail</a>';
 						data_tools += '		</td>';
 					} else if (localStorage.getItem("user_id") == 261) {
 						data_tools += '		<td style="border-right: 1px solid grey;border-bottom: 1px solid grey;text-align:center">';
-						data_tools += '			<a onclick="getDetailTransaksiJurnalAcc(\'' + val.id_transaksi_acc + '\',\'' + val.id_perusahaan_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button popup-open text-bold" data-popup=".detail-transaksi-jurnal">Detail</a>';
+						data_tools += '			<a onclick="getDetailTransaksiJurnalAcc(' + val.id_transaksi_acc + ',\'' + val.id_perusahaan_acc + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button popup-open text-bold" data-popup=".detail-transaksi-jurnal">Detail</a>';
 						data_tools += '		</td>';
 					}
 					data_tools += '</tr>';
@@ -251,7 +255,7 @@ function getDataJurnal() {
 
 
 				jQuery("#hide_total_jurnal").show();
-				jQuery("#total-jurnal").html(number_format(parseFloat(nominal_debet) - parseFloat(nominal_kredit)));
+				jQuery("#total-jurnal").html(number_format(parseFloat(nominal_debet) - parseFloat(nominal_kredit) - parseFloat(nominal_admin_acc)));
 
 				jQuery("#data_jurnal_accounting").html(data_tools);
 			} else {
@@ -309,6 +313,11 @@ function getDetailTransaksiJurnalAcc(id_transaksi_acc, id_perusahaan_acc) {
 			jQuery("#detail_nominal_jurnal").val(number_format(data.data.nominal_acc));
 			jQuery("#detail_id_transaksi_acc_jurnal").val(number_format(data.data.id_transaksi_acc));
 			jQuery("#detail_pembayaran_jurnal").val(data.data.type_pembayaran);
+			jQuery("#detail_expedisi_pengirim_jurnal").val(data.data.perusahaan_pengirim);
+			jQuery("#detail_expedisi_penerima_jurnal").val(data.data.perusahaan_penerima);
+			jQuery("#detail_expedisi_dari_jurnal").val(data.data.perusahaan_dari);
+			jQuery("#detail_expedisi_tujuan_jurnal").val(data.data.perusahaan_tujuan);
+			jQuery("#detail_alamat_jurnal").val(data.data.perusahaan_alamat);
 			if (data.data.bukti_foto_acc != 'null') {
 				jQuery('#file_bukti_terima_detail_jurnal_view_now').attr('src', BASE_PATH_IMAGE_FOTO_ACCOUNTING + '/' + data.data.bukti_foto_acc);
 			} else {
@@ -479,18 +488,31 @@ function downloadJurnalAcc() {
 }
 
 function gambarAccJurnal(acc_table_id, type) {
-	if (jQuery('#' + type + '_file_jurnal_acc' + acc_table_id + '').val() == '' || jQuery('#' + type + '_file_jurnal_acc' + acc_table_id + '').val() == null) {
-		$$('#' + type + '_value_jurnal_acc_' + acc_table_id + '').html('File');
+	// pola ID yang benar sesuai HTML: `${type}_file_jurnal_acc_${acc_table_id}`
+	const fileInputId = '#' + type + '_file_jurnal_acc_' + acc_table_id;
+	const labelId = '#' + type + '_value_jurnal_acc_' + acc_table_id;
+
+	const val = jQuery(fileInputId).val();
+
+	if (!val) {
+		$$(labelId).html('File');
+		// kembalikan ke 2 kolom
+		jQuery('#button_' + type + '_jurnal_fill_camera').show()
+			.removeClass('col-100').addClass('col');
+		jQuery('#button_' + type + '_jurnal_fill_file')
+			.removeClass('col-100').addClass('col');
 	} else {
-		$$('#' + type + '_value_jurnal_acc_' + acc_table_id + '').html($$('#' + type + '_file_jurnal_acc' + acc_table_id + '').val().replace('fakepath', ''));
+		const clean = val.replace(/.*[\/\\]/, ''); // ambil nama file saja
+		$$(labelId).html(clean);
+		// sembunyikan camera, jadikan tombol file full width
 		jQuery('#button_' + type + '_jurnal_fill_camera').hide();
-		$('#button_' + type + '_jurnal_fill_file').removeClass("col");
-		$('#button_' + type + '_jurnal_fill_file').addClass("col-100");
+		jQuery('#button_' + type + '_jurnal_fill_file')
+			.removeClass('col').addClass('col-100');
 	}
 }
 
 
-function openCameraTerimaUpdate(selection) {
+function openCameraJurnalTerimaUpdate(selection) {
 
 	var srcType = Camera.PictureSourceType.CAMERA;
 	var options = setOptionsTerimaJurnal(srcType);
@@ -524,104 +546,138 @@ function changeTextFotoTerimaJurnalUpdate(imageUri) {
 }
 
 function getEditTransaksiJurnalAcc(id_transaksi_acc, id_perusahaan_acc) {
-	if (localStorage.getItem("user_id") == 260) {
-		jQuery("#judul-popup-edit-transaksi-jurnal").html('Detail Data');
-	} else {
-		jQuery("#judul-popup-edit-transaksi-jurnal").html('Edit Data');
-	}
+	const USER_ID = parseInt(localStorage.getItem("user_id"), 10);
+
+	jQuery("#judul-popup-edit-transaksi-jurnal").html(
+		USER_ID === 260 ? 'Detail Data' : 'Edit Data'
+	);
+
 	jQuery.ajax({
-		type: "POST", //pake post jangan  get rawan di hack
-		url: "" + BASE_API + "/get-detail-transaksi-acc",
-		dataType: 'JSON',
+		type: "POST", // pakai POST
+		url: BASE_API + "/get-detail-transaksi-acc",
+		dataType: "JSON",
 		timeout: 10000,
-		data: {
-			id_transaksi_acc: id_transaksi_acc
-		},
+		data: { id_transaksi_acc: id_transaksi_acc },
 		beforeSend: function () {
-			jQuery('#clear_edit_jurnal').html('');
-			$('#show_keterangan_reject').hide();
-			gambarAccJurnal(1, 'edit');
-			jQuery('#file_bukti_edit_view_now').attr('src', 'https://tasindo-sale-webservice.digiseminar.id/noimage.jpg');
-		},
-		success: function (data) {
+			// clear field
+			jQuery('.clear_edit_jurnal').val('');
+			jQuery('#show_keterangan_reject').hide();
 
-			if (localStorage.getItem("user_id") == 260) {
-				if (data.data.valid_spy == 2) {
-					jQuery("#show_button_update_jurnal").show();
-					$('#button_edit_jurnal_fill_camera').show();
-					$('#button_edit_jurnal_fill_file').show();
-					$('#show_keterangan_reject').show();
-					$(".clear_edit_jurnal").prop('readonly', false)
-					$("#button_edit_jurnal_fill_camera").removeClass("col-100");
-					$("#button_edit_jurnal_fill_file").removeClass("col-100");
-					$("#button_edit_jurnal_fill_camera").addClass("col");
-					$("#button_edit_jurnal_fill_file").addClass("col");
-					$('#smart_select_edit_kategori_jurnal').removeClass('disabled');
-					$('#smart_select_edit_perusahaan_jurnal').removeClass('disabled');
-				} else {
-					jQuery("#show_button_update_jurnal").hide();
-					$('#show_keterangan_reject').hide();
-					$('#button_edit_jurnal_fill_camera').hide();
-					$('#button_edit_jurnal_fill_file').hide();
-					$(".clear_edit_jurnal").prop('readonly', true)
-					$('#smart_select_edit_kategori_jurnal').addClass('disabled');
-					$('#smart_select_edit_perusahaan_jurnal').addClass('disabled');
-				}
-			} else {
-				jQuery("#show_button_update_jurnal").show();
-				$('#show_keterangan_reject').hide();
-				$('#button_edit_jurnal_fill_camera').show();
-				$('#button_edit_jurnal_fill_file').show();
-				$(".clear_edit_jurnal").prop('readonly', false)
-				$("#button_edit_jurnal_fill_camera").removeClass("col-100");
-				$("#button_edit_jurnal_fill_file").removeClass("col-100");
-				$("#button_edit_jurnal_fill_camera").addClass("col");
-				$("#button_edit_jurnal_fill_file").addClass("col");
-				$('#smart_select_edit_kategori_jurnal').removeClass('disabled');
-				$('#smart_select_edit_perusahaan_jurnal').removeClass('disabled');
-
-			}
-			if (data.data.id_perusahaan_acc != null) {
-				jQuery('.edit_expedisi_jurnal').show();
-				$('.edit_uraian_transaksi_jurnal').hide();
-				$('#edit_keterangan_jurnal').prop('required', false)
-				$('#edit_keterangan_jurnal').prop('validate', false)
-			} else {
-				jQuery('.edit_expedisi_jurnal').hide();
-				jQuery('.edit_uraian_transaksi_jurnal').show();
-				$('.edit_expedisi_jurnal_att').prop('required', false)
-				$('.edit_expedisi_jurnal_att').prop('validate', false)
-				$('.edit_uraian_jurnal_att').prop('required', true)
-				$('.edit_uraian_jurnal_att').prop('validate', true)
-			}
-
+			// reset tombol & label
 			jQuery("#edit_value_jurnal_acc_1").html('File');
 			jQuery("#text_file_path_terima_jurnal_update").html('Camera');
 
-			comboKategoriDetailJurnal(data.data.id_kategori_acc, 'edit');
-			comboPerusahaanDetailJurnal(data.data.id_perusahaan_acc, 'edit');
-			$$('.item_after_edit_kategori_jurnal').html(data.data.kategori_acc);
-			$$('.item_after_edit_perusahaan_jurnal').html(data.data.perusahaan_acc);
-			jQuery("#edit_pic_jurnal").val(data.data.perusahaan_pic);
-			jQuery("#edit_plat_jurnal").val(data.data.perusahaan_no_plat);
-			jQuery("#edit_nohp_jurnal").val(data.data.perusahaan_no_hp);
-			jQuery("#edit_expedisi_keterangan_jurnal").val(data.data.perusahaan_uraian);
-			jQuery("#edit_keterangan_jurnal").val(data.data.keterangan);
-			jQuery("#edit_nominal_jurnal").val(number_format(data.data.nominal_acc));
-			jQuery("#edit_id_transaksi_jurnal_acc").val(number_format(data.data.id_transaksi_acc));
-			jQuery("#edit_pembayaran_jurnal").val(data.data.type_pembayaran);
-			jQuery("#edit_tanggal_transaksi_jurnal_acc").val(data.data.tanggal_transaksi);
-			jQuery("#edit_keterangan_reject_jurnal").val(data.data.keterangan_valid);
-			if (data.data.bukti_foto_acc != 'null') {
-				jQuery('#file_bukti_edit_jurnal_view_now').attr('src', BASE_PATH_IMAGE_FOTO_ACCOUNTING + '/' + data.data.bukti_foto_acc);
+			// reset preview gambar (ID diperbaiki)
+			jQuery('#file_bukti_edit_jurnal_view_now')
+				.attr('src', 'https://tasindo-sale-webservice.digiseminar.id/noimage.jpg');
+
+			// reset state tombol file/camera ke 2 kolom
+			jQuery('#button_edit_jurnal_fill_camera').show()
+				.removeClass('col-100').addClass('col');
+			jQuery('#button_edit_jurnal_fill_file').show()
+				.removeClass('col-100').addClass('col');
+
+			// bersihkan file input
+			jQuery('#edit_file_jurnal_acc_1').val('');
+		},
+		success: function (resp) {
+			const d = (resp && resp.data) ? resp.data : {};
+			const isSpyReject = (d.valid_spy === 2);
+
+			// === Kontrol akses edit / view-only ===
+			if (USER_ID === 260) {
+				if (isSpyReject) {
+					jQuery("#show_button_update_jurnal").show();
+					jQuery('#button_edit_jurnal_fill_camera, #button_edit_jurnal_fill_file').show();
+					jQuery('#show_keterangan_reject').show();
+
+					jQuery(".clear_edit_jurnal").prop('readonly', false);
+					// enable select di Smart Select
+					jQuery('#edit_kategori_jurnal, #edit_perusahaan_jurnal').prop('disabled', false);
+					jQuery('#smart_select_edit_kategori_jurnal, #smart_select_edit_perusahaan_jurnal').removeClass('disabled');
+				} else {
+					jQuery("#show_button_update_jurnal").hide();
+					jQuery('#show_keterangan_reject').hide();
+					jQuery('#button_edit_jurnal_fill_camera, #button_edit_jurnal_fill_file').hide();
+
+					jQuery(".clear_edit_jurnal").prop('readonly', true);
+					// disable select di Smart Select
+					jQuery('#edit_kategori_jurnal, #edit_perusahaan_jurnal').prop('disabled', true);
+					jQuery('#smart_select_edit_kategori_jurnal, #smart_select_edit_perusahaan_jurnal').addClass('disabled');
+				}
 			} else {
-				jQuery('#file_bukti_edit_jurnal_view_now').attr('src', 'https://tasindo-sale-webservice.digiseminar.id/noimage.jpg');
+				// user biasa: bisa edit
+				jQuery("#show_button_update_jurnal").show();
+				jQuery('#show_keterangan_reject').hide();
+				jQuery('#button_edit_jurnal_fill_camera, #button_edit_jurnal_fill_file').show();
+
+				jQuery(".clear_edit_jurnal").prop('readonly', false);
+				jQuery('#edit_kategori_jurnal, #edit_perusahaan_jurnal, #edit_expedisi_keterangan_jurnal, #edit_pic_jurnal, #edit_plat_jurnal, #edit_expedisi_pengirim_jurnal, #edit_expedisi_dari_jurnal, #edit_expedisi_tujuan_jurnal, #edit_alamat_jurnal, #edit_nohp_jurnal').prop('disabled', false);
+				jQuery('#edit_kategori_jurnal, #edit_perusahaan_jurnal, #edit_expedisi_keterangan_jurnal, #edit_pic_jurnal, #edit_plat_jurnal, #edit_expedisi_pengirim_jurnal, #edit_expedisi_dari_jurnal, #edit_expedisi_tujuan_jurnal, #edit_alamat_jurnal, #edit_nohp_jurnal').prop('required', false);
+				jQuery('#edit_kategori_jurnal, #edit_perusahaan_jurnal, #edit_expedisi_keterangan_jurnal, #edit_pic_jurnal, #edit_plat_jurnal, #edit_expedisi_pengirim_jurnal, #edit_expedisi_dari_jurnal, #edit_expedisi_tujuan_jurnal, #edit_alamat_jurnal, #edit_nohp_jurnal').prop('validate', false);
+				jQuery('#smart_select_edit_kategori_jurnal, #smart_select_edit_perusahaan_jurnal').removeClass('disabled');
+			}
+
+			// === Tampilkan blok sesuai ada/tidaknya perusahaan (expedisi) ===
+			if (d.id_perusahaan_acc != null) {
+				jQuery('.edit_expedisi_jurnal').show();
+				jQuery('.edit_uraian_transaksi_jurnal').hide();
+				jQuery('#edit_keterangan_jurnal').prop({ required: false });
+			} else {
+				jQuery('.edit_expedisi_jurnal').hide();
+				jQuery('.edit_uraian_transaksi_jurnal').show();
+				jQuery('.edit_expedisi_jurnal_att').prop({ required: false });
+				jQuery('.edit_uraian_jurnal_att').prop({ required: true });
+			}
+
+			// === Combo & label smart select (pastikan fungsi ada) ===
+			if (typeof comboKategoriDetailJurnal === 'function') {
+				comboKategoriDetailJurnal(d.id_kategori_acc, 'edit');
+			}
+			if (typeof comboPerusahaanDetailJurnal === 'function') {
+				comboPerusahaanDetailJurnal(d.id_perusahaan_acc, 'edit');
+			}
+			$$('.item_after_edit_kategori_jurnal').html(d.kategori_acc || '');
+			$$('.item_after_edit_perusahaan_jurnal').html(d.perusahaan_acc || '');
+
+			// === Isi field ===
+			jQuery("#edit_pic_jurnal").val(d.perusahaan_pic || '');
+			jQuery("#edit_plat_jurnal").val(d.perusahaan_no_plat || '');
+			jQuery("#edit_nohp_jurnal").val(d.perusahaan_no_hp || '');
+			jQuery("#edit_expedisi_pengirim_jurnal").val(d.perusahaan_pengirim || '');
+			jQuery("#edit_expedisi_dari_jurnal").val(d.perusahaan_dari || '');
+			jQuery("#edit_expedisi_tujuan_jurnal").val(d.perusahaan_tujuan || '');
+			jQuery("#edit_alamat_jurnal").val(d.perusahaan_alamat || '');
+			jQuery("#edit_expedisi_keterangan_jurnal").val(d.perusahaan_uraian || '');
+			jQuery("#edit_keterangan_jurnal").val(d.keterangan || '');
+
+			// nominal boleh diformat
+			jQuery("#edit_nominal_jurnal").val(typeof number_format === 'function' ? number_format(d.nominal_acc) : (d.nominal_acc || ''));
+
+			// ID transaksi JANGAN diformat
+			jQuery("#edit_id_transaksi_jurnal_acc").val(d.id_transaksi_acc != null ? d.id_transaksi_acc : '');
+
+			// tanggal transaksi raw
+			jQuery("#edit_tanggal_transaksi_jurnal_acc").val(d.tanggal_transaksi || '');
+
+			// keterangan reject
+			jQuery("#edit_keterangan_reject_jurnal").val(d.keterangan_valid || '');
+
+			// preview bukti foto
+			if (d.bukti_foto_acc && d.bukti_foto_acc !== 'null') {
+				jQuery('#file_bukti_edit_jurnal_view_now')
+					.attr('src', (typeof BASE_PATH_IMAGE_FOTO_ACCOUNTING !== 'undefined'
+						? (BASE_PATH_IMAGE_FOTO_ACCOUNTING + '/' + d.bukti_foto_acc)
+						: d.bukti_foto_acc));
+			} else {
+				jQuery('#file_bukti_edit_jurnal_view_now')
+					.attr('src', 'https://tasindo-sale-webservice.digiseminar.id/noimage.jpg');
 			}
 		},
-		error: function (xmlhttprequest, textstatus, message) {
+		error: function () {
+			// bisa tambahkan alert/log bila perlu
 		}
 	});
-
 }
 
 
@@ -760,89 +816,81 @@ function colorDropKasAsalJurnal(type) {
 }
 
 function updateTransaksiJurnal() {
-	if (localStorage.getItem("internet_koneksi") == 'fail') {
-		app.dialog.alert('<font style="font-size:22px; color:white; font-weight:bold;">Gagal,Internet Tidak Stabil,Box Koneksi Harus Berwarna Hijau', function () {
-		});
-	} else {
-		if (!$$('#form_edit_jurnal_acc')[0].checkValidity()) {
-			app.dialog.alert('Cek Isian Anda');
-		} else {
-			if (localStorage.getItem("file_foto_update_terima_jurnal") != null || jQuery('#edit_file_jurnal_acc_1').val() != '') {
-				var formData = new FormData(jQuery("#form_edit_jurnal_acc")[0]);
-				formData.append('user_modified', localStorage.getItem("karyawan_nama"));
-				formData.append('bukti_terima', localStorage.getItem("file_foto_update_terima_jurnal"));
-				formData.append('lokasi_pabrik', localStorage.getItem("lokasi_pabrik"));
-				formData.append('user_id', localStorage.getItem("user_id"));
-				formData.append('kas', jQuery('#filter_kas_neraca').val());
+	const KEY_BUKTI = 'file_foto_update_terima_jurnal';
+	const $form = $$('#form_edit_jurnal_acc')[0];
 
-				jQuery.ajax({
-					type: "POST",
-					url: "" + BASE_API + "/update-transaksi-jurnal-acc",
-					dataType: "JSON",
-					data: formData,
-					timeout: 7000,
-					contentType: false,
-					processData: false,
-					beforeSend: function () {
-						app.dialog.preloader('Harap Tunggu');
-					},
-					success: function (data) {
-						app.dialog.close();
-						$$('.clear_edit_transaksi').val('');
-						if (data.status == 'success') {
-							app.popup.close();
-							getDataJurnal()
-							localStorage.removeItem('file_foto_update_terima_jurnal');
-						} else if (data.status == 'failed') {
-							app.popup.close();
-						}
-					},
-					error: function (xmlhttprequest, textstatus, message) {
-						app.dialog.alert('Ada kendala pada koneksi server, Silahkan Coba Kembali');
-						app.popup.close();
-					}
-
-				});
-			} else if (localStorage.getItem("file_foto_update_terima_jurnal") == null && jQuery('#edit_file_jurnal_acc_1').val() == '') {
-				var formData = new FormData(jQuery("#form_edit_jurnal_acc")[0]);
-				formData.append('user_modified', localStorage.getItem("karyawan_nama"));
-				formData.append('bukti_terima', null);
-				formData.append('lokasi_pabrik', localStorage.getItem("lokasi_pabrik"));
-				formData.append('user_id', localStorage.getItem("user_id"));
-				formData.append('kas', jQuery('#filter_kas_neraca').val());
-
-				jQuery.ajax({
-					type: "POST",
-					url: "" + BASE_API + "/update-transaksi-jurnal-acc",
-					dataType: "JSON",
-					data: formData,
-					timeout: 7000,
-					contentType: false,
-					processData: false,
-					beforeSend: function () {
-						app.dialog.preloader('Harap Tunggu');
-					},
-					success: function (data) {
-						app.dialog.close();
-						$$('.clear_edit_transaksi').val('');
-						if (data.status == 'success') {
-							app.popup.close();
-							getDataJurnal()
-							localStorage.removeItem('file_foto_update_terima_pabrik');
-						} else if (data.status == 'failed') {
-							app.popup.close();
-						}
-					},
-					error: function (xmlhttprequest, textstatus, message) {
-						app.dialog.alert('Ada kendala pada koneksi server, Silahkan Coba Kembali');
-						app.popup.close();
-					}
-
-				});
-			}
-		}
+	// 1) Cek koneksi
+	if (localStorage.getItem('internet_koneksi') === 'fail') {
+		app.dialog.alert('<font style="font-size:22px; color:white; font-weight:bold;">Gagal, Internet Tidak Stabil, Box Koneksi Harus Berwarna Hijau</font>');
+		return;
 	}
+
+	// 2) Cek form & validitas
+	if (!$form || !$form.checkValidity()) {
+		app.dialog.alert('Cek Isian Anda');
+		return;
+	}
+
+	// 3) Deteksi lampiran (base64 di localStorage atau file input)
+	const hasLsImage = localStorage.getItem(KEY_BUKTI) != null;
+	const hasFileInput = !!jQuery('#edit_file_jurnal_acc_1').val();
+	const hasAttachment = hasLsImage || hasFileInput;
+
+	// 4) Siapkan FormData (sekali saja)
+	const formData = new FormData(jQuery('#form_edit_jurnal_acc')[0]);
+	formData.append('user_modified', localStorage.getItem('karyawan_nama') || '');
+	formData.append('lokasi_pabrik', localStorage.getItem('lokasi_pabrik') || '');
+	formData.append('user_id', localStorage.getItem('user_id') || '');
+	formData.append('kas', jQuery('#filter_kas_neraca').val() || '');
+
+	// Jika ada lampiran: kirim base64 dari localStorage (kalau ada).
+	// Jika tidak ada: kirim null agar backend bisa mengosongkan.
+	formData.append('bukti_terima', hasAttachment ? (localStorage.getItem(KEY_BUKTI) || '') : null);
+
+	// 5) Kirim AJAX (satu blok saja)
+	jQuery.ajax({
+		type: 'POST',
+		url: BASE_API + '/update-transaksi-jurnal-acc',
+		dataType: 'JSON',
+		data: formData,
+		timeout: 7000,
+		contentType: false,
+		processData: false,
+		beforeSend: function () {
+			app.dialog.preloader('Harap Tunggu');
+		},
+		success: function (data) {
+			$$('.clear_edit_transaksi').val('');
+			if (data && data.status === 'success') {
+				app.popup.close();
+				// refresh data
+				if (typeof getDataJurnal === 'function') getDataJurnal();
+				// bersihkan hanya kunci yang benar
+				localStorage.removeItem(KEY_BUKTI);
+				// reset file input (opsional)
+				jQuery('#edit_file_jurnal_acc_1').val('');
+			} else {
+				// jika 'failed' atau respons tak terduga
+				app.popup.close();
+				if (!data || !data.status) {
+					app.dialog.alert('Respons server tidak dikenali.');
+				}
+			}
+		},
+		error: function (xhr, textstatus) {
+			const isTimeout = textstatus === 'timeout';
+			app.dialog.alert(isTimeout
+				? 'Waktu koneksi habis. Silakan coba lagi.'
+				: 'Ada kendala pada koneksi server, Silahkan Coba Kembali');
+			app.popup.close();
+		},
+		complete: function () {
+			// pastikan preloader selalu ditutup
+			try { app.dialog.close(); } catch (e) { }
+		}
+	});
 }
+
 
 function getEditKasAcc(id_transaksi_acc, id_tr_kas_acc) {
 	var id_tr_kas_acc_val = '';

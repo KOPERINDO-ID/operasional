@@ -71,7 +71,11 @@ var app = new Framework7({
       } else {
         getMenuUser();
         getPengumuman();
+        getPengajuan();
+        checkKasMinimum();
+        startTimeMain();
         $$('#karyawan-nama').html(localStorage.getItem("karyawan_nama"));
+        checkReminderKategoriAcc();
         setTimeout(function () {
           if (localStorage.getItem("user_id") == 260) {
             return app.views.main.router.navigate('/data-kas');
@@ -92,17 +96,31 @@ $$(document).on('page:afterin', '.page[data-name="data"]', function (e) {
   checkLogin();
   checkConnection();
   dateRangeDeclarationDataOperational();
+
   getPengumuman();
+  getPengajuan();
   comboKasFilter();
   getBulanTransaksi();
   getYearTransaksi();
   getDataTransaksi();
-  if (localStorage.getItem("user_id") == 262 || localStorage.getItem("user_id") == 260 ) {
+  checkKasMinimum();
+
+  if (localStorage.getItem("user_id") == 262 || localStorage.getItem("user_id") == 260) {
     jQuery('#showFilterKasData').show();
   } else {
     jQuery('#showFilterKasData').hide();
   }
+
+  if (localStorage.getItem("user_id") == 262) {
+    jQuery('#pengumuman_logo').hide();
+    jQuery('#pengajuan_logo').show();
+  } else {
+    jQuery('#pengumuman_logo').show();
+    jQuery('#pengajuan_logo').hide();
+  }
   $$('#karyawan-nama').html(localStorage.getItem("karyawan_nama"));
+
+  checkReminderKategoriAcc();
 });
 
 $$(document).on('page:afterin', '.page[data-name="data_kas"]', function (e) {
@@ -111,30 +129,54 @@ $$(document).on('page:afterin', '.page[data-name="data_kas"]', function (e) {
   checkConnection();
   dateRangeDeclarationDataOperationalKas();
   getPengumuman();
+  getPengajuan();
   getBulanTransaksiKas();
   getYearTransaksiKas();
   getDataTransaksiKas();
   comboKasFilterOut();
-  if (localStorage.getItem("user_id") == 262 || localStorage.getItem("user_id") == 260 ) {
+  checkKasMinimum();
+  if (localStorage.getItem("user_id") == 262 || localStorage.getItem("user_id") == 260) {
     jQuery('#showFilterKasDataTransaksi').show();
   } else {
     jQuery('#showFilterKasDataTransaksi').hide();
   }
+  if (localStorage.getItem("user_id") == 262) {
+    jQuery('#pengumuman_logo').hide();
+    jQuery('#pengajuan_logo').show();
+  } else {
+    jQuery('#pengumuman_logo').show();
+    jQuery('#pengajuan_logo').hide();
+  }
   $$('#karyawan-nama').html(localStorage.getItem("karyawan_nama"));
+
+  checkReminderKategoriAcc();
 });
 
 $$(document).on('page:afterin', '.page[data-name="master"]', function (e) {
-  if (localStorage.getItem("user_id") == 262 ) {
+  if (localStorage.getItem("user_id") == 262 || localStorage.getItem("user_id") == 260) {
     jQuery('#show_opsi_master_kategori').show();
   } else {
     jQuery('#show_opsi_master_kategori').hide();
   }
+  if (localStorage.getItem("user_id") == 262) {
+    jQuery('#pengumuman_logo').hide();
+    jQuery('#pengajuan_logo').show();
+  } else {
+    jQuery('#pengumuman_logo').show();
+    jQuery('#pengajuan_logo').hide();
+  }
   getMenuUser();
   checkLogin();
   checkConnection();
+
   getPengumuman();
+  checkKasMinimum();
+  getPengajuan();
   getDataKategori();
   $$('#karyawan-nama').html(localStorage.getItem("karyawan_nama"));
+  jQuery('#tambah_show_ipl').hide();
+  jQuery('#edit_show_ipl').hide();
+  checkReminderKategoriAcc();
 });
 
 
@@ -144,25 +186,60 @@ $$(document).on('page:afterin', '.page[data-name="master_expedisi"]', function (
   } else {
     jQuery('#show_opsi_master_expedisi').hide();
   }
+  if (localStorage.getItem("user_id") == 262) {
+    jQuery('#pengumuman_logo').hide();
+    jQuery('#pengajuan_logo').show();
+  } else {
+    jQuery('#pengumuman_logo').show();
+    jQuery('#pengajuan_logo').hide();
+  }
   getMenuUser();
   checkLogin();
   checkConnection();
+  checkKasMinimum();
+
   getPengumuman();
+  getPengajuan();
   getDataPerusahaan();
   $$('#karyawan-nama').html(localStorage.getItem("karyawan_nama"));
+  checkReminderKategoriAcc();
+});
+
+
+$$(document).on('page:afterin', '.page[data-name="master-kas"]', function (e) {
+  getMenuUser();
+  checkLogin();
+  checkConnection();
+
+  if (localStorage.getItem("user_id") == 262) {
+    jQuery('#pengumuman_logo').hide();
+    jQuery('#pengajuan_logo').show();
+  } else {
+    jQuery('#pengumuman_logo').show();
+    jQuery('#pengajuan_logo').hide();
+  }
+  getPengumuman();
+  checkKasMinimum();
+  getPengajuan();
+  getDataMasterKas();
+  $$('#karyawan-nama').html(localStorage.getItem("karyawan_nama"));
+  checkReminderKategoriAcc();
 });
 
 $$(document).on('page:afterin', '.page[data-name="neraca"]', function (e) {
   getMenuUser();
   checkLogin();
   checkConnection();
+
   getPengumuman();
+  checkKasMinimum();
+  getPengajuan();
   dateRangeDeclarationDataNeraca();
   getBulanOperasional();
   getYearOperasional();
   comboKasFilterNeraca();
   getDataJurnal();
-  if (localStorage.getItem("user_id") == 262 || localStorage.getItem("user_id") == 260 ) {
+  if (localStorage.getItem("user_id") == 262 || localStorage.getItem("user_id") == 260) {
     jQuery('#showFilterKasNeraca').show();
     document.getElementById('showFilterKasNeraca').style.width = '50%'
     document.getElementById('showKeteranganNeraca').style.width = '50%'
@@ -170,13 +247,24 @@ $$(document).on('page:afterin', '.page[data-name="neraca"]', function (e) {
     jQuery('#showFilterKasNeraca').hide();
     document.getElementById('showKeteranganNeraca').style.width = '100%'
   }
+  if (localStorage.getItem("user_id") == 262) {
+    jQuery('#pengumuman_logo').hide();
+    jQuery('#pengajuan_logo').show();
+  } else {
+    jQuery('#pengumuman_logo').show();
+    jQuery('#pengajuan_logo').hide();
+  }
   // comboKategoriFilterNeraca();
   $$('#karyawan-nama').html(localStorage.getItem("karyawan_nama"));
+  checkReminderKategoriAcc();
 });
 
 // Page penjualan input On load
 $$(document).on('page:afterin', '.page[data-name="login"]', function (e) {
   $$('#logout_logo').css("display", "none");
   $$('#pengumuman_logo').css("display", "none");
+  $$('#pengajuan_logo').css("display", "none");
+  startTimeMain();
   checkConnection();
+  checkReminderKategoriAcc();
 });

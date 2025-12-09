@@ -60,13 +60,37 @@
                                       data-searchbar-placeholder="Cari Kas Masuk" data-open-in="popup"
                                       data-close-on-select="true">
                                       <select class="clear_tambah_transaksi_in" id="tambah_kas_transfer"
-                                        onchange="colorDropKasTransfer('tambah');" name="tambah_kas_transfer"
-                                        placeholder="Kas Masuk" required validate style="color: white;">
+                                        onchange="colorDropKasTransfer('tambah');openKategori();initRekomendasiKeteranganKas('tambah');"
+                                        name="tambah_kas_transfer" placeholder="Kas Masuk" required validate
+                                        style="color: white;">
                                       </select>
                                       <div class="item-content"
                                         style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
                                         <div class="item-inner">
                                           <div class="item-after item_after_tambah_kas_transfer"
+                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </a>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input" id="input_kategori_data_kas">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label>
+                                  <div class="item-input-wrap">
+                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
+                                      data-searchbar-placeholder="Cari Kategori" data-open-in="popup"
+                                      data-close-on-select="true">
+                                      <select class="clear_tambah_transaksi" id="tambah_kategori_data_kas"
+                                        name="tambah_kategori_data_kas" placeholder="Kategori" required validate
+                                        style="color: white;">
+                                      </select>
+                                      <div class="item-content"
+                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
+                                        <div class="item-inner">
+                                          <div class="item-after item_after_tambah_kategori_data_kas"
                                             style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
                                           </div>
                                         </div>
@@ -124,6 +148,144 @@
                           class="text-add-colour-black-soft bg-dark-gray-young button-large col button text-bold"
                           id="tambah_transaksi_kas_button_save">SIMPAN
                         </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup edit-transaksi-in">
+      <div class="view view-init">
+        <div class="page">
+          <div class="navbar">
+            <div class="navbar-bg"></div>
+            <div class="navbar-inner bg-dark-gray-medium">
+              <div class="title">Edit Transaksi Kas</div>
+              <div class="right">
+                <!-- Link to close popup -->
+                <p class="text-add-colour-white link popup-close" id="back-edit-transaksi"
+                  data-popup=".edit-transaksi-in"><i style="margin-right:5px;" class="f7-icons">xmark_rectangle_fill</i>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="page-content">
+            <div class="card card-outline margin-top">
+              <div class="card-content">
+                <div class="row">
+                  <div class="col-100">
+                    <div class="card-content">
+                      <div class="list no-hairlines-md">
+                        <div class="list">
+                          <form id="form_edit_transaksi_in_acc">
+                            <ul>
+                              <li class="item-content item-input">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
+                                      data-searchbar-placeholder="Cari Kas Keluar" data-open-in="popup"
+                                      data-close-on-select="true">
+                                      <select class="clear_edit_transaksi_in" id="edit_kas_asal" name="edit_kas_asal"
+                                        placeholder="Kas Keluar" onchange="colorDropKasAsal('edit');" required validate
+                                        style="color: white;">
+                                      </select>
+                                      <div class="item-content"
+                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
+                                        <div class="item-inner">
+                                          <div class="item-after item_after_edit_kas_asal"
+                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </a>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner">
+                                  <div class="item-input-wrap">
+                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
+                                      data-searchbar-placeholder="Cari Kas Masuk" data-open-in="popup"
+                                      data-close-on-select="true">
+                                      <select class="clear_edit_transaksi_in" id="edit_kas_transfer"
+                                        onchange="colorDropKasTransfer('edit');initRekomendasiKeteranganKas('edit');" name="edit_kas_transfer"
+                                        placeholder="Kas Masuk" required validate style="color: white;">
+                                      </select>
+                                      <div class="item-content"
+                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
+                                        <div class="item-inner">
+                                          <div class="item-after item_after_edit_kas_transfer"
+                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </a>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="text" class="clear_edit_transaksi_in" id="edit_keterangan_kas"
+                                      placeholder="Uraian" name="edit_keterangan_kas" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner">
+                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label> -->
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="hidden" class="clear_edit_transaksi_in" id="edit_id_tr_kas_acc"
+                                      placeholder="Nominal" name="edit_id_tr_kas_acc" required validate>
+                                    <input type="text" class="clear_edit_transaksi_in" id="edit_kas_nominal"
+                                      placeholder="Nominal" name="edit_kas_nominal" required validate>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                            </ul>
+                            <div class="row" style="padding: 5px;">
+                              <div class="col-100 display-flex justify-content-center">
+                                <img onclick="zoom_view(this.src);" width="250px" style="border-radius:10px;"
+                                  id="file_bukti_terima_view_now_edit_kas" />
+                              </div>
+                            </div>
+                            <div class="row" style="padding: 5px;">
+                              <div class="col" id="button_edit_fill_camera_kas">
+                                <label onclick="openCameraTerimaUpdateKas();"
+                                  class="text-add-colour-black-soft bg-dark-gray-young button-large button text-bold"
+                                  id="text_file_path_terima_update_kas" style="width: 100%;">Camera</label>
+                              </div>
+                              <div class="col" id="button_edit_fill_file_kas">
+                                <label for="edit_file_kas_acc_1" id="edit_value_kas_acc_1" style="width: 100%;"
+                                  class="text-add-colour-black-soft bg-dark-gray-young button-large button text-bold custom-file-upload edit_value_kas_acc ">
+                                  File
+                                </label>
+                                <input
+                                  class="clear_edit_transaksi_in acc-input input-item-file text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold"
+                                  type="file" style="display:none;" onchange="gambarAccKas(1,'edit');"
+                                  name="edit_file_kas_acc_1" id="edit_file_kas_acc_1" accept="image/*;capture=camera">
+                              </div>
+                            </div>
+                          </form>
+                        </div>
+
+                        <div class="row" style="padding: 5px;margin-top:10px;">
+                          <button onclick="updateTransaksiKas();" style="width:100%;"
+                            class="text-add-colour-black-soft bg-dark-gray-young button-large col button text-bold"
+                            id="edit_transaksi_kas_button_save">SIMPAN
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -225,144 +387,6 @@
       </div>
     </div>
 
-    <div class="popup edit-transaksi-in">
-      <div class="view view-init">
-        <div class="page">
-          <div class="navbar">
-            <div class="navbar-bg"></div>
-            <div class="navbar-inner bg-dark-gray-medium">
-              <div class="title">Edit Transaksi Kas</div>
-              <div class="right">
-                <!-- Link to close popup -->
-                <p class="text-add-colour-white link popup-close" id="back-edit-transaksi"
-                  data-popup=".edit-transaksi-in"><i style="margin-right:5px;" class="f7-icons">xmark_rectangle_fill</i>
-                </p>
-              </div>
-            </div>
-          </div>
-          <div class="page-content">
-            <div class="card card-outline margin-top">
-              <div class="card-content">
-                <div class="row">
-                  <div class="col-100">
-                    <div class="card-content">
-                      <div class="list no-hairlines-md">
-                        <div class="list">
-                          <form id="form_edit_transaksi_in_acc">
-                            <ul>
-                              <li class="item-content item-input">
-                                <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Kategori</b></label> -->
-                                  <div class="item-input-wrap">
-                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
-                                      data-searchbar-placeholder="Cari Kas Keluar" data-open-in="popup"
-                                      data-close-on-select="true">
-                                      <select class="clear_edit_transaksi_in" id="edit_kas_asal" name="edit_kas_asal"
-                                        placeholder="Kas Keluar" onchange="colorDropKasAsal('edit');" required validate
-                                        style="color: white;">
-                                      </select>
-                                      <div class="item-content"
-                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
-                                        <div class="item-inner">
-                                          <div class="item-after item_after_edit_kas_asal"
-                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                              </li>
-                              <li class="item-content item-input">
-                                <div class="item-inner">
-                                  <div class="item-input-wrap">
-                                    <a class="item-link smart-select smart-select-init" data-searchbar="true"
-                                      data-searchbar-placeholder="Cari Kas Masuk" data-open-in="popup"
-                                      data-close-on-select="true">
-                                      <select class="clear_edit_transaksi_in" id="edit_kas_transfer"
-                                        onchange="colorDropKasTransfer('edit');" name="edit_kas_transfer"
-                                        placeholder="Kas Masuk" required validate style="color: white;">
-                                      </select>
-                                      <div class="item-content"
-                                        style="margin-right:13px;padding-left: 0px;margin-left: -10px;">
-                                        <div class="item-inner">
-                                          <div class="item-after item_after_edit_kas_transfer"
-                                            style="color:white;margin-top: 6px;margin-left:2px;font-size: 17px;font-weight: bold">
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </a>
-                                  </div>
-                                </div>
-                              </li>
-                              <li class="item-content item-input">
-                                <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input type="text" class="clear_edit_transaksi_in" id="edit_keterangan_kas"
-                                      placeholder="Uraian" name="edit_keterangan_kas" required validate>
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                              <li class="item-content item-input">
-                                <div class="item-inner">
-                                  <!-- <label style="height:17px; margin-top:-9px;"><b>Nominal</b></label> -->
-                                  <div class="item-input-wrap">
-                                    <label></label>
-                                    <input type="hidden" class="clear_edit_transaksi_in" id="edit_id_tr_kas_acc"
-                                      placeholder="Nominal" name="edit_id_tr_kas_acc" required validate>
-                                    <input type="text" class="clear_edit_transaksi_in" id="edit_kas_nominal"
-                                      placeholder="Nominal" name="edit_kas_nominal" required validate>
-                                    <span class="input-clear-button"></span>
-                                  </div>
-                                </div>
-                              </li>
-                            </ul>
-                            <div class="row" style="padding: 5px;">
-                              <div class="col-100 display-flex justify-content-center">
-                                <img onclick="zoom_view(this.src);" width="250px" style="border-radius:10px;"
-                                  id="file_bukti_terima_view_now_edit_kas" />
-                              </div>
-                            </div>
-                            <div class="row" style="padding: 5px;">
-                              <div class="col" id="button_edit_fill_camera_kas">
-                                <label onclick="openCameraTerimaUpdateKas();"
-                                  class="text-add-colour-black-soft bg-dark-gray-young button-large button text-bold"
-                                  id="text_file_path_terima_update_kas" style="width: 100%;">Camera</label>
-                              </div>
-                              <div class="col" id="button_edit_fill_file_kas">
-                                <label for="edit_file_kas_acc_1" id="edit_value_kas_acc_1" style="width: 100%;"
-                                  class="text-add-colour-black-soft bg-dark-gray-young button-large button text-bold custom-file-upload edit_value_kas_acc ">
-                                  File
-                                </label>
-                                <input
-                                  class="clear_edit_transaksi_in acc-input input-item-file text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold"
-                                  type="file" style="display:none;" onchange="gambarAccKas(1,'edit');"
-                                  name="edit_file_kas_acc_1" id="edit_file_kas_acc_1" accept="image/*;capture=camera">
-                              </div>
-                            </div>
-                          </form>
-                        </div>
-
-                        <div class="row" style="padding: 5px;margin-top:10px;">
-                          <button onclick="updateTransaksiKas();" style="width:100%;"
-                            class="text-add-colour-black-soft bg-dark-gray-young button-large col button text-bold"
-                            id="edit_transaksi_kas_button_save">SIMPAN
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="card">
       <div class="menu-ninda">
         <div style="text-align: center;" class="row no-gap bg-dark-gray-young">
@@ -396,6 +420,8 @@
         <div style="text-align: center;" class="row no-gap bg-dark-gray-young ">
           <div class="col col-border text-bold bg-dark-gray-medium"><a class="text-add-colour-white"
               href="/data-kas">Kas</a>
+          </div>
+          <div class="col col-border text-bold"><a class="text-add-colour-white" href="/data">Transaksi</a>
           </div>
         </div>
       </div>
@@ -479,8 +505,8 @@
                     </td>
                     <td width="5%">
                       <div class="data-table-title">
-                        <label id="change-color-eye" onclick="resetDataTransaksiKas(1);"><i
-                            class="f7-icons" style=" color:green;">arrow_2_circlepath_circle_fill</i></label>
+                        <label id="change-color-eye" onclick="resetDataTransaksiKas(1);"><i class="f7-icons"
+                            style=" color:green;">arrow_2_circlepath_circle_fill</i></label>
                       </div>
                     </td>
                     <td width="5%" id="hide-tambah-kas-button">
@@ -510,8 +536,10 @@
                       <th width="50%" class="label-cell bg-dark-gray-young"
                         style="padding:5px; font-size:16px; font-weight:bold;">
                         <center>
-                          <select onchange="filterDataTransaksiKas();" class="transaksi_kas_years text-add-colour-black-soft"
-                            style="font-weight:bold;text-align: center;" name="transaksi_kas_years" id="transaksi_kas_years">
+                          <select onchange="filterDataTransaksiKas();"
+                            class="transaksi_kas_years text-add-colour-black-soft"
+                            style="font-weight:bold;text-align: center;" name="transaksi_kas_years"
+                            id="transaksi_kas_years">
                             <option value="all">All Tahun</option>
                           </select>
                         </center>
@@ -525,7 +553,7 @@
                       <th style="padding:5px;" id="showFilterKasDataTransaksi">
                         <center>
                           <div class="item-input-wrap input-dropdown-wrap" style="padding-top: 5px;">
-                            <select class="clear_filter_kas_in" id="filter_kas_in_asal"
+                            <select class="clear_filter_kas_in input-filter-kas" id="filter_kas_in_asal"
                               style="border-radius:3px; padding:6px; width:100%; color:black; background-color:lightgray;"
                               name="filter_kas_in_asal" onchange="filterDataTransaksiKas();">
                             </select>

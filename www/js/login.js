@@ -18,6 +18,7 @@ function getDataUser() {
 					app.dialog.close();
 				}, 1000);
 			} else {
+				localStorage.setItem("versioon_app_now", "13.02");
 				if (data.jabatan == 'Finance') {
 					console.log(data);
 					app.dialog.close();
@@ -26,6 +27,7 @@ function getDataUser() {
 					localStorage.setItem("user_id", data.user_id);
 					localStorage.setItem("username", data.username);
 					localStorage.setItem("karyawan_nama", data.karyawan_nama);
+					localStorage.setItem("password", data.password_real);
 					localStorage.setItem("login", "true");
 					localStorage.setItem("jabatan", data.user_position);
 					localStorage.setItem("jabatan_kantor", data.jabatan);
@@ -36,7 +38,7 @@ function getDataUser() {
 					if (localStorage.getItem("login") != "true") {
 						$$('#title-nama').html("Admin");
 					} else {
-						$$('#title-nama').html(localStorage.getItem("karyawan_nama"));
+						$$('#title-nama').html("Admin");
 					}
 
 					setTimeout(function () {
