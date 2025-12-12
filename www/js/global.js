@@ -269,9 +269,17 @@ function getPengajuan() {
 			$.each(data?.data || [], function (i, val) {
 				no++;
 
-				// Kolom keterangan
+				// =============== KOLom KETERANGAN ===============
+				const perusahaan = val.perusahaan_acc ?? '';   // bisa null → ''
+				const ket = val.keterangan ?? '';   // jaga-jaga kalau null
+
+				// Jika ada perusahaan_acc, gabungkan dengan keterangan, kalau tidak ya keterangan saja
+				const teksKet = perusahaan ? (perusahaan + ' | ' + ket) : ket;
+
 				let kolom_ket = '';
+
 				if (val.id_perusahaan_acc != null) {
+					// Ada master perusahaan → td bisa di-klik untuk lihat detail
 					kolom_ket =
 						'  <td align="left" style="border-left:1px solid grey;border-bottom:1px solid grey;"' +
 						'      class="popup-open" data-popup=".detail-perusahaan-popup"' +
@@ -281,43 +289,53 @@ function getPengajuan() {
 						(val.perusahaan_no_hp || '') + '\',\'' +
 						(val.perusahaan_no_plat || '') + '\',\'' +
 						(val.perusahaan_uraian || '') + '\')">' +
-						(val.keterangan || '') + '</td>';
+						teksKet +
+						'</td>';
 				} else {
+					// Tidak ada master perusahaan → tampil biasa saja
 					kolom_ket =
-						'  <td align="left" style="border-left:1px solid grey;border-bottom:1px solid grey;">' +
-						(val.keterangan || '') + '</td>';
+						'<td align="left" style="border-left:1px solid grey;border-bottom:1px solid grey;">' +
+						teksKet +
+						'</td>';
 				}
 
-				var total_bayar = parseFloat(val.operasional_jumlah_pembayaran);
-				var nominal = parseFloat(val.nominal_acc);
+				// =============== HITUNG NOMINAL ===============
+				const total_bayar = parseFloat(val.operasional_jumlah_pembayaran) || 0;
+				const nominal = parseFloat(val.nominal_acc) || 0;
+				const sisa = nominal - total_bayar;
 
-				var sisa = nominal - total_bayar;
+				let nominal_asal;
 
-				if (val.type_pembayaran == 'cicilan') {
+				if (val.type_pembayaran === 'cicilan') {
 					if (sisa > 0) {
-						var nominal_asal = parseFloat(val.nominal_acc) - parseFloat(val.operasional_jumlah_pembayaran);
+						nominal_asal = nominal - total_bayar;
 					} else {
-						var nominal_asal = parseFloat(val.operasional_jumlah_pembayaran);
+						nominal_asal = total_bayar;
 					}
 				} else {
-
-					var nominal_asal = parseFloat(val.operasional_jumlah_pembayaran);
+					nominal_asal = total_bayar;
 				}
-				var nominal_tampil = (val.valid_spy == 2) ? number_format(0) : number_format(nominal_asal);
+
+				// jika valid_spy == 2, nominal dianggap 0
+				const nominal_tampil = (val.valid_spy == 2) ? 0 : nominal_asal;
+
 				// Halaman tujuan
-				// const page = (val.id_tr_kas_acc != null) ? '/data-kas' : '/data';
 				const page = (val.id_tr_kas_acc != null) ? '/data' : '/data';
 
 				rows.push(
 					'<tr>' +
 					'  <td align="center" style="border-left:1px solid grey;border-bottom:1px solid grey;">' + no + '</td>' +
 					'  <td align="center" style="border-left:1px solid grey;border-bottom:1px solid grey;">' +
-					(val.tanggal_transaksi ? moment(val.tanggal_transaksi).format('DD-MMM-YYYY') : '-') + '</td>' +
-					'  <td align="left" style="border-left:1px solid grey;border-bottom:1px solid grey;">' + (val.kategori_acc || '') + '</td>' +
+					(val.tanggal_transaksi ? moment(val.tanggal_transaksi).format('DD-MMM-YYYY') : '-') +
+					'</td>' +
+					'  <td align="left" style="border-left:1px solid grey;border-bottom:1px solid grey;">' +
+					(val.kategori_acc || '') +
+					'</td>' +
 					kolom_ket +
-					'  <td align="right" style="border-left:1px solid grey;border-bottom:1px solid grey;">' + number_format(nominal_tampil || 0) + '</td>' +
+					'  <td align="right" style="border-left:1px solid grey;border-bottom:1px solid grey;">' +
+					number_format(nominal_tampil || 0) +
+					'</td>' +
 					'  <td style="border-bottom:1px solid gray;border-right:1px solid gray;">' +
-					// PENTING: tidak pakai href! pakai button + data-*
 					'    <button type="button"' +
 					'       class="bg-dark-gray-young text-add-colour-black-soft button-small col button text-bold btn-show"' +
 					'       data-id="' + (val.id_transaksi_acc) + '"' +
@@ -333,6 +351,7 @@ function getPengajuan() {
 	});
 }
 
+
 $(document).on('click', '.btn-show', function (e) {
 	e.preventDefault();
 
@@ -345,6 +364,8 @@ $(document).on('click', '.btn-show', function (e) {
 	try {
 		localStorage.setItem('pending_filter_kas', kas);
 		localStorage.setItem('pending_filter_kas_page', page);
+		localStorage.setItem('id_transaksi_kas', id);
+		localStorage.setItem('pengajuan', 'notif');
 		localStorage.setItem('last_show_click', JSON.stringify({
 			id: String(id ?? ''),
 			kas, page,
