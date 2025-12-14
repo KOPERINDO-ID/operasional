@@ -18,7 +18,7 @@ function getDataUser() {
 					app.dialog.close();
 				}, 1000);
 			} else {
-				localStorage.setItem("versioon_app_now", "13.02");
+				localStorage.setItem("versioon_app_now", "13.03");
 				if (data.jabatan == 'Finance') {
 					console.log(data);
 					app.dialog.close();

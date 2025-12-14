@@ -73,6 +73,36 @@
                               </li>
                               <li class="item-content item-input">
                                 <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;"><b>Bank Rekening</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="text" id="detail_bank_rekening_acc" name="detail_bank_rekening_acc" 
+                                      placeholder="Bank Rekening" readonly>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;"><b>No. Rekening</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="text" id="detail_no_rekening_acc" name="detail_no_rekening_acc" 
+                                      placeholder="No. Rekening" readonly>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;"><b>Nama Rekening</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <input type="text" id="detail_nama_rekening_acc" name="detail_nama_rekening_acc" 
+                                      placeholder="Nama Rekening" readonly>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
                                   <label style="height:17px; margin-top:-9px;"><b>Uraian</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
@@ -208,22 +238,26 @@
                               <li class="item-content item-input tambah_expedisi">
                                 <div class="item-inner">
                                   <label style="height:17px; margin-top:-9px;"><b>No. Plat</b></label>
-                                  <div class="item-input-wrap">
+                                  <div class="item-input-wrap" style="position: relative;">
                                     <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
                                       id="tambah_plat" placeholder="No. Plat" name="tambah_plat" required validate
                                       minlength="4" maxlength="10" style="text-transform: uppercase;"
-                                      oninput="this.value = this.value.toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '').replace(/^([A-Z]{1,2})(\d{0,4})([A-Z]{0,3}).*/, (m, p1, p2, p3) => p1 + p2 + p3);">
+                                      oninput="this.value = this.value.toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '').replace(/^([A-Z]{1,2})(\d{0,4})([A-Z]{0,3}).*/, (m, p1, p2, p3) => p1 + p2 + p3); filterSuggestions('tambah_plat');"
+                                      onfocus="showSuggestions('tambah_plat')" autocomplete="off">
+                                    <div id="suggestion_tambah_plat" class="suggestion-box" style="display:none;"></div>
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input tambah_expedisi">
                                 <div class="item-inner">
                                   <label style="height:17px; margin-top:-9px;"><b>No. Hp</b></label>
-                                  <div class="item-input-wrap">
+                                  <div class="item-input-wrap" style="position: relative;">
                                     <input type="text" class="clear_tambah_transaksi tambah_expedisi_att input_nohp"
                                       id="tambah_nohp" placeholder="No. HP" name="tambah_nohp" minlength="10"
                                       maxlength="15" required validate
-                                      oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                      oninput="this.value = this.value.replace(/[^0-9]/g, ''); filterSuggestions('tambah_nohp');"
+                                      onfocus="showSuggestions('tambah_nohp')" autocomplete="off">
+                                    <div id="suggestion_tambah_nohp" class="suggestion-box" style="display:none;"></div>
                                   </div>
                                 </div>
                               </li>
@@ -287,6 +321,41 @@
                                     <label></label>
                                     <textarea class="clear_tambah_transaksi tambah_expedisi_att" id="tambah_alamat"
                                       rows="2" name="tambah_alamat" placeholder="Alamat" required validate></textarea>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input tambah_expedisi">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Bank Rekening</b></label>
+                                  <div class="item-input-wrap">
+                                    <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
+                                      id="tambah_bank_rekening" name="tambah_bank_rekening" placeholder="Contoh: BCA, BRI, Mandiri"
+                                      style="text-transform: uppercase;"
+                                      oninput="this.value = this.value.toUpperCase()">
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input tambah_expedisi">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>No. Rekening</b></label>
+                                  <div class="item-input-wrap">
+                                    <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
+                                      id="tambah_no_rekening" name="tambah_no_rekening" placeholder="No. Rekening"
+                                      oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input tambah_expedisi">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Nama Rekening</b></label>
+                                  <div class="item-input-wrap">
+                                    <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
+                                      id="tambah_nama_rekening" name="tambah_nama_rekening" placeholder="Nama Pemilik Rekening"
+                                      style="text-transform: uppercase;"
+                                      oninput="this.value = this.value.toUpperCase()">
                                     <span class="input-clear-button"></span>
                                   </div>
                                 </div>
@@ -599,7 +668,7 @@
                                     <div class="custom-dd" style="width:130px;">
                                       <!-- Select ASLI -->
                                       <select id="detail_tipe_transaksi" name="detail_tipe_transaksi" required validate
-                                        class="hidden-native-select" onchange="updateTipeTransaksiColor(this)" disabled>
+                                        class="hidden-native-select" onchange="updateTipeTransaksiColor(this)" disabled style="font-size: 12px;">
                                         <option value="Payment" data-color="#007bff" data-text="#fff" selected>PAYMENT
                                         </option>
                                         <option value="Pengajuan" data-color="#FF7A1A" data-text="#fff">PENGAJUAN
@@ -653,12 +722,12 @@
                                   <div class="label">No. HP</div>
                                   <div class="pembatas">:</div>
                                   <div class="value-hp">
-                                    <a id="detail_nohp_btn" style="cursor: pointer;font-size: 14px;"
+                                    <a id="detail_nohp_btn" style="cursor: pointer;font-size: 12px;"
                                       class="btn-phone text-bold"><img src="img/logo/whatsapp-white-icon.png"
                                         style="width:15px;cursor: pointer;vertical-align: middle;" /> <span
                                         id="wa-text"></span></a>
                                     <a class="btn-phone-x text-bold" id="detail_nohp_reject_btn"
-                                      style="cursor: pointer;font-size: 14px;">
+                                      style="cursor: pointer;font-size: 12px;">
                                       <span id="wa-text">X</span>
                                     </a>
                                   </div>
@@ -710,12 +779,45 @@
                                 </div>
                               </li>
 
+                              <!-- Bank Rekening (khusus ekspedisi) -->
+                              <li class="detail_expedisi">
+                                <div class="detail-line">
+                                  <div class="label">Bank Rekening</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_bank_rekening"></div>
+                                </div>
+                              </li>
+
+                              <!-- No. Rekening (khusus ekspedisi) -->
+                              <li class="detail_expedisi">
+                                <div class="detail-line">
+                                  <div class="label">No. Rekening</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_no_rekening"></div>
+                                  <div class="copy-btn" onclick="copyToClipboard('detail_no_rekening', 'No. Rekening')" title="Copy No. Rekening">
+                                    <i class="f7-icons" style="font-size:16px; color:#4CAF50; cursor:pointer; margin-left:8px;">doc_on_doc</i>
+                                  </div>
+                                </div>
+                              </li>
+
+                              <!-- Nama Rekening (khusus ekspedisi) -->
+                              <li class="detail_expedisi">
+                                <div class="detail-line">
+                                  <div class="label">Nama Rekening</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_nama_rekening"></div>
+                                </div>
+                              </li>
+
                               <!-- Nominal -->
                               <li>
                                 <div class="detail-line">
                                   <div class="label">Nominal</div>
                                   <div class="pembatas">:</div>
                                   <div class="value" id="detail_nominal"></div>
+                                  <div class="copy-btn" onclick="copyToClipboard('detail_nominal', 'Nominal')" title="Copy Nominal">
+                                    <i class="f7-icons" style="font-size:16px; color:#4CAF50; cursor:pointer; margin-left:8px;">doc_on_doc</i>
+                                  </div>
                                 </div>
                               </li>
 
@@ -895,21 +997,25 @@
                               <li class="item-content item-input edit_expedisi">
                                 <div class="item-inner">
                                   <label style="height:17px; margin-top:-9px;"><b>No. Plat</b></label>
-                                  <div class="item-input-wrap">
+                                  <div class="item-input-wrap" style="position: relative;">
                                     <input type="text" class="clear_edit_transaksi edit_expedisi_att" id="edit_plat"
                                       placeholder="No. Plat" name="edit_plat" required validate minlength="4"
                                       maxlength="10" style="text-transform: uppercase;"
-                                      oninput="this.value = this.value.toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '').replace(/^([A-Z]{1,2})(\d{0,4})([A-Z]{0,3}).*/, (m, p1, p2, p3) => p1 + p2 + p3);">
+                                      oninput="this.value = this.value.toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '').replace(/^([A-Z]{1,2})(\d{0,4})([A-Z]{0,3}).*/, (m, p1, p2, p3) => p1 + p2 + p3); filterSuggestions('edit_plat');"
+                                      onfocus="showSuggestions('edit_plat')" autocomplete="off">
+                                    <div id="suggestion_edit_plat" class="suggestion-box" style="display:none;"></div>
                                   </div>
                                 </div>
                               </li>
                               <li class="item-content item-input edit_expedisi">
                                 <div class="item-inner">
                                   <label style="height:17px; margin-top:-9px;"><b>No. HP</b></label>
-                                  <div class="item-input-wrap">
+                                  <div class="item-input-wrap" style="position: relative;">
                                     <input type="text" class="clear_edit_transaksi edit_expedisi_att input_nohp"
                                       id="edit_nohp" placeholder="No. HP" name="edit_nohp" minlength="10" maxlength="15"
-                                      required validate oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                      required validate oninput="this.value = this.value.replace(/[^0-9]/g, ''); filterSuggestions('edit_nohp');"
+                                      onfocus="showSuggestions('edit_nohp')" autocomplete="off">
+                                    <div id="suggestion_edit_nohp" class="suggestion-box" style="display:none;"></div>
                                   </div>
                                 </div>
                               </li>
@@ -972,6 +1078,41 @@
                                     <label></label>
                                     <textarea class="clear_edit_transaksi edit_expedisi_att" id="edit_alamat" rows="2"
                                       name="edit_alamat" placeholder="Alamat" required validate></textarea>
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_expedisi">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Bank Rekening</b></label>
+                                  <div class="item-input-wrap">
+                                    <input type="text" class="clear_edit_transaksi edit_expedisi_att"
+                                      id="edit_bank_rekening" name="edit_bank_rekening" placeholder="Contoh: BCA, BRI, Mandiri"
+                                      style="text-transform: uppercase;"
+                                      oninput="this.value = this.value.toUpperCase()">
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_expedisi">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>No. Rekening</b></label>
+                                  <div class="item-input-wrap">
+                                    <input type="text" class="clear_edit_transaksi edit_expedisi_att"
+                                      id="edit_no_rekening" name="edit_no_rekening" placeholder="No. Rekening"
+                                      oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input edit_expedisi">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Nama Rekening</b></label>
+                                  <div class="item-input-wrap">
+                                    <input type="text" class="clear_edit_transaksi edit_expedisi_att"
+                                      id="edit_nama_rekening" name="edit_nama_rekening" placeholder="Nama Pemilik Rekening"
+                                      style="text-transform: uppercase;"
+                                      oninput="this.value = this.value.toUpperCase()">
                                     <span class="input-clear-button"></span>
                                   </div>
                                 </div>

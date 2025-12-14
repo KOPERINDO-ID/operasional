@@ -2,6 +2,194 @@ $('#detail_nominal').mask('000,000,000,000', { reverse: true });
 $('#edit_nominal').mask('000,000,000,000', { reverse: true });
 $('#tambah_nominal').mask('000,000,000,000', { reverse: true });
 
+// === FUNGSI COPY TEXT KE CLIPBOARD ===
+function copyToClipboard(elementId, label) {
+	var element = document.getElementById(elementId);
+	var textToCopy = '';
+	
+	if (element) {
+		// Ambil text content, hapus format angka (titik/koma) untuk nominal
+		textToCopy = element.innerText || element.textContent || '';
+		textToCopy = textToCopy.trim();
+		
+		// Hapus karakter non-angka untuk field nominal (kecuali minus)
+		if (elementId === 'detail_nominal') {
+			textToCopy = textToCopy.replace(/[^\d\-]/g, '');
+		}
+	}
+	
+	if (!textToCopy || textToCopy === '-') {
+		try {
+			app.toast.create({
+				text: label + ' kosong atau tidak tersedia',
+				closeTimeout: 2000
+			}).open();
+		} catch (e) {
+			alert(label + ' kosong atau tidak tersedia');
+		}
+		return;
+	}
+	
+	// Copy ke clipboard
+	if (navigator.clipboard && navigator.clipboard.writeText) {
+		navigator.clipboard.writeText(textToCopy).then(function() {
+			showCopySuccess(label, textToCopy);
+		}).catch(function(err) {
+			fallbackCopyText(textToCopy, label);
+		});
+	} else {
+		fallbackCopyText(textToCopy, label);
+	}
+}
+
+function fallbackCopyText(text, label) {
+	var textArea = document.createElement('textarea');
+	textArea.value = text;
+	textArea.style.position = 'fixed';
+	textArea.style.left = '-999999px';
+	textArea.style.top = '-999999px';
+	document.body.appendChild(textArea);
+	textArea.focus();
+	textArea.select();
+	
+	try {
+		document.execCommand('copy');
+		showCopySuccess(label, text);
+	} catch (err) {
+		try {
+			app.toast.create({
+				text: 'Gagal menyalin ' + label,
+				closeTimeout: 2000
+			}).open();
+		} catch (e) {
+			alert('Gagal menyalin ' + label);
+		}
+	}
+	
+	document.body.removeChild(textArea);
+}
+
+function showCopySuccess(label, text) {
+	var displayText = text.length > 20 ? text.substring(0, 20) + '...' : text;
+	try {
+		app.toast.create({
+			text: label + ' berhasil disalin: ' + displayText,
+			closeTimeout: 2000
+		}).open();
+	} catch (e) {
+		alert(label + ' berhasil disalin: ' + displayText);
+	}
+}
+
+// === SISTEM SUGGESTION BOX UNTUK NO. PLAT DAN NO. HP ===
+// Objek global untuk menyimpan data suggestion
+window.suggestionData = {
+	tambah_plat: [],
+	tambah_nohp: [],
+	edit_plat: [],
+	edit_nohp: []
+};
+
+// Render suggestion items ke dalam suggestion box
+function renderSuggestions(inputId, data, label) {
+	var suggestionBox = document.getElementById('suggestion_' + inputId);
+	if (!suggestionBox) return;
+	
+	var html = '';
+	if (data && data.length > 0) {
+		html += '<div class="suggestion-label">' + label + ' (' + data.length + ' data)</div>';
+		for (var i = 0; i < data.length; i++) {
+			var val = (data[i] || '').toString();
+			if (val) {
+				html += '<div class="suggestion-item" onclick="selectSuggestion(\'' + inputId + '\', \'' + val.replace(/'/g, "\\'") + '\')">' + val + '</div>';
+			}
+		}
+	}
+	suggestionBox.innerHTML = html;
+	
+	// Simpan data untuk filtering
+	window.suggestionData[inputId] = data || [];
+}
+
+// Tampilkan suggestion box
+function showSuggestions(inputId) {
+	var suggestionBox = document.getElementById('suggestion_' + inputId);
+	if (suggestionBox && suggestionBox.innerHTML.trim() !== '') {
+		suggestionBox.style.display = 'block';
+	}
+}
+
+// Sembunyikan suggestion box
+function hideSuggestions(inputId) {
+	var suggestionBox = document.getElementById('suggestion_' + inputId);
+	if (suggestionBox) {
+		suggestionBox.style.display = 'none';
+	}
+}
+
+// Sembunyikan semua suggestion box
+function hideAllSuggestions() {
+	var boxes = document.querySelectorAll('.suggestion-box');
+	boxes.forEach(function(box) {
+		box.style.display = 'none';
+	});
+}
+
+// Filter suggestion berdasarkan input
+function filterSuggestions(inputId) {
+	var input = document.getElementById(inputId);
+	var suggestionBox = document.getElementById('suggestion_' + inputId);
+	if (!input || !suggestionBox) return;
+	
+	var value = input.value.toUpperCase();
+	var data = window.suggestionData[inputId] || [];
+	var label = inputId.includes('plat') ? 'Riwayat No. Plat' : 'Riwayat No. HP';
+	
+	if (!value) {
+		// Tampilkan semua jika input kosong
+		renderSuggestions(inputId, data, label);
+		showSuggestions(inputId);
+		return;
+	}
+	
+	// Filter data
+	var filtered = data.filter(function(item) {
+		return (item || '').toString().toUpperCase().indexOf(value) !== -1;
+	});
+	
+	if (filtered.length > 0) {
+		var html = '<div class="suggestion-label">' + label + ' (' + filtered.length + ' hasil)</div>';
+		for (var i = 0; i < filtered.length; i++) {
+			var val = (filtered[i] || '').toString();
+			if (val) {
+				html += '<div class="suggestion-item" onclick="selectSuggestion(\'' + inputId + '\', \'' + val.replace(/'/g, "\\'") + '\')">' + val + '</div>';
+			}
+		}
+		suggestionBox.innerHTML = html;
+		suggestionBox.style.display = 'block';
+	} else {
+		suggestionBox.style.display = 'none';
+	}
+}
+
+// Pilih suggestion item
+function selectSuggestion(inputId, value) {
+	var input = document.getElementById(inputId);
+	if (input) {
+		input.value = value;
+		// Trigger input event untuk validasi
+		jQuery(input).trigger('input').trigger('change');
+	}
+	hideSuggestions(inputId);
+}
+
+// Tutup suggestion saat klik di luar
+jQuery(document).on('click', function(e) {
+	if (!jQuery(e.target).closest('.item-input-wrap').length) {
+		hideAllSuggestions();
+	}
+});
+
 jQuery('.pembayaran_1_dp').mask('000,000,000,000', { reverse: true });
 jQuery('#bayar_pembayaran').mask('000.000.000', { reverse: false });
 jQuery('#pembayaran_1').mask('000,000,000,000', { reverse: true });
@@ -235,6 +423,8 @@ function resetDataTransaksi(reset) {
 		jQuery('#filter_kas').val(localStorage.getItem("primary_kas"))
 		jQuery('#range-penjualan').val('')
 		filterDataTransaksi();
+		getPengajuan();
+		localStorage.removeItem("id_transaksi_kas");
 	}
 }
 
@@ -465,6 +655,13 @@ function getDataTransaksi() {
 		month = jQuery('#transaksi_bulan option:selected').val();
 	}
 
+	var id_transaksi = '';
+	if (localStorage.getItem("pengajuan") != 'notif') {
+		id_transaksi = 'empty';
+	} else {
+		id_transaksi = localStorage.getItem('id_transaksi_kas');
+	}
+
 	// === 1) Ambil reminder (warning saja) ===
 	jQuery.ajax({
 		type: 'POST',
@@ -494,6 +691,7 @@ function getDataTransaksi() {
 					kas: kas,
 					month: month,
 					year: year,
+					id_transaksi: id_transaksi,
 					lokasi_pabrik: localStorage.getItem('lokasi_pabrik')
 				},
 				success: function (data) {
@@ -898,6 +1096,9 @@ function getDetailTransaksiAcc(id_transaksi_acc, id_perusahaan_acc) {
 			jQuery("#detail_expedisi_dari").text(d.perusahaan_dari || "-");
 			jQuery("#detail_expedisi_tujuan").text(d.perusahaan_tujuan || "-");
 			jQuery("#detail_alamat").text(d.perusahaan_alamat || "");
+			jQuery("#detail_bank_rekening").text(d.perusahaan_bank_rekening || "-");
+			jQuery("#detail_no_rekening").text(d.perusahaan_no_rekening || "-");
+			jQuery("#detail_nama_rekening").text(d.perusahaan_nama_rekening || "-");
 			jQuery("#detail_expedisi_keterangan").html(
 				(d.perusahaan_uraian || "")
 					.replace(/\n{2,}/g, "\n")   // hilangkan gap newline double+
@@ -1047,6 +1248,9 @@ function getEditTransaksiAcc(id_transaksi_acc, id_perusahaan_acc) {
 			jQuery("#edit_pic").val(data.data.perusahaan_pic);
 			jQuery("#edit_plat").val(data.data.perusahaan_no_plat);
 			jQuery("#edit_nohp").val(data.data.perusahaan_no_hp);
+			jQuery("#edit_bank_rekening").val(data.data.perusahaan_bank_rekening);
+			jQuery("#edit_no_rekening").val(data.data.perusahaan_no_rekening);
+			jQuery("#edit_nama_rekening").val(data.data.perusahaan_nama_rekening);
 			jQuery("#edit_expedisi_keterangan").val(data.data.perusahaan_uraian);
 			jQuery("#edit_keterangan").val(data.data.keterangan);
 			jQuery("#edit_nominal").val(number_format(data.data.nominal_acc));
@@ -1622,6 +1826,7 @@ function updateFotoPembayaranProcess() {
 				if (data.status == 'done') {
 					app.dialog.alert('Berhasil Update Foto');
 
+					localStorage.removeItem("id_transaksi_kas");
 				} else if (data.status == 'failed') {
 					app.dialog.alert('Gagal Update Foto');
 				}
@@ -1673,8 +1878,18 @@ function tplPaidRow(idx, val, bg) {
 }
 
 // === Template row input (belum ada pembayaran) ===
-function tplInputRow(idx, val) {
+// Parameter sisa: jumlah yang belum terbayar
+// Parameter totalOperasional: total nominal yang harus dibayar
+function tplInputRow(idx, val, sisa, totalOperasional) {
 	const id = val.pembayaran_operasional_id;
+	
+	// Default nilai pembayaran = sisa yang belum terbayar
+	const defaultBayar = sisa > 0 ? fmt(sisa) : '0';
+	
+	// Rekomendasi keterangan berdasarkan apakah pembayaran ini akan melunasi
+	// Jika sisa dibayar penuh, maka "Lunas", jika tidak maka "Bayar"
+	const rekomendasiKet = (sisa > 0 && sisa <= totalOperasional) ? 'Lunas' : 'Bayar';
+	
 	return `
     <form id="pembayaran_form_multiple_${idx}_${id}">
       <tr>
@@ -1693,16 +1908,16 @@ function tplInputRow(idx, val) {
           </select>
         </td>
         <td style="border:1px solid white;" class="numeric-cell text-align-right">
-          <input style="width:100%;text-align:right;" class="input-pembayaran-multiple" id="pembayaran_${idx}_${id}" name="pembayaran_${idx}_${id}" type="text" value="0" onclick="if(this.value==='0') this.value='';" onblur="if(this.value==='') this.value='0';">
+          <input style="width:100%;text-align:right;" class="input-pembayaran-multiple" id="pembayaran_${idx}_${id}" name="pembayaran_${idx}_${id}" type="text" value="${defaultBayar}" onclick="if(this.value==='0') this.value='';" onblur="if(this.value==='') this.value='0';" onchange="updateKeteranganRekomendasi(${idx}, ${id}, ${sisa})">
         </td>
         <td style="border:1px solid white;" class="numeric-cell text-align-right">
           <input style="width:100%;text-align:right;" class="input-pembayaran-multiple" id="pembayaran_admin_${idx}_${id}" name="pembayaran_admin_${idx}_${id}" type="text" value="0" onclick="if(this.value==='0') this.value='';" onblur="if(this.value==='') this.value='0';">
         </td>
         <td style="border:1px solid white;" class="numeric-cell text-align-right">
-          <input style="width:100%;text-align:right;" class="input-pembayaran-multiple" id="pembayaran_jumlah_${idx}_${id}" name="pembayaran_jumlah_${idx}_${id}" type="text" readonly>
+          <input style="width:100%;text-align:right;" class="input-pembayaran-multiple" id="pembayaran_jumlah_${idx}_${id}" name="pembayaran_jumlah_${idx}_${id}" type="text" readonly value="${defaultBayar}">
         </td>
         <td style="border:1px solid white;" class="numeric-cell text-align-center">
-          <input style="width:100%;" id="keterangan_${idx}_${id}" name="keterangan_${idx}_${id}" type="text">
+          <input style="width:100%;" id="keterangan_${idx}_${id}" name="keterangan_${idx}_${id}" type="text" value="${rekomendasiKet}" placeholder="Lunas/Bayar">
         </td>
         <td style="border:1px solid white;" class="numeric-cell text-align-center">
           <label class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold" for="foto_bukti_${idx}_${id}">FOTO</label>
@@ -1712,6 +1927,25 @@ function tplInputRow(idx, val) {
       </tr>
     </form>
   `;
+}
+
+// Fungsi untuk update rekomendasi keterangan saat nominal pembayaran berubah
+function updateKeteranganRekomendasi(idx, id, sisa) {
+	var inputBayar = jQuery('#pembayaran_' + idx + '_' + id);
+	var inputKet = jQuery('#keterangan_' + idx + '_' + id);
+	
+	var nilaiInput = unfmt(inputBayar.val());
+	
+	// Jika input >= sisa, rekomendasikan "Lunas", jika tidak "Bayar"
+	if (nilaiInput >= sisa && sisa > 0) {
+		if (inputKet.val() === '' || inputKet.val() === 'Bayar') {
+			inputKet.val('Lunas');
+		}
+	} else {
+		if (inputKet.val() === '' || inputKet.val() === 'Lunas') {
+			inputKet.val('Bayar');
+		}
+	}
 }
 
 // === Bar status header per transaksi ===
@@ -1837,7 +2071,9 @@ function detailPembayaran(
 					} else {
 						// Tampilkan form input berurutan & hanya jika belum lunas
 						const prevOk = (idx === 1) ? true : Number(val[`pembayaran_${idx - 1}`] || 0) > 0;
-						if (prevOk && !lunas) out += tplInputRow(idx, val);
+						// Hitung sisa yang belum terbayar untuk default nilai input
+						const sisaBayar = totalOperasional - totalBayar;
+						if (prevOk && !lunas) out += tplInputRow(idx, val, sisaBayar, totalOperasional);
 					}
 				}
 
@@ -2027,6 +2263,37 @@ function onPerusahaanChangedTambah(type) {
 				if (res.data.pic) setVal(PIC_IDS, res.data.pic);
 				if (res.data.nohp) setVal(NOHP_IDS, String(res.data.nohp).replace(/[^0-9]/g, ''));
 			}
+			
+			// Jika response memiliki array nohp_list, render ke suggestion box
+			if (res && res.nohp_list && res.nohp_list.length > 0) {
+				var nohpInputId = type + '_nohp';
+				if (typeof renderSuggestions === 'function') {
+					renderSuggestions(nohpInputId, res.nohp_list, 'Riwayat No. HP');
+				}
+			}
+		}
+	});
+	
+	// 1b) Ambil distinct nohp untuk suggestion box
+	jQuery.ajax({
+		type: 'POST',
+		url: '' + BASE_API + '/expedisi-nohp-distinct',
+		dataType: 'JSON',
+		data: {
+			perusahaan: perusahaan,
+			lokasi_pabrik: localStorage.getItem('lokasi_pabrik')
+		},
+		success: function (res) {
+			if (res && res.status === 'success' && res.nohp && res.nohp.length > 0) {
+				var nohpInputId = type + '_nohp';
+				if (typeof renderSuggestions === 'function') {
+					renderSuggestions(nohpInputId, res.nohp, 'Riwayat No. HP');
+				}
+			}
+		},
+		error: function() {
+			// API tidak tersedia, gunakan fallback dari expedisi-distinct jika ada
+			console.log('API expedisi-nohp-distinct tidak tersedia');
 		}
 	});
 
@@ -2035,7 +2302,7 @@ function onPerusahaanChangedTambah(type) {
 	ensureDatalist(LIST_PENGIRIM_ID);
 	ensureDatalist(LIST_DARI_ID);
 
-	// tempel datalist ke input yg ada utk type ini
+	// tempel datalist ke input yg ada utk type ini (untuk fallback)
 	setListAttr(PLAT_IDS, LIST_PLAT_ID);
 	setListAttr(PENGIRIM_IDS, LIST_PENGIRIM_ID);
 	setListAttr(DARI_IDS, LIST_DARI_ID);
@@ -2049,12 +2316,32 @@ function onPerusahaanChangedTambah(type) {
 			lokasi_pabrik: localStorage.getItem('lokasi_pabrik')
 		},
 		success: function (res) {
-			var distinct = (res && res.status === 'success' && res.distinct) ? res.distinct : { plat: [], pengirim: [], dari: [] };
+			var distinct = (res && res.status === 'success' && res.distinct) ? res.distinct : { plat: [], pengirim: [], dari: [], nohp: [] };
 
-			// render datalist
+			// render datalist (untuk fallback)
 			renderOptions(LIST_PLAT_ID, distinct.plat || []);
 			renderOptions(LIST_PENGIRIM_ID, distinct.pengirim || []);
 			renderOptions(LIST_DARI_ID, distinct.dari || []);
+			
+			// === RENDER SUGGESTION BOX untuk No. Plat dan No. HP ===
+			// Render suggestion box untuk plat
+			var platInputId = type + '_plat';
+			if (typeof renderSuggestions === 'function') {
+				renderSuggestions(platInputId, distinct.plat || [], 'Riwayat No. Plat');
+				// Hapus attribute list dari input plat agar datalist native tidak muncul
+				jQuery('#' + platInputId).removeAttr('list');
+			}
+			
+			// Render suggestion box untuk nohp (jika ada data nohp dari distinct)
+			var nohpInputId = type + '_nohp';
+			if (typeof renderSuggestions === 'function') {
+				// Jika API mengembalikan data nohp
+				if (distinct.nohp && distinct.nohp.length > 0) {
+					renderSuggestions(nohpInputId, distinct.nohp || [], 'Riwayat No. HP');
+				}
+				// Hapus attribute list dari input nohp agar datalist native tidak muncul
+				jQuery('#' + nohpInputId).removeAttr('list');
+			}
 
 			// apply default rules ke field sesuai type:
 			// PLAT: jika hanya 1 -> set (dan trigger input biar filter plat-mu jalan)

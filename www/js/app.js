@@ -69,13 +69,8 @@ var app = new Framework7({
           return app.views.main.router.navigate('/login');
         }, 300);
       } else {
-        getMenuUser();
-        getPengumuman();
-        getPengajuan();
-        checkKasMinimum();
         startTimeMain();
         $$('#karyawan-nama').html(localStorage.getItem("karyawan_nama"));
-        checkReminderKategoriAcc();
         setTimeout(function () {
           if (localStorage.getItem("user_id") == 260) {
             return app.views.main.router.navigate('/data-kas');

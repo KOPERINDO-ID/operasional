@@ -184,6 +184,7 @@ function resetDataTransaksiKas(reset) {
 		jQuery('#filter_kas_in_asal').val(localStorage.getItem("primary_kas"))
 		jQuery('#range-penjualan-in').val('')
 		filterDataTransaksiKas();
+		getPengajuan();
 	}
 }
 
