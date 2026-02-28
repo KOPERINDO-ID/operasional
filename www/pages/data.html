@@ -76,7 +76,7 @@
                                   <label style="height:17px; margin-top:-9px;"><b>Bank Rekening</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
-                                    <input type="text" id="detail_bank_rekening_acc" name="detail_bank_rekening_acc" 
+                                    <input type="text" id="detail_bank_rekening_acc" name="detail_bank_rekening_acc"
                                       placeholder="Bank Rekening" readonly>
                                   </div>
                                 </div>
@@ -86,7 +86,7 @@
                                   <label style="height:17px; margin-top:-9px;"><b>No. Rekening</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
-                                    <input type="text" id="detail_no_rekening_acc" name="detail_no_rekening_acc" 
+                                    <input type="text" id="detail_no_rekening_acc" name="detail_no_rekening_acc"
                                       placeholder="No. Rekening" readonly>
                                   </div>
                                 </div>
@@ -96,7 +96,7 @@
                                   <label style="height:17px; margin-top:-9px;"><b>Nama Rekening</b></label>
                                   <div class="item-input-wrap">
                                     <label></label>
-                                    <input type="text" id="detail_nama_rekening_acc" name="detail_nama_rekening_acc" 
+                                    <input type="text" id="detail_nama_rekening_acc" name="detail_nama_rekening_acc"
                                       placeholder="Nama Rekening" readonly>
                                   </div>
                                 </div>
@@ -199,6 +199,26 @@
                                         </div>
                                       </div>
                                     </div>
+                                  </div>
+                                </div>
+                              </li>
+                              <!-- ========================================= -->
+                              <!-- UNTUK FORM TAMBAH TRANSAKSI -->
+                              <!-- Letakkan SETELAH dropdown kategori -->
+                              <!-- ========================================= -->
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;">
+                                    <b>Referensi Number</b>
+                                  </label>
+                                  <div class="item-input-wrap referensi-wrap">
+                                    <input type="text" id="tambah_referensi_number" name="tambah_referensi_number"
+                                      placeholder="Auto Generate" readonly>
+
+                                    <button type="button" class="btn-copy-referensi"
+                                      onclick="copyReferensiNumber('tambah')" title="Copy Referensi Number">
+                                      <i class="f7-icons">doc_on_clipboard</i>
+                                    </button>
                                   </div>
                                 </div>
                               </li>
@@ -330,8 +350,8 @@
                                   <label style="height:17px; margin-top:-9px;"><b>Bank Rekening</b></label>
                                   <div class="item-input-wrap">
                                     <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
-                                      id="tambah_bank_rekening" name="tambah_bank_rekening" placeholder="Contoh: BCA, BRI, Mandiri"
-                                      style="text-transform: uppercase;"
+                                      id="tambah_bank_rekening" name="tambah_bank_rekening"
+                                      placeholder="Contoh: BCA, BRI, Mandiri" style="text-transform: uppercase;"
                                       oninput="this.value = this.value.toUpperCase()">
                                     <span class="input-clear-button"></span>
                                   </div>
@@ -353,9 +373,23 @@
                                   <label style="height:17px; margin-top:-9px;"><b>Nama Rekening</b></label>
                                   <div class="item-input-wrap">
                                     <input type="text" class="clear_tambah_transaksi tambah_expedisi_att"
-                                      id="tambah_nama_rekening" name="tambah_nama_rekening" placeholder="Nama Pemilik Rekening"
-                                      style="text-transform: uppercase;"
+                                      id="tambah_nama_rekening" name="tambah_nama_rekening"
+                                      placeholder="Nama Pemilik Rekening" style="text-transform: uppercase;"
                                       oninput="this.value = this.value.toUpperCase()">
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Tipe Bayar</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <select id="tambah_tipe_bayar" name="tambah_tipe_bayar" required validate>
+                                      <option value="">Pilih Tipe Bayar</option>
+                                      <option value="cicilan">Termint</option>
+                                      <option value="lunas">Payment</option>
+                                    </select>
                                     <span class="input-clear-button"></span>
                                   </div>
                                 </div>
@@ -436,6 +470,93 @@
       </div>
     </div>
 
+
+    <!-- ============================================ -->
+    <!-- POPUP KECIL: PILIHAN FOTO PEMBAYARAN        -->
+    <!-- Popup kecil di tengah layar                 -->
+    <!-- ============================================ -->
+    <div class="popup popup-foto-pembayaran-choice" style="background: rgba(0,0,0,0.4);">
+      <div class="popup-foto-container" style="
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-width: 350px;
+        background: #1a1a1a;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+
+        <!-- Header -->
+        <div style="padding: 20px 15px 15px 15px; text-align: center; background: #252525;">
+          <h3 style="margin: 0; color: #fff; font-size: 18px; font-weight: bold;">
+            <i class="f7-icons" style="vertical-align: middle; margin-right: 8px;">camera_fill</i>
+            Pilih Sumber Foto
+          </h3>
+        </div>
+
+        <!-- Tombol Ambil Foto dan Pilih Gallery (1 baris) -->
+        <div style="padding: 15px; display: flex; gap: 10px;">
+          <!-- Tombol Ambil Foto -->
+          <button onclick="pilihFotoSourcePembayaran('camera');" style="
+              flex: 1;
+              padding: 15px 10px;
+              background: #007AFF;
+              border: none;
+              border-radius: 8px;
+              color: white;
+              font-size: 14px;
+              font-weight: bold;
+              cursor: pointer;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 8px;">
+            <i class="f7-icons" style="font-size: 32px;">camera_fill</i>
+            <span>Ambil Foto</span>
+          </button>
+
+          <!-- Tombol Pilih Gallery -->
+          <button onclick="pilihFotoSourcePembayaran('gallery');" style="
+              flex: 1;
+              padding: 15px 10px;
+              background: #4CAF50;
+              border: none;
+              border-radius: 8px;
+              color: white;
+              font-size: 14px;
+              font-weight: bold;
+              cursor: pointer;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 8px;">
+            <i class="f7-icons" style="font-size: 32px;">photo_fill</i>
+            <span>Pilih Gallery</span>
+          </button>
+        </div>
+
+        <!-- Footer dengan tombol Batal -->
+        <div style="padding: 10px 15px 15px 15px;">
+          <button onclick="app.popup.close('.popup-foto-pembayaran-choice');" style="
+              width: 100%;
+              padding: 12px;
+              background: #FF3B30;
+              border: none;
+              border-radius: 8px;
+              color: white;
+              font-size: 16px;
+              font-weight: bold;
+              cursor: pointer;">
+            Batal
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+
     <div class="popup upload-foto-pembayaran">
       <div class="view">
         <div class="page">
@@ -484,9 +605,9 @@
                                     <!-- <label style="height:17px; margin-top:-9px;"><b>Keterangan</b></label> -->
                                     <div class="item-input-wrap">
                                       <label>Keterangan Reject :</label>
-                                      <input type="text" class="clear_detail_transaksi_cicilan"
-                                        id="keterangan_reject_cicilan" placeholder="-" readonly
-                                        name="keterangan_reject_cicilan" required validate>
+                                      <textarea class="clear_detail_transaksi_cicilan" id="keterangan_reject_cicilan"
+                                        placeholder="-" readonly name="keterangan_reject_cicilan" required
+                                        validate></textarea>
                                       <span class="input-clear-button"></span>
                                     </div>
                                   </div>
@@ -495,10 +616,35 @@
                               <input type="hidden" id="penjualan_id_foto_pembayaran" name="penjualan_id_foto_pembayaran"
                                 value="">
                               <input type="hidden" id="foto_urutan" name="foto_urutan" value="">
-                              <center>
-                                <input class="btn-payment-penjualan" style="width:90%; border:1px solid gray;"
-                                  type="file" name="file_foto_pembayaran" id="file_foto_pembayaran" value="">
-                              </center>
+
+                              <!-- File input (hidden, akan di-trigger oleh tombol File) -->
+                              <input type="file" id="file_foto_pembayaran" name="file_foto_pembayaran" accept="image/*"
+                                style="display:none;" />
+
+                              <!-- ============================================ -->
+                              <!-- TOMBOL CAMERA & GALLERY (Untuk Reject)      -->
+                              <!-- Hanya muncul ketika valid_spy == 2          -->
+                              <!-- ============================================ -->
+                              <div id="btn_foto_pembayaran_upload" style="display:none; padding: 10px 0;">
+                                <div class="row" style="padding: 5px;">
+                                  <div class="col-50" style="padding-right: 5px;">
+                                    <label onclick="openCameraFotoPembayaran('file_foto_pembayaran');"
+                                      class="text-add-colour-white bg-color-blue button-large button text-bold"
+                                      style="width: 100%; margin: 0; align-items: center; cursor: pointer;">
+                                      <i class="f7-icons" style="font-size: 28px;">camera_fill</i>
+                                      <span>Camera</span>
+                                    </label>
+                                  </div>
+                                  <div class="col-50" style="padding-left: 5px;">
+                                    <label for="file_foto_pembayaran"
+                                      class="text-add-colour-white btn-color-greenWhite button-large button text-bold"
+                                      style="width: 100%; margin: 0; align-items: center;cursor: pointer;">
+                                      <i class="f7-icons" style="font-size: 28px;">photo_fill</i>
+                                      <span>File</span>
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
                               <center>
                                 <img width="100px" style="border-radius:10px;" id="file_foto_pembayaran_view" />
                                 <br>
@@ -506,7 +652,7 @@
 
                             </form>
                             <button id="btn_upload_foto_selesai" onclick="updateFotoPembayaranProcess()"
-                              class="btn-payment-penjualan text-add-colour-black-soft bg-dark-gray-young button-small col button popup-open text-bold">Simpan</button>
+                              class="btn-payment-penjualan text-add-colour-black-soft bg-dark-gray-young button-large col button popup-open text-bold">Simpan</button>
 
                           </div>
                         </tbody>
@@ -522,101 +668,100 @@
       </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- POPUP DETAIL-PEMBAYARAN - UPDATED WITH PHOTO UPLOAD        -->
+    <!-- ============================================================ -->
+    <!-- Snippet ini menggantikan popup detail-pembayaran yang lama -->
+    <!-- dengan fitur upload foto yang sudah terintegrasi           -->
+    <!-- ============================================================ -->
     <div class="popup detail-pembayaran">
       <div class="view">
         <div class="page">
+
+          <!-- Navbar -->
           <div class="navbar">
             <div class="navbar-bg"></div>
             <div class="navbar-inner bg-dark-gray-medium">
               <div class="title">History Pembayaran</div>
               <div class="right">
-                <!-- Link to close popup -->
-                <p id="backbutton" class="text-add-colour-white link popup-close"><i style="margin-right:5px;"
-                    class="f7-icons">xmark_rectangle_fill</i></p>
+                <p id="backbutton" class="text-add-colour-white link popup-close">
+                  <i style="margin-right:5px;" class="f7-icons">xmark_rectangle_fill</i>
+                </p>
               </div>
             </div>
           </div>
+
+          <!-- Page Content -->
           <div class="page-content">
             <div class="card card-outline margin-top bg-dark-gray-medium">
               <div class="card-content">
                 <div class="row">
                   <div class="col-100">
                     <div class="card">
+
+                      <!-- Header Info -->
                       <h3 class="text-align-center">
                         <span id="popup-pembayaran-td-kategori"></span> |
                         <span id="popup-pembayaran-td-keterangan"></span>
                       </h3>
-                      <form id="pembayaran_form">
-                        <div class="card-content" style="overflow-x:auto; width:100%;">
-                          <table align="center" width="100%" border="0"
-                            style="border-collapse: collapse; border:1px solid white;">
-                            <thead>
-                              <tr>
-                                <td colspan="3" width="37%" height="10px" class="numeric-cell text-align-left">Tanggal
-                                </td>
-                                <td width="13%" class="numeric-cell text-align-left">:
-                                </td>
-                                <td width="50%" id="tanggal_pembayaran_choose" class="numeric-cell text-align-right">
-                                </td>
-                              </tr>
-                              <tr>
-                                <td colspan="3" height="10px" class="numeric-cell text-align-left">Nominal
-                                </td>
-                                <td class="numeric-cell text-align-left">:</td>
-                                <td id="popup-pembayaran-penjualan_grandtotal" class="numeric-cell text-align-right">
-                                </td>
-                              </tr>
-                              <tr>
-                                <td colspan="3" class="numeric-cell text-align-left">
-                                  Dibayar
-                                </td>
-                                <td class="numeric-cell text-align-left">:</td>
-                                <td id="popup-pembayaran-penjualan_jumlah_pembayaran"
-                                  class="numeric-cell text-align-right"></td>
-                              </tr>
-                              <tr>
-                                <td colspan="3" height="10px" class="numeric-cell text-align-left">Admin
-                                </td>
-                                <td class="numeric-cell text-align-left">:</td>
-                                <td id="popup-pembayaran-admin" class="numeric-cell text-align-right">
-                                </td>
-                              </tr>
-                              <tr>
-                                <td colspan="3" class="numeric-cell text-align-left">
-                                  Sisa
-                                </td>
-                                <td class="numeric-cell text-align-left">:</td>
-                                <td id="popup-pembayaran-penjualan_kekurangan" class="numeric-cell text-align-right">
-                                </td>
-                              </tr>
-                              <tr>
-                                <td colspan="3" class="numeric-cell text-align-left">
-                                  Status
-                                </td>
-                                <td class="numeric-celltext-align-left">:</td>
-                                <td id="popup-pembayaran-penjualan_status_pembayaran"
-                                  class="numeric-cell text-align-right"></td>
-                              </tr>
-                              <tr>
-                                <td colspan="5" id="tanggal_pembayaran_choose_td" align="left"
-                                  style="border-collapse: collapse; ">
 
-                                </td>
-                              </tr>
-                            </thead>
-                          </table>
-                        </div>
-                      </form>
+                      <!-- Summary Info -->
+                      <div class="card-content" style="overflow-x:auto; width:100%;">
+                        <table align="center" width="100%" border="0"
+                          style="border-collapse: collapse; border:1px solid white;">
+                          <thead>
+                            <tr>
+                              <td colspan="3" width="37%" class="numeric-cell text-align-left">Tanggal</td>
+                              <td width="13%" class="numeric-cell text-align-left">:</td>
+                              <td width="50%" id="tanggal_pembayaran_choose" class="numeric-cell text-align-right"></td>
+                            </tr>
+                            <tr>
+                              <td colspan="3" class="numeric-cell text-align-left">Nominal</td>
+                              <td class="numeric-cell text-align-left">:</td>
+                              <td id="popup-pembayaran-penjualan_grandtotal" class="numeric-cell text-align-right"></td>
+                            </tr>
+                            <tr>
+                              <td colspan="3" class="numeric-cell text-align-left">Dibayar</td>
+                              <td class="numeric-cell text-align-left">:</td>
+                              <td id="popup-pembayaran-penjualan_jumlah_pembayaran"
+                                class="numeric-cell text-align-right"></td>
+                            </tr>
+                            <tr>
+                              <td colspan="3" class="numeric-cell text-align-left">Admin</td>
+                              <td class="numeric-cell text-align-left">:</td>
+                              <td id="popup-pembayaran-admin" class="numeric-cell text-align-right"></td>
+                            </tr>
+                            <tr>
+                              <td colspan="3" class="numeric-cell text-align-left">Sisa</td>
+                              <td class="numeric-cell text-align-left">:</td>
+                              <td id="popup-pembayaran-penjualan_kekurangan" class="numeric-cell text-align-right"></td>
+                            </tr>
+                            <tr>
+                              <td colspan="3" class="numeric-cell text-align-left">Status</td>
+                              <td class="numeric-cell text-align-left">:</td>
+                              <td id="popup-pembayaran-penjualan_status_pembayaran"
+                                class="numeric-cell text-align-right"></td>
+                            </tr>
+                          </thead>
+                        </table>
+                      </div>
+
+                      <!-- ============================================ -->
+                      <!-- HISTORY PEMBAYARAN MULTIPLE (2-STEP FLOW)    -->
+                      <!-- ============================================ -->
                       <br>
                       <div id="history_pembayaran_multiple" style="width:100%;">
-
+                        <!-- Content will be dynamically generated here -->
+                        <!-- See next section for template -->
                       </div>
+
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>
@@ -668,7 +813,8 @@
                                     <div class="custom-dd" style="width:130px;">
                                       <!-- Select ASLI -->
                                       <select id="detail_tipe_transaksi" name="detail_tipe_transaksi" required validate
-                                        class="hidden-native-select" onchange="updateTipeTransaksiColor(this)" disabled style="font-size: 12px;">
+                                        class="hidden-native-select" onchange="updateTipeTransaksiColor(this)" disabled
+                                        style="font-size: 12px;">
                                         <option value="Payment" data-color="#007bff" data-text="#fff" selected>PAYMENT
                                         </option>
                                         <option value="Pengajuan" data-color="#FF7A1A" data-text="#fff">PENGAJUAN
@@ -688,7 +834,18 @@
                                   </div>
                                 </div>
                               </li>
-
+                              <li>
+                                <div class="detail-line">
+                                  <div class="label">Ref No.</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_referensi_number"></div>
+                                  <div class="copy-btn" onclick="copyToClipboard('detail_referensi_number','Ref No.')"
+                                    title="Copy Ref Number">
+                                    <i class="f7-icons"
+                                      style="font-size:16px; color:#4CAF50; cursor:pointer; margin-left:8px;">doc_on_doc</i>
+                                  </div>
+                                </div>
+                              </li>
                               <!-- Perusahaan -->
                               <li class="detail_expedisi">
                                 <div class="detail-line">
@@ -794,8 +951,10 @@
                                   <div class="label">No. Rekening</div>
                                   <div class="pembatas">:</div>
                                   <div class="value" id="detail_no_rekening"></div>
-                                  <div class="copy-btn" onclick="copyToClipboard('detail_no_rekening', 'No. Rekening')" title="Copy No. Rekening">
-                                    <i class="f7-icons" style="font-size:16px; color:#4CAF50; cursor:pointer; margin-left:8px;">doc_on_doc</i>
+                                  <div class="copy-btn" onclick="copyToClipboard('detail_no_rekening', 'No. Rekening')"
+                                    title="Copy No. Rekening">
+                                    <i class="f7-icons"
+                                      style="font-size:16px; color:#4CAF50; cursor:pointer; margin-left:8px;">doc_on_doc</i>
                                   </div>
                                 </div>
                               </li>
@@ -809,14 +968,25 @@
                                 </div>
                               </li>
 
+                              <!-- Tipe Bayar -->
+                              <li>
+                                <div class="detail-line">
+                                  <div class="label">Tipe Bayar</div>
+                                  <div class="pembatas">:</div>
+                                  <div class="value" id="detail_tipe_bayar"></div>
+                                </div>
+                              </li>
+
                               <!-- Nominal -->
                               <li>
                                 <div class="detail-line">
                                   <div class="label">Nominal</div>
                                   <div class="pembatas">:</div>
                                   <div class="value" id="detail_nominal"></div>
-                                  <div class="copy-btn" onclick="copyToClipboard('detail_nominal', 'Nominal')" title="Copy Nominal">
-                                    <i class="f7-icons" style="font-size:16px; color:#4CAF50; cursor:pointer; margin-left:8px;">doc_on_doc</i>
+                                  <div class="copy-btn" onclick="copyToClipboard('detail_nominal', 'Nominal')"
+                                    title="Copy Nominal">
+                                    <i class="f7-icons"
+                                      style="font-size:16px; color:#4CAF50; cursor:pointer; margin-left:8px;">doc_on_doc</i>
                                   </div>
                                 </div>
                               </li>
@@ -862,8 +1032,8 @@
                       <div class="row" style="padding: 5px;" id="show_button_valid">
                         <div class="col-50 text-right">
                           <button onclick="validTransaksi(2);" style="width:100%;"
-                            class="card-color-red button-small col button text-bold"
-                            id="valid_transaksi_reject_button_save">
+                            class="card-color-red button-small col button text-bold popup-open"
+                            id="valid_transaksi_reject_button_save" data-popup=".popup-keterangan-reject">
                             REJECT
                           </button>
                         </div>
@@ -961,7 +1131,27 @@
                                     </div>
                                   </div>
                                 </div>
+                              </li><!-- ========================================= -->
+                              <!-- UNTUK FORM EDIT TRANSAKSI -->
+                              <!-- Letakkan SETELAH dropdown kategori -->
+                              <!-- ========================================= -->
+                              <li class="item-content item-input">
+                                <div class="item-inner" style="padding-top: 20px;">
+                                  <label style="height:17px; margin-top:-9px;">
+                                    <b>Referensi Number</b>
+                                  </label>
+                                  <div class="item-input-wrap referensi-wrap">
+                                    <input type="text" id="edit_referensi_number" name="edit_referensi_number"
+                                      placeholder="Auto Generate" readonly>
+
+                                    <button type="button" class="btn-copy-referensi"
+                                      onclick="copyReferensiNumber('edit')" title="Copy Referensi Number">
+                                      <i class="f7-icons">doc_on_clipboard</i>
+                                    </button>
+                                  </div>
+                                </div>
                               </li>
+
                               <li class="item-content item-input edit_expedisi">
                                 <div class="item-inner">
                                   <label style="height:17px; margin-top:-9px;"><b>Perusahaan</b></label>
@@ -1013,7 +1203,8 @@
                                   <div class="item-input-wrap" style="position: relative;">
                                     <input type="text" class="clear_edit_transaksi edit_expedisi_att input_nohp"
                                       id="edit_nohp" placeholder="No. HP" name="edit_nohp" minlength="10" maxlength="15"
-                                      required validate oninput="this.value = this.value.replace(/[^0-9]/g, ''); filterSuggestions('edit_nohp');"
+                                      required validate
+                                      oninput="this.value = this.value.replace(/[^0-9]/g, ''); filterSuggestions('edit_nohp');"
                                       onfocus="showSuggestions('edit_nohp')" autocomplete="off">
                                     <div id="suggestion_edit_nohp" class="suggestion-box" style="display:none;"></div>
                                   </div>
@@ -1087,8 +1278,8 @@
                                   <label style="height:17px; margin-top:-9px;"><b>Bank Rekening</b></label>
                                   <div class="item-input-wrap">
                                     <input type="text" class="clear_edit_transaksi edit_expedisi_att"
-                                      id="edit_bank_rekening" name="edit_bank_rekening" placeholder="Contoh: BCA, BRI, Mandiri"
-                                      style="text-transform: uppercase;"
+                                      id="edit_bank_rekening" name="edit_bank_rekening"
+                                      placeholder="Contoh: BCA, BRI, Mandiri" style="text-transform: uppercase;"
                                       oninput="this.value = this.value.toUpperCase()">
                                     <span class="input-clear-button"></span>
                                   </div>
@@ -1110,9 +1301,23 @@
                                   <label style="height:17px; margin-top:-9px;"><b>Nama Rekening</b></label>
                                   <div class="item-input-wrap">
                                     <input type="text" class="clear_edit_transaksi edit_expedisi_att"
-                                      id="edit_nama_rekening" name="edit_nama_rekening" placeholder="Nama Pemilik Rekening"
-                                      style="text-transform: uppercase;"
+                                      id="edit_nama_rekening" name="edit_nama_rekening"
+                                      placeholder="Nama Pemilik Rekening" style="text-transform: uppercase;"
                                       oninput="this.value = this.value.toUpperCase()">
+                                    <span class="input-clear-button"></span>
+                                  </div>
+                                </div>
+                              </li>
+                              <li class="item-content item-input">
+                                <div class="item-inner">
+                                  <label style="height:17px; margin-top:-9px;"><b>Tipe Bayar</b></label>
+                                  <div class="item-input-wrap">
+                                    <label></label>
+                                    <select id="edit_tipe_bayar" name="edit_tipe_bayar" required validate>
+                                      <option value="">Pilih Tipe Bayar</option>
+                                      <option value="cicilan">Termint</option>
+                                      <option value="lunas">Payment</option>
+                                    </select>
                                     <span class="input-clear-button"></span>
                                   </div>
                                 </div>
@@ -1207,6 +1412,61 @@
                             id="valid_transaksi_reject_button_save">SIMPAN
                           </button>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POPUP KETERANGAN REJECT -->
+    <div class="popup popup-keterangan-reject">
+      <div class="view">
+        <div class="page">
+          <div class="navbar">
+            <div class="navbar-bg"></div>
+            <div class="navbar-inner bg-dark-gray-medium">
+              <div class="title">Alasan Reject</div>
+              <div class="right">
+                <p class="text-add-colour-white link popup-close" data-popup=".popup-keterangan-reject">
+                  <i style="margin-right:5px;" class="f7-icons">xmark_rectangle_fill</i>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="page-content">
+            <div class="card card-outline margin-top">
+              <div class="card-content">
+                <div class="row">
+                  <div class="col-100">
+                    <div class="card-content">
+                      <form id="form_reject_keterangan">
+                        <ul>
+                          <li class="item-content item-input">
+                            <div class="item-inner">
+                              <label style="height:17px; margin-top:-9px;">
+                                <b>Keterangan Reject</b>
+                              </label>
+                              <div class="item-input-wrap">
+                                <textarea id="reject_keterangan_input" name="reject_keterangan_input"
+                                  placeholder="Tuliskan alasan reject..." required validate rows="4"></textarea>
+                                <span class="input-clear-button"></span>
+                              </div>
+                            </div>
+                          </li>
+                        </ul>
+                      </form>
+
+                      <div class="row" style="padding: 5px; margin-top: 10px;">
+                        <button onclick="prosesRejectTransaksi();" style="width:100%;"
+                          class="card-color-red button-large col button text-bold">
+                          KIRIM REJECT
+                        </button>
                       </div>
                     </div>
                   </div>

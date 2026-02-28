@@ -171,6 +171,7 @@ function getDataJurnal() {
 			lokasi_pabrik: localStorage.getItem("lokasi_pabrik"),
 		},
 		beforeSend: function () {
+			// internetCheckQueue.check();
 		},
 		success: function (data) {
 			var data_tools = '';
@@ -279,6 +280,7 @@ function getDetailTransaksiJurnalAcc(id_transaksi_acc, id_perusahaan_acc) {
 			id_transaksi_acc: id_transaksi_acc
 		},
 		beforeSend: function () {
+			internetCheckQueue.check();
 			jQuery('#clear_detail_transaksi_jurnal').html('');
 			gambarAccJurnal(1, 'detail');
 			jQuery('#file_bukti_terima_detail_jurnal_view_now').attr('src', 'https://tasindo-sale-webservice.digiseminar.id/noimage.jpg');
@@ -406,7 +408,8 @@ function downloadJurnalAcc() {
 			lokasi_pabrik: localStorage.getItem("lokasi_pabrik"),
 		},
 		beforeSend: function () {
-			app.dialog.preloader('Mengambil Data Jurnal');
+			internetCheckQueue.check();
+			app.dialog.preloader('Mengambil data jurnal...');
 			data_tools += '<table width="100%" border="0">';
 			data_tools += '	<tr>';
 			data_tools += '		<td colspan="6" align="center"><h2>Jurnal</h2></td>';
@@ -559,6 +562,7 @@ function getEditTransaksiJurnalAcc(id_transaksi_acc, id_perusahaan_acc) {
 		timeout: 10000,
 		data: { id_transaksi_acc: id_transaksi_acc },
 		beforeSend: function () {
+			internetCheckQueue.check();
 			// clear field
 			jQuery('.clear_edit_jurnal').val('');
 			jQuery('#show_keterangan_reject').hide();
@@ -695,6 +699,7 @@ function comboKategoriDetailJurnal(id_kategori_acc, type) {
 			kas: jQuery('#filter_kas_neraca').val(),
 		},
 		beforeSend: function () {
+			// internetCheckQueue.check();
 			jQuery('#' + type + '_kategori').html('');
 		},
 		success: function (data) {
@@ -727,6 +732,7 @@ function comboPerusahaanDetailJurnal(id_perusahaan_acc, type) {
 			user_id: localStorage.getItem("user_id"),
 		},
 		beforeSend: function () {
+			// internetCheckQueue.check();
 			jQuery('#' + type + '_perusahaan').html('');
 		},
 		success: function (data) {
@@ -758,6 +764,7 @@ function comboKasFilterNeraca() {
 			user_id: localStorage.getItem("user_id"),
 		},
 		beforeSend: function () {
+			// internetCheckQueue.check();
 			jQuery('#filter_kas_neraca').html('');
 		},
 		success: function (data) {
@@ -789,6 +796,7 @@ function comboKasAsalJurnal(id_kas_acc, type) {
 			user_id: localStorage.getItem("user_id"),
 		},
 		beforeSend: function () {
+			// internetCheckQueue.check();
 			jQuery('#' + type + '_kas_jurnal_asal').html('');
 		},
 		success: function (data) {
@@ -857,7 +865,8 @@ function updateTransaksiJurnal() {
 		contentType: false,
 		processData: false,
 		beforeSend: function () {
-			app.dialog.preloader('Harap Tunggu');
+			internetCheckQueue.check();
+			app.dialog.preloader('Memproses data...');
 		},
 		success: function (data) {
 			$$('.clear_edit_transaksi').val('');
@@ -909,6 +918,7 @@ function getEditKasAcc(id_transaksi_acc, id_tr_kas_acc) {
 			id_tr_kas_acc: id_tr_kas_acc_val,
 		},
 		beforeSend: function () {
+			internetCheckQueue.check();
 			jQuery('#clear_edit_kas_jurnal').html('');
 		},
 		success: function (data) {
@@ -946,7 +956,10 @@ function updateJurnalKas() {
 				contentType: false,
 				processData: false,
 				beforeSend: function () {
-					app.dialog.preloader('Harap Tunggu');
+					internetCheckQueue.check();
+				try {
+					app.dialog.preloader('Memproses data...');
+				} catch (e) { }
 				},
 				success: function (data) {
 					app.dialog.close();
@@ -983,7 +996,10 @@ function deleteJurnalTransaksiAcc(id_transaksi_acc, kategori_acc) {
 					id_transaksi_acc: id_transaksi_acc,
 				},
 				beforeSend: function () {
-					app.dialog.preloader('Harap Tunggu');
+					internetCheckQueue.check();
+				try {
+					app.dialog.preloader('Memproses data...');
+				} catch (e) { }
 				},
 				success: function (data) {
 					app.dialog.close();

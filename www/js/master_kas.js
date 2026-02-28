@@ -32,6 +32,7 @@ function getDataMasterKas() {
             keterangan_filter: keterangan_filter
         },
         beforeSend: function () {
+            // internetCheckQueue.check();
         },
         success: function (data) {
             var data_tools = '';
@@ -89,7 +90,10 @@ function processTambahKasAcc() {
                 contentType: false,
                 processData: false,
                 beforeSend: function () {
-                    app.dialog.preloader('Harap Tunggu');
+                    internetCheckQueue.check();
+                    try {
+                        app.dialog.preloader('Menyimpan data kas...');
+                    } catch (e) { }
                 },
                 success: function (data) {
                     app.dialog.close();
@@ -133,7 +137,10 @@ function processEditKasAcc() {
                 contentType: false,
                 processData: false,
                 beforeSend: function () {
-                    app.dialog.preloader('Harap Tunggu');
+                    internetCheckQueue.check();
+                    try {
+                        app.dialog.preloader('Menyimpan perubahan kas...');
+                    } catch (e) { }
                 },
                 success: function (data) {
                     app.dialog.close();
@@ -175,6 +182,7 @@ function getDataMasterKasKaryawan(id_kas_acc, nama_kas) {
             lokasi_pabrik: localStorage.getItem("lokasi_pabrik")
         },
         beforeSend: function () {
+            // internetCheckQueue.check();
         },
         success: function (data) {
             var data_tools = '';
@@ -237,7 +245,10 @@ function updateKasKaryawan(user_id, karyawan_nama, nama_kas, is_add, id_kas_acc,
                 karyawan_nama: localStorage.getItem('karyawan_nama')
             },
             beforeSend: function () {
-                app.dialog.preloader('Harap Tunggu');
+                internetCheckQueue.check();
+                try {
+                    app.dialog.preloader('Memperbarui relasi karyawan...');
+                } catch (e) { }
             },
             success: function (data) {
                 app.dialog.close();

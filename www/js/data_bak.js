@@ -2,23 +2,7 @@
 	$(el).mask('000,000,000,000', { reverse: true });
 });
 
-// Fungsi helper untuk format plat
-function formatPlat(val) {
-	return val
-		.toUpperCase()
-		.replace(/\s+/g, '')
-		.replace(/[^A-Z0-9]/g, '')
-		.replace(/^([A-Z]{1,2})(\d{0,4})([A-Z]{0,3}).*/, function (_, p1, p2, p3) {
-			return p1 + p2 + p3;
-		});
-}
-
-// Fungsi helper untuk filter angka saja
-function onlyNumber(val) {
-	return (val || '').toString().replace(/[^0-9]/g, '');
-}
-
-// Fungsi base untuk membuka kamera
+// Fungsi helper untuk format plat// Fungsi helper untuk filter angka saja// Fungsi base untuk membuka kamera
 function openCameraTerimaBase(opts) {
 	console.log('📸 openCameraTerimaBase dipanggil dengan opts:', opts);
 
@@ -239,11 +223,7 @@ function generateReferensiPreview(mode, idKategori) {
 		},
 		error: function () {
 			app.dialog.close();
-		},
-		complete: function () {
-			try { app.dialog.close(); } catch (e) { }
 		}
-
 	});
 }
 
@@ -418,7 +398,7 @@ for (var i = 1; i <= 10; i++) {
 function setOptionsTerima(srcType) {
 	var options = {
 		// Some common settings are 20, 50, and 100
-		quality: 100, // ✅ CHANGED: No compression (was 50)
+		quality: 50,
 		destinationType: Camera.DestinationType.FILE_URI,
 		// In this app, dynamically set the picture source, Camera or photo gallery
 		sourceType: srcType,
@@ -429,22 +409,6 @@ function setOptionsTerima(srcType) {
 	}
 	return options;
 }
-
-function getFileEntryTerima(imgUri) {
-	window.resolveLocalFileSystemURL(imgUri, function success(fileEntry) {
-
-		// Do something with the FileEntry object, like write to it, upload it, etc.
-		// writeFile(fileEntry, imgUri);
-		alert("got file: " + fileEntry.nativeURL);
-		// displayFileData(fileEntry.nativeURL, "Native URL");
-
-	}, function () {
-		// If don't get the FileEntry (which may happen when testing
-		// on some emulators), copy to a new FileEntry.
-		createNewFileEntryTerima(imgUri);
-	});
-}
-
 function createNewFileEntryTerima(imgUri) {
 	window.resolveLocalFileSystemURL(cordova.file.cacheDirectory, function success(dirEntry) {
 		// JPEG file
@@ -628,55 +592,171 @@ function openCameraTerima(selection) {
 }
 
 
-function openCameraFotoPembayaran(inputId) {
-	console.log('📷 openCameraFotoPembayaran called for:', inputId);
+function openCameraFotoPembayaran(id) {
+	console.log('📷 Opening camera for:', id);
 
 	// Validasi Camera plugin
 	if (typeof navigator.camera === 'undefined' || typeof Camera === 'undefined') {
-		app.dialog.alert('Kamera tidak tersedia. Silakan gunakan opsi File.', 'Error');
+		console.error('❌ Cordova Camera plugin tidak tersedia');
+		app.dialog.alert('Camera plugin tidak tersedia. Silakan gunakan pilihan Gallery untuk upload foto.', 'Error');
 		return;
 	}
 
-	const options = {
-		quality: 80,
-		destinationType: Camera.DestinationType.DATA_URL,
-		sourceType: Camera.PictureSourceType.CAMERA,
-		encodingType: Camera.EncodingType.JPEG,
-		mediaType: Camera.MediaType.PICTURE,
-		correctOrientation: true,
-		saveToPhotoAlbum: false,
-		targetWidth: 1024,
-		targetHeight: 1024
+	var srcType = Camera.PictureSourceType.CAMERA;
+	var options = setOptionsTerima(srcType);
+
+	navigator.camera.getPicture(function cameraSuccess(imageUri) {
+		console.log('✅ Camera success:', imageUri);
+
+		// Convert to base64 and save to localStorage
+		toDataURL(imageUri, function (dataUrl) {
+			if (!dataUrl) {
+				console.error('❌ Failed to convert image to base64');
+				app.dialog.alert('Gagal memproses foto. Silakan coba lagi.', 'Error');
+				return;
+			}
+
+			console.log('✅ Base64 conversion success');
+			localStorage.setItem(id, dataUrl);
+
+			// ========================================
+			// MODIFIKASI: Langsung proses pembayaran setelah foto diambil
+			// ========================================
+			console.log('🚀 Auto-submit pembayaran after camera...');
+
+			// Ekstrak pembayaran_id dan number dari id (format: foto_bukti_NUMBER_PEMBAYARAN_ID)
+			var parts = id.split('_');
+			if (parts.length >= 4) {
+				var number = parts[2]; // index ke-2 adalah number
+				var pembayaran_id = parts[3]; // index ke-3 adalah pembayaran_id
+
+				console.log('   - Number:', number);
+				console.log('   - Pembayaran ID:', pembayaran_id);
+
+				// Simpan foto ke storage key yang digunakan prosesPembayaranMultiple
+				var storageKey = 'foto_pembayaran_' + pembayaran_id + '_' + number;
+				localStorage.setItem(storageKey, dataUrl);
+				console.log('   - Saved to:', storageKey);
+
+				// Panggil fungsi proses pembayaran
+				setTimeout(function () {
+					prosesPembayaranMultiple(pembayaran_id, number);
+				}, 500); // Delay 500ms untuk memastikan UI sudah siap
+			} else {
+				console.error('❌ Invalid id format:', id);
+				app.dialog.alert('Format ID tidak valid. Silakan coba lagi.', 'Error');
+			}
+		});
+
+	}, function cameraError(error) {
+		console.error('❌ Camera error:', error);
+
+		var errorMsg = 'Gagal mengambil foto';
+		if (typeof error === 'string') {
+			errorMsg = errorMsg + ': ' + error;
+		} else if (error && error.message) {
+			errorMsg = errorMsg + ': ' + error.message;
+		}
+
+		app.dialog.alert(
+			'Tidak dapat membuka kamera. Pastikan:\n' +
+			'1. Aplikasi memiliki izin kamera\n' +
+			'2. Atau gunakan pilihan Gallery untuk upload foto',
+			'Error Kamera'
+		);
+	}, options);
+}
+
+// ==========================================
+// MODIFIKASI: Event handler untuk gallery/file input
+// ==========================================
+jQuery(document).on('change', 'input[type="file"][id^="foto_bukti_"]', function (e) {
+	const file = e.target.files[0];
+	const inputId = this.id; // foto_bukti_NUMBER_PEMBAYARAN_ID
+
+	console.log('📁 File foto pembayaran dipilih dari gallery:', file ? file.name : 'none');
+	console.log('   - Input ID:', inputId);
+
+	if (!file) {
+		console.log('⚠️ No file selected');
+		return;
+	}
+
+	// Validasi tipe file
+	if (!file.type.match('image.*')) {
+		app.dialog.alert('File harus berupa gambar (JPG, PNG, dll)', 'Error');
+		jQuery(this).val('');
+		return;
+	}
+
+	// Validasi ukuran file (max 10MB)
+	// const maxSize = 10 * 1024 * 1024; // 10MB
+	// if (file.size > maxSize) {
+	// 	app.dialog.alert('Ukuran file maksimal 10MB. File Anda: ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB', 'Error');
+	// 	jQuery(this).val('');
+	// 	return;
+	// }
+
+	console.log('✅ File validation passed');
+	console.log('   - File size:', (file.size / 1024).toFixed(2), 'KB');
+	console.log('   - File type:', file.type);
+
+	// Convert file to base64
+	const reader = new FileReader();
+
+	reader.onload = function (event) {
+		const base64Data = event.target.result;
+
+		if (!base64Data) {
+			console.error('❌ Failed to read file');
+			app.dialog.alert('Gagal membaca file. Silakan coba lagi.', 'Error');
+			jQuery(this).val('');
+			return;
+		}
+
+		console.log('✅ File converted to base64');
+		console.log('   - Base64 size:', base64Data.length, 'characters');
+
+		// Simpan ke localStorage dengan key yang sama seperti kamera
+		localStorage.setItem(inputId, base64Data);
+
+		// ========================================
+		// MODIFIKASI: Langsung proses pembayaran setelah foto dipilih
+		// ========================================
+		console.log('🚀 Auto-submit pembayaran after gallery selection...');
+
+		// Ekstrak pembayaran_id dan number dari inputId (format: foto_bukti_NUMBER_PEMBAYARAN_ID)
+		var parts = inputId.split('_');
+		if (parts.length >= 4) {
+			var number = parts[2]; // index ke-2 adalah number
+			var pembayaran_id = parts[3]; // index ke-3 adalah pembayaran_id
+
+			console.log('   - Number:', number);
+			console.log('   - Pembayaran ID:', pembayaran_id);
+
+			// Simpan foto ke storage key yang digunakan prosesPembayaranMultiple
+			var storageKey = 'foto_pembayaran_' + pembayaran_id + '_' + number;
+			localStorage.setItem(storageKey, base64Data);
+			console.log('   - Saved to:', storageKey);
+
+			// Panggil fungsi proses pembayaran
+			setTimeout(function () {
+				prosesPembayaranMultiple(pembayaran_id, number);
+			}, 500); // Delay 500ms untuk memastikan UI sudah siap
+		} else {
+			console.error('❌ Invalid inputId format:', inputId);
+			app.dialog.alert('Format ID tidak valid. Silakan coba lagi.', 'Error');
+		}
 	};
 
-	navigator.camera.getPicture(
-		function cameraSuccess(imageData) {
-			console.log('✅ Camera success');
-			const base64Image = 'data:image/jpeg;base64,' + imageData;
+	reader.onerror = function (error) {
+		console.error('❌ Error reading file:', error);
+		app.dialog.alert('Error: Gagal membaca file. Silakan coba lagi.', 'Error');
+		jQuery(this).val('');
+	};
 
-			// Preview foto di popup
-			jQuery('#file_foto_pembayaran_view')
-				.attr('src', base64Image)
-				.show();
-
-			// Hide foto existing (jika ada)
-			jQuery('#file_foto_pembayaran_view_now').hide();
-
-			// Simpan ke localStorage untuk diupload nanti
-			localStorage.setItem('file_foto_pembayaran', base64Image);
-
-			console.log('✅ Foto dari kamera siap diupload');
-		},
-		function cameraError(error) {
-			console.error('❌ Camera error:', error);
-			app.dialog.alert(
-				'Tidak dapat membuka kamera. Pastikan aplikasi memiliki izin kamera atau gunakan opsi File.',
-				'Error Kamera'
-			);
-		},
-		options
-	);
-}
+	reader.readAsDataURL(file);
+});
 
 function openCameraTerimaUpdate(selection) {
 	console.log('🎥 openCameraTerimaUpdate dipanggil');
@@ -708,22 +788,6 @@ function changeTextFotoTerimaUpdate(imageUri) {
 	var arr = imageUri.split('/');
 	$$('#text_file_path_terima_update').html(arr[8]);
 }
-
-function dateRangeDeclarationDataOperational() {
-	calendarRangePenjualan = app.calendar.create({
-		inputEl: '#range-penjualan',
-		rangePicker: true,
-		dateFormat: 'dd-mm-yyyy',
-		closeOnSelect: true,
-		rangePickerMinDays: 1,
-		on: {
-			close: function () {
-				getDataTransaksi();
-			}
-		}
-	});
-}
-
 function zoom_view(src) {
 	var gambar_zoom = src;
 	var myPhotoBrowserPopupDark = app.photoBrowser.create({
@@ -921,47 +985,6 @@ function openTambahPopup() {
 		}
 	}
 
-	$('#tambah_kategori').val('').trigger('change');
-	$('#tambah_perusahaan').val('').trigger('change');
-	$('#tambah_kas').val('').trigger('change');
-	$('#tambah_tipe_transaksi').val('').trigger('change');
-
-	// Clear text inputs
-	$('#tambah_nominal').val('');
-	$('#tambah_admin').val('');
-	$('#tambah_keterangan').val('');
-	$('#tambah_uraian').val('');
-
-	// Clear perusahaan related fields
-	$('#tambah_pic').val('');
-	$('#tambah_plat').val('');
-	$('#tambah_hp').val('');
-	$('#tambah_bank_rekening').val('');
-	$('#tambah_no_rekening').val('');
-	$('#tambah_nama_rekening').val('');
-
-	// Clear expedisi fields
-	$('#tambah_pengirim').val('');
-	$('#tambah_penerima').val('');
-	$('#tambah_dari').val('');
-	$('#tambah_tujuan').val('');
-	$('#tambah_alamat').val('');
-
-	// Clear metode bayar dan referensi
-	$('#tambah_metode_bayar').val('').trigger('change');
-	$('#tambah_referensi_number').val('');
-
-	// Clear date picker
-	$('#tambah_tanggal').val('');
-
-	// Clear file upload
-	$('#tambah_bukti').val('');
-	$('#text_file_path_terima').html('Camera');
-
-	// Reset visibility
-	$('.tambah_expedisi').hide();
-	$('.uraian_transaksi').show();
-
 	// ===== Reset & init seperti biasa =====
 	$(".clear_tambah_transaksi").val('');
 	$('.tambah_expedisi').hide();
@@ -988,39 +1011,54 @@ function openTambahPopup() {
 
 
 function getDataTransaksi() {
-	// === OPTIMASI 1: Cache jQuery selectors ===
-	const $filterKas = jQuery('#filter_kas');
-	const $transaksiYears = jQuery('#transaksi_years');
-	const $transaksiBulan = jQuery('#transaksi_bulan');
-	const $hideTotal = jQuery('#hide_total');
-	const $totalAccounting = jQuery('#total-accounting');
-	const $dataTransaksiAccounting = jQuery('#data_transaksi_accounting');
-	const $totalTransaksi = jQuery('#total-transaksi');
-
-	// === OPTIMASI 2: Simplify kas logic ===
-	var kas = localStorage.getItem("pending_filter_kas") ||
-		$filterKas.val() ||
-		localStorage.getItem('primary_kas');
-
-	if (localStorage.getItem("pending_filter_kas")) {
-		$filterKas.val(kas);
+	var kas = '';
+	if (jQuery('#filter_kas').val() == '' || jQuery('#filter_kas').val() == null) {
+		if (localStorage.getItem("pending_filter_kas") != null) {
+			jQuery('#filter_kas').val(localStorage.getItem("pending_filter_kas"));
+			kas = localStorage.getItem('pending_filter_kas');
+		} else {
+			kas = localStorage.getItem('primary_kas');
+		}
+	} else {
+		if (localStorage.getItem("pending_filter_kas") != null) {
+			jQuery('#filter_kas').val(localStorage.getItem("pending_filter_kas"));
+			kas = localStorage.getItem('pending_filter_kas');
+		} else {
+			kas = jQuery('#filter_kas').val();
+		}
 	}
 
-	// === OPTIMASI 3: Simplify year/month logic ===
-	var year = $transaksiYears.val() || new Date().getFullYear();
-	if (year === 'all') year = 'empty';
+	var year_now = new Date().getFullYear();
+	var year = '';
+	if (jQuery('#transaksi_years option:selected').val() == null) {
+		year = year_now;
+	} else if (jQuery('#transaksi_years option:selected').val() == 'all') {
+		year = 'empty';
+	} else {
+		year = jQuery('#transaksi_years option:selected').val();
+	}
 
-	var month = $transaksiBulan.val() || (new Date().getMonth() + 1);
-	if (month === 'all') month = 'empty';
+	var month_now = new Date().getMonth() + 1;
+	var month = '';
+	if (jQuery('#transaksi_bulan option:selected').val() == null) {
+		month = month_now;
+	} else if (jQuery('#transaksi_bulan option:selected').val() == 'all') {
+		month = 'empty';
+	} else {
+		month = jQuery('#transaksi_bulan option:selected').val();
+	}
 
-	var id_transaksi = (localStorage.getItem("pengajuan") === 'notif')
-		? localStorage.getItem('id_transaksi_kas')
-		: 'empty';
+	var id_transaksi = '';
+	if (localStorage.getItem("pengajuan") != 'notif') {
+		id_transaksi = 'empty';
+	} else {
+		id_transaksi = localStorage.getItem('id_transaksi_kas');
+	}
 
-	// === OPTIMASI 4: Combine AJAX calls or handle reminder failure gracefully ===
+	// === 1) Ambil reminder (warning saja) ===
 	jQuery.ajax({
 		type: 'POST',
-		url: BASE_API + '/kategori-acc-reminder',
+		url: '' + BASE_API + '/kategori-acc-reminder',
 		dataType: 'JSON',
 		data: {
 			karyawan_id: 260,
@@ -1030,264 +1068,263 @@ function getDataTransaksi() {
 		success: function (rem) {
 			// Map reminder per id_kategori_acc
 			var remMap = {};
-			if (rem?.data?.length > 0) {
-				rem.data.forEach(r => {
-					remMap[r.id_kategori_acc] = r;
+			if (rem && rem.data && rem.data.length > 0) {
+				jQuery.each(rem.data, function (i, r) {
+					remMap[r.id_kategori_acc] = r; // { row_color, badge_color, h_label, show_warning, ... }
 				});
 			}
-			loadTransaksiData(remMap);
+
+			// === 2) Ambil data transaksi utama ===
+			jQuery.ajax({
+				type: 'POST',
+				url: '' + BASE_API + '/get-transaksi-acc',
+				dataType: 'JSON',
+				data: {
+					user_id: localStorage.getItem('user_id'),
+					kas: kas,
+					month: month,
+					year: year,
+					id_transaksi: id_transaksi,
+					lokasi_pabrik: localStorage.getItem('lokasi_pabrik')
+				},
+				success: function (data) {
+					var data_tools = '';
+					var no = 0;
+					var nominal_debet = 0;
+					var nominal_kredit = 0;
+					var nominal_asal = 0;
+
+					if (data && data.data && data.data.length > 0) {
+						jQuery.each(data.data, function (i, val) {
+							no++;
+
+							if (data.count_valid && data.count_valid[val.id_transaksi_acc] != null) {
+								val.count_valid = data.count_valid[val.id_transaksi_acc];
+							} else {
+								val.count_valid = 0;
+							}
+
+							var total_bayar = parseFloat(val.operasional_jumlah_pembayaran || 0);
+							var nominal = parseFloat(val.nominal_acc || 0);
+							var sisa = nominal - total_bayar;
+
+							if (val.type_pembayaran == 'cicilan') {
+								// tampilkan sisa yang belum dibayar (atau sesuai kebutuhanmu)
+								nominal_asal = (sisa > 0) ? sisa : total_bayar;
+							} else {
+								// LUNAS / non-cicilan: tampilkan nominal transaksi
+								nominal_asal = nominal;
+							}
+
+							// console.log('id = ' + val.id_transaksi_acc + ' ,sisa = ' + sisa);
+							// ===== Warna tombol bayar =====
+							var color_btn_byr = 'bg-dark-gray-young text-add-colour-black-soft';
+							if (sisa <= 0) {
+								// Sudah lunas
+								color_btn_byr = 'btn-color-blueWhite';
+							} else if (sisa > 0 && val.pembayaran1_tgl != null) {
+								// Masih ada sisa DAN sudah ada pembayaran
+								// Maka warna hijau (cicilan berjalan) ✅
+								color_btn_byr = 'btn-color-greenWhite';
+							} else {
+								// Belum ada pembayaran sama sekali
+								color_btn_byr = 'bg-dark-gray-young text-add-colour-black-soft';
+							}
+
+							// ===== Base color row =====
+							var color_row = '';
+
+							var color_row = '';
+
+							if (val.type_transaksi === 'Pengajuan') {
+								// Cek status pelunasan
+								if (sisa > 0) {
+									// Belum lunas
+									color_row = 'bg-orange';
+								} else {
+									// Sudah lunas
+									color_row = 'bg-aquamarine';
+								}
+							} else if (val.valid_spy == 2 || val.valid == 2 || val.count_valid > 0) {
+								if (val.is_edit == 1) {
+									color_row = 'announcement card-color-red';
+								} else {
+									color_row = 'card-color-red';
+								}
+							} else if (
+								val.type_acc == 'Kredit' &&
+								val.type_pembayaran == 'cicilan' && // ← hanya untuk cicilan
+								(total_bayar == 0 || (sisa > 0 && total_bayar > 0))
+							) {
+								// Kredit + Cicilan + belum/lunas sebagian
+								color_row = 'bg-orange';
+							} else if (val.type_acc == 'Debet') {
+								color_row = 'card-color-light-blue';
+							} else {
+								color_row = '';
+							}
+
+							// ===== gabung reminder ke warna baris =====
+							var row_style = '';
+							var badge_html = '';
+							var remInfo = remMap[val.id_kategori_acc];
+							// hanya timpa jika BELUM base merah
+							var isBaseRed = (color_row.indexOf('card-color-red') !== -1);
+							if (!isBaseRed && remInfo && remInfo.show_warning) {
+								row_style = ' style="background-color:' + remInfo.row_color + ';color:white"';
+								badge_html = ' <span style="background:' + remInfo.badge_color + ';padding:2px 8px;border-radius:10px;margin-left:6px;font-size:11px;">' + remInfo.h_label + '</span>';
+							}
+
+							// tombol detail
+							var btn_detail = '';
+							if (val.valid == 1) {
+								btn_detail = 'btn-color-blueWhite';
+							} else if (val.valid == 2) {
+								btn_detail = 'card-color-red';
+							} else {
+								btn_detail = 'bg-dark-gray-young text-add-colour-black-soft';
+							}
+
+							// kolom keterangan
+							var keterangan_acc = '';
+							var kolom_ket = '';
+							if (val.id_perusahaan_acc != null) {
+								const fullKet = (val.perusahaan_acc + ' | ' + val.keterangan || '');
+								const shortKet = fullKet.length > 20 ? fullKet.substring(0, 20) + '...' : fullKet;
+
+								keterangan_acc = (val.perusahaan_pic || '-') + ' , ' + (val.perusahaan_no_plat || '-');
+								kolom_ket =
+									'<td align="left" style="border-left:1px solid grey;border-bottom:1px solid grey;" ' +
+									'class="label-cell popup-open" data-popup=".detail-perusahaan-popup" ' +
+									'onclick="getDetailPerusahaanAcc(\'' + (val.perusahaan_acc || '') + '\',\'' + (val.perusahaan_pic || '') + '\',\'' + (val.perusahaan_no_hp || '') + '\',\'' + (val.perusahaan_no_plat || '') + '\',\'' + (val.perusahaan_uraian || '') + '\')" ' +
+									'title="' + fullKet.replace(/"/g, '&quot;') + '">' + // tampilkan full di tooltip
+									shortKet + badge_html + '</td>';
+							} else {
+								const fullKet = (val.keterangan || '');
+								const shortKet = fullKet.length > 20 ? fullKet.substring(0, 20) + '...' : fullKet;
+
+								keterangan_acc = fullKet;
+								kolom_ket =
+									'<td align="left" style="border-left:1px solid grey;border-bottom:1px solid grey;" ' +
+									'class="label-cell" title="' + fullKet.replace(/"/g, '&quot;') + '">' +
+									shortKet + badge_html + '</td>';
+							}
+
+							// Escape keterangan_acc untuk digunakan di onclick handler
+							var keterangan_acc_escaped = keterangan_acc
+								.replace(/\\/g, '\\\\')   // escape backslash
+								.replace(/'/g, "\\'")     // escape single quote
+								.replace(/"/g, '\\"')     // escape double quote
+								.replace(/\n/g, '\\n')    // escape newline ← INI YANG PENTING!
+								.replace(/\r/g, '\\r')    // escape carriage return
+								.replace(/\t/g, '\\t');   // escape tab
+
+							var validSpy = parseInt(val.valid_spy, 10);
+							var valid = parseInt(val.valid, 10);
+							var validPembayaran = parseInt(data.count_valid[val.id_transaksi_acc], 10);
+
+							let nominal_tampil = (validSpy === 2 || valid === 2) ? number_format(0) : number_format(nominal_asal);
+
+							data_tools += '<tr class="' + color_row + '"' + row_style + '>';
+							data_tools += '  <td align="center" style="border-left:1px solid grey;border-bottom:1px solid grey;" class="label-cell">' + no + '</td>';
+							data_tools += '  <td align="center" style="border-left:1px solid grey;border-bottom:1px solid grey;" class="label-cell">' + moment(val.tanggal_transaksi).format('DD-MMM-YYYY') + '</td>';
+							data_tools += '  <td align="left"   style="border-left:1px solid grey;border-bottom:1px solid grey;" class="label-cell">' + (val.kategori_acc || '') + '</td>';
+							data_tools += kolom_ket;
+							data_tools += '  <td align="right"  style="border-left:1px solid grey;border-bottom:1px solid grey;border-right:1px solid gray;" class="label-cell">' + nominal_tampil + '</td>';
+							data_tools += '  <td align="right"  style="border-bottom:1px solid grey;border-right:1px solid gray;" class="label-cell">' + number_format(val.admin_acc) + '</td>';
+
+							if (val.type_pembayaran == 'cicilan') {
+								if (validSpy === 2 || valid === 2 || validPembayaran > 0 || nominal_asal === 0) {
+									data_tools += '  <td style="border-top:1px solid gray;" class="label-cell">';
+									data_tools += '    <a class="card-color-red button-small col button popup-open text-bold"  onclick="detailPembayaran(\'' + val.tanggal_transaksi + '\',\'' + val.bank_1 + '\',\'' + val.bank_2 + '\',\'' + val.bank_3 + '\',\'' + val.bank_4 + '\',\'' + val.bank_5 + '\',\'' + val.bank_6 + '\',\'' + val.bank_7 + '\',\'' + val.bank_8 + '\',\'' + val.bank_9 + '\',\'' + val.bank_10 + '\',\'' + val.pembayaran1_tgl + '\',\'' + val.pembayaran2_tgl + '\',\'' + val.pembayaran3_tgl + '\',\'' + val.pembayaran4_tgl + '\',\'' + val.pembayaran5_tgl + '\',\'' + val.pembayaran6_tgl + '\',\'' + val.pembayaran7_tgl + '\',\'' + val.pembayaran8_tgl + '\',\'' + val.pembayaran9_tgl + '\',\'' + val.pembayaran10_tgl + '\',\'' + val.bank + '\',\'' + val.pembayaran_1 + '\',\'' + val.pembayaran_2 + '\',\'' + val.pembayaran_3 + '\',\'' + val.pembayaran_4 + '\',\'' + val.pembayaran_5 + '\',\'' + val.pembayaran_6 + '\',\'' + val.pembayaran_7 + '\',\'' + val.pembayaran_8 + '\',\'' + val.pembayaran_9 + '\',\'' + val.pembayaran_10 + '\',\'' + val.operasional_jumlah_pembayaran + '\',\'' + val.nominal_acc + '\',\'' + val.id_transaksi_acc + '\',\'' + val.operasional_status_pembayaran + '\',\'' + val.pembayaran_operasional_id + '\',\'' + val.kategori_acc + '\',\'' + keterangan_acc_escaped + '\',\'' + val.admin_acc + '\');">Bayar</a>';
+									data_tools += '  </td>';
+								} else {
+									data_tools += '  <td style="border-top:1px solid gray;" class="label-cell">';
+									data_tools += '    <a class="' + color_btn_byr + ' button-small col button popup-open text-bold"  onclick="detailPembayaran(\'' + val.tanggal_transaksi + '\',\'' + val.bank_1 + '\',\'' + val.bank_2 + '\',\'' + val.bank_3 + '\',\'' + val.bank_4 + '\',\'' + val.bank_5 + '\',\'' + val.bank_6 + '\',\'' + val.bank_7 + '\',\'' + val.bank_8 + '\',\'' + val.bank_9 + '\',\'' + val.bank_10 + '\',\'' + val.pembayaran1_tgl + '\',\'' + val.pembayaran2_tgl + '\',\'' + val.pembayaran3_tgl + '\',\'' + val.pembayaran4_tgl + '\',\'' + val.pembayaran5_tgl + '\',\'' + val.pembayaran6_tgl + '\',\'' + val.pembayaran7_tgl + '\',\'' + val.pembayaran8_tgl + '\',\'' + val.pembayaran9_tgl + '\',\'' + val.pembayaran10_tgl + '\',\'' + val.bank + '\',\'' + val.pembayaran_1 + '\',\'' + val.pembayaran_2 + '\',\'' + val.pembayaran_3 + '\',\'' + val.pembayaran_4 + '\',\'' + val.pembayaran_5 + '\',\'' + val.pembayaran_6 + '\',\'' + val.pembayaran_7 + '\',\'' + val.pembayaran_8 + '\',\'' + val.pembayaran_9 + '\',\'' + val.pembayaran_10 + '\',\'' + val.operasional_jumlah_pembayaran + '\',\'' + val.nominal_acc + '\',\'' + val.id_transaksi_acc + '\',\'' + val.operasional_status_pembayaran + '\',\'' + val.pembayaran_operasional_id + '\',\'' + val.kategori_acc + '\',\'' + keterangan_acc_escaped + '\',\'' + val.admin_acc + '\');">Bayar</a>';
+									data_tools += '  </td>';
+								}
+							} else {
+								data_tools += '  <td style="border-top:1px solid gray;"></td>';
+							}
+
+							console.log('nominal_tampil :', nominal_tampil, 'ID_TRANSAKSI : ', val.id_transaksi_acc)
+
+							if (validSpy === 2 || valid === 2 || nominal_asal === 0) {
+								data_tools += '  <td style="border-top:1px solid gray;text-align:center">';
+								data_tools += '    <a onclick="getEditTransaksiAcc(\'' + (val.id_transaksi_acc || '') + '\',\'' + (val.id_perusahaan_acc || '') + '\')" class="card-color-red button-small col button popup-open text-bold" data-popup=".edit-transaksi">Detail</a>';
+								data_tools += '  </td>';
+							} else {
+								data_tools += '  <td style="border-top:1px solid gray;text-align:center">';
+								data_tools += '    <a onclick="getDetailTransaksiAcc(\'' + (val.id_transaksi_acc || '') + '\',\'' + (val.id_perusahaan_acc || '') + '\')" class="' + btn_detail + ' button-small col button popup-open text-bold" data-popup=".detail-transaksi">Detail</a>';
+								data_tools += '  </td>';
+							}
+
+							if (localStorage.getItem('user_id') == 262) {
+								data_tools += '  <td style="border-top:1px solid gray;border-right:1px solid grey;text-align:center">';
+								data_tools += '    <a onclick="deleteTransaksiAcc(\'' + (val.id_transaksi_acc || '') + '\',\'' + (val.kategori_acc || '') + '\')" class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold">Delete</a>';
+								data_tools += '  </td>';
+							}
+
+							data_tools += '</tr>';
+
+							// total
+							if (val.type_acc == 'Debet') {
+								if (val.valid_spy == 2 || val.valid == 2) nominal_debet += 0;
+								else nominal_debet += parseFloat(val.nominal_acc || 0);
+							} else {
+								if (val.valid_spy == 2 || val.valid == 2) nominal_kredit += 0;
+								else nominal_kredit += parseFloat(val.nominal_acc + val.admin_acc || 0);
+							}
+						});
+						localStorage.removeItem('pending_filter_kas');
+						localStorage.removeItem('pending_filter_kas_page');
+						jQuery('#hide_total').show();
+						jQuery('#total-accounting').html(number_format(parseFloat(nominal_debet) - parseFloat(nominal_kredit)));
+						jQuery('#data_transaksi_accounting').html(data_tools);
+						jQuery('#total-transaksi').html(no);
+						localStorage.setItem('kas_utama', data.kas_utama);
+						localStorage.setItem('kas_tunai', data.kas_tunai);
+						localStorage.setItem('kas_marketing', data.kas_marketing);
+						localStorage.setItem('kas_backup', data.kas_backup);
+					} else {
+						jQuery('#hide_total').show();
+						jQuery('#total-accounting').html(number_format(0));
+						jQuery('#data_transaksi_accounting').html('<tr><td colspan="8" align="center">Tidak Ada Data</td></tr>');
+						jQuery('#total-transaksi').html(0);
+					}
+				},
+				error: function () {
+					jQuery('#data_transaksi_accounting').html('<tr><td colspan="8" align="center">Gagal memuat data</td></tr>');
+					jQuery('#total-accounting').html(number_format(0));
+					jQuery('#total-transaksi').html(0);
+				}
+			});
 		},
 		error: function () {
-			// Load without reminder data
-			loadTransaksiData({});
+			// kalau reminder gagal, tetap ambil transaksi tanpa pewarnaan reminder
+			jQuery.ajax({
+				type: 'POST',
+				url: '' + BASE_API + '/get-transaksi-acc',
+				dataType: 'JSON',
+				data: {
+					user_id: localStorage.getItem('user_id'),
+					kas: kas,
+					month: month,
+					year: year,
+					lokasi_pabrik: localStorage.getItem('lokasi_pabrik')
+				},
+				success: function (data) {
+					// (opsional) bisa panggil kembali versi lama tanpa remMap
+					// biar singkat, tampilkan kosong jika error reminder + error transaksi
+					if (!data || !data.data || data.data.length == 0) {
+						jQuery('#data_transaksi_accounting').html('<tr><td colspan="8" align="center">Tidak Ada Data</td></tr>');
+						jQuery('#total-accounting').html(number_format(0));
+						jQuery('#total-transaksi').html(0);
+					}
+				}
+			});
 		}
 	});
-
-	// === OPTIMASI 5: Extract main data loading logic ===
-	function loadTransaksiData(remMap) {
-		jQuery.ajax({
-			type: 'POST',
-			url: BASE_API + '/get-transaksi-acc',
-			dataType: 'JSON',
-			data: {
-				user_id: localStorage.getItem('user_id'),
-				kas: kas,
-				month: month,
-				year: year,
-				id_transaksi: id_transaksi,
-				lokasi_pabrik: localStorage.getItem('lokasi_pabrik')
-			},
-			beforeSend: function () {
-				try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
-			},
-			success: function (data) {
-				app.dialog.close();
-
-				if (!data?.data?.length) {
-					showEmptyState();
-					return;
-				}
-
-				renderTransaksiData(data, remMap);
-			},
-			error: function () {
-				showErrorState();
-			}
-		});
-	}
-
-	// === OPTIMASI 6: Separate rendering logic ===
-	function renderTransaksiData(data, remMap) {
-		// === OPTIMASI 7: Use array instead of string concatenation ===
-		const rows = [];
-		let nominal_debet = 0;
-		let nominal_kredit = 0;
-		const userId = localStorage.getItem('user_id');
-		const isAdmin = (userId == 262);
-
-		data.data.forEach((val, index) => {
-			const no = index + 1;
-
-			// Set count_valid
-			val.count_valid = data.count_valid?.[val.id_transaksi_acc] || 0;
-
-			// Calculate amounts
-			const total_bayar = parseFloat(val.operasional_jumlah_pembayaran || 0);
-			const nominal = parseFloat(val.nominal_acc || 0);
-			const sisa = nominal - total_bayar;
-
-			const nominal_asal = (val.type_pembayaran === 'cicilan' && sisa > 0)
-				? sisa
-				: (val.type_pembayaran === 'cicilan' ? total_bayar : nominal);
-
-			// Determine colors and styles
-			const { color_row, row_style, badge_html } = getRowStyle(val, sisa, total_bayar, remMap);
-			const color_btn_byr = getButtonColor(sisa, val.pembayaran1_tgl);
-			const btn_detail = getDetailButtonColor(val.valid);
-
-			// Build keterangan column
-			const { kolom_ket, keterangan_acc_escaped } = buildKeteranganColumn(val, badge_html);
-
-			// Parse validation flags
-			const validSpy = parseInt(val.valid_spy, 10);
-			const valid = parseInt(val.valid, 10);
-			const validPembayaran = parseInt(val.count_valid, 10);
-			const nominal_tampil = (validSpy === 2 || valid === 2) ? number_format(0) : number_format(nominal_asal);
-
-			// === OPTIMASI 8: Build row with template literals ===
-			rows.push(buildTableRow({
-				no, val, color_row, row_style, nominal_tampil,
-				kolom_ket, validSpy, valid, validPembayaran,
-				nominal_asal, color_btn_byr, keterangan_acc_escaped,
-				btn_detail, isAdmin
-			}));
-
-			// Calculate totals
-			if (validSpy !== 2 && valid !== 2) {
-				if (val.type_acc === 'Debet') {
-					nominal_debet += nominal;
-				} else {
-					nominal_kredit += (nominal + parseFloat(val.admin_acc || 0));
-				}
-			}
-		});
-
-		// === OPTIMASI 9: Single DOM update ===
-		updateDOM(rows.join(''), data, nominal_debet, nominal_kredit);
-	}
-
-	// === Helper Functions ===
-
-	function getRowStyle(val, sisa, total_bayar, remMap) {
-		let color_row = '';
-
-		if (val.type_transaksi === 'Pengajuan') {
-			color_row = (sisa > 0) ? 'bg-orange' : 'bg-aquamarine';
-		} else if (val.valid_spy == 2 || val.valid == 2 || val.count_valid > 0) {
-			color_row = (val.is_edit == 1) ? 'announcement card-color-red' : 'card-color-red';
-		} else if (val.type_acc === 'Kredit' && val.type_pembayaran === 'cicilan' &&
-			(total_bayar === 0 || (sisa > 0 && total_bayar > 0))) {
-			color_row = 'bg-orange';
-		} else if (val.type_acc === 'Debet') {
-			color_row = 'card-color-light-blue';
-		}
-
-		let row_style = '';
-		let badge_html = '';
-		const isBaseRed = color_row.includes('card-color-red');
-		const remInfo = remMap[val.id_kategori_acc];
-
-		if (!isBaseRed && remInfo?.show_warning) {
-			row_style = ` style="background-color:${remInfo.row_color};color:white"`;
-			badge_html = ` <span style="background:${remInfo.badge_color};padding:2px 8px;border-radius:10px;margin-left:6px;font-size:11px;">${remInfo.h_label}</span>`;
-		}
-
-		return { color_row, row_style, badge_html };
-	}
-
-	function getButtonColor(sisa, pembayaran1_tgl) {
-		if (sisa <= 0) return 'btn-color-blueWhite';
-		if (sisa > 0 && pembayaran1_tgl) return 'btn-color-greenWhite';
-		return 'bg-dark-gray-young text-add-colour-black-soft';
-	}
-
-	function getDetailButtonColor(valid) {
-		if (valid == 1) return 'btn-color-blueWhite';
-		if (valid == 2) return 'card-color-red';
-		return 'bg-dark-gray-young text-add-colour-black-soft';
-	}
-
-	function buildKeteranganColumn(val, badge_html) {
-		let keterangan_acc = '';
-		let kolom_ket = '';
-
-		if (val.id_perusahaan_acc) {
-			const fullKet = `${val.perusahaan_acc || ''} | ${val.keterangan || ''}`;
-			const shortKet = fullKet.length > 20 ? fullKet.substring(0, 20) + '...' : fullKet;
-
-			keterangan_acc = `${val.perusahaan_pic || '-'} , ${val.perusahaan_no_plat || '-'}`;
-			kolom_ket = `<td align="left" style="border-left:1px solid grey;border-bottom:1px solid grey;" 
-				class="label-cell popup-open" data-popup=".detail-perusahaan-popup" 
-				onclick="getDetailPerusahaanAcc('${val.perusahaan_acc || ''}','${val.perusahaan_pic || ''}','${val.perusahaan_no_hp || ''}','${val.perusahaan_no_plat || ''}','${val.perusahaan_uraian || ''}')" 
-				title="${fullKet.replace(/"/g, '&quot;')}">${shortKet}${badge_html}</td>`;
-		} else {
-			const fullKet = val.keterangan || '';
-			const shortKet = fullKet.length > 20 ? fullKet.substring(0, 20) + '...' : fullKet;
-
-			keterangan_acc = fullKet;
-			kolom_ket = `<td align="left" style="border-left:1px solid grey;border-bottom:1px solid grey;" 
-				class="label-cell" title="${fullKet.replace(/"/g, '&quot;')}">${shortKet}${badge_html}</td>`;
-		}
-
-		// Escape for onclick
-		const keterangan_acc_escaped = keterangan_acc
-			.replace(/\\/g, '\\\\')
-			.replace(/'/g, "\\'")
-			.replace(/"/g, '\\"')
-			.replace(/\n/g, '\\n')
-			.replace(/\r/g, '\\r')
-			.replace(/\t/g, '\\t');
-
-		return { kolom_ket, keterangan_acc_escaped };
-	}
-
-	function buildTableRow(params) {
-		const { no, val, color_row, row_style, nominal_tampil, kolom_ket,
-			validSpy, valid, validPembayaran, nominal_asal, color_btn_byr,
-			keterangan_acc_escaped, btn_detail, isAdmin } = params;
-
-		// === OPTIMASI 10: Build payment button params once ===
-		const paymentParams = `'${val.tanggal_transaksi}','${val.bank_1}','${val.bank_2}','${val.bank_3}','${val.bank_4}','${val.bank_5}','${val.bank_6}','${val.bank_7}','${val.bank_8}','${val.bank_9}','${val.bank_10}','${val.pembayaran1_tgl}','${val.pembayaran2_tgl}','${val.pembayaran3_tgl}','${val.pembayaran4_tgl}','${val.pembayaran5_tgl}','${val.pembayaran6_tgl}','${val.pembayaran7_tgl}','${val.pembayaran8_tgl}','${val.pembayaran9_tgl}','${val.pembayaran10_tgl}','${val.bank}','${val.pembayaran_1}','${val.pembayaran_2}','${val.pembayaran_3}','${val.pembayaran_4}','${val.pembayaran_5}','${val.pembayaran_6}','${val.pembayaran_7}','${val.pembayaran_8}','${val.pembayaran_9}','${val.pembayaran_10}','${val.operasional_jumlah_pembayaran}','${val.nominal_acc}','${val.id_transaksi_acc}','${val.operasional_status_pembayaran}','${val.pembayaran_operasional_id}','${val.kategori_acc}','${keterangan_acc_escaped}','${val.admin_acc}'`;
-
-		const isInvalidOrZero = (validSpy === 2 || valid === 2 || validPembayaran > 0 || nominal_asal === 0);
-		const paymentBtnClass = isInvalidOrZero ? 'card-color-red' : color_btn_byr;
-
-		const paymentCell = (val.type_pembayaran === 'cicilan')
-			? `<td style="border-top:1px solid gray;" class="label-cell">
-				<a class="${paymentBtnClass} button-small col button popup-open text-bold" 
-				   onclick="detailPembayaran(${paymentParams});">Bayar</a>
-			   </td>`
-			: '<td style="border-top:1px solid gray;"></td>';
-
-		const detailCell = (validSpy === 2 || valid === 2 || nominal_asal === 0)
-			? `<td style="border-top:1px solid gray;text-align:center">
-				<a onclick="getEditTransaksiAcc('${val.id_transaksi_acc || ''}','${val.id_perusahaan_acc || ''}')" 
-				   class="card-color-red button-small col button popup-open text-bold" 
-				   data-popup=".edit-transaksi">Detail</a>
-			   </td>`
-			: `<td style="border-top:1px solid gray;text-align:center">
-				<a onclick="getDetailTransaksiAcc('${val.id_transaksi_acc || ''}','${val.id_perusahaan_acc || ''}')" 
-				   class="${btn_detail} button-small col button popup-open text-bold" 
-				   data-popup=".detail-transaksi">Detail</a>
-			   </td>`;
-
-		const deleteCell = isAdmin
-			? `<td style="border-top:1px solid gray;border-right:1px solid grey;text-align:center">
-				<a onclick="deleteTransaksiAcc('${val.id_transaksi_acc || ''}','${val.kategori_acc || ''}')" 
-				   class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold">Delete</a>
-			   </td>`
-			: '';
-
-		return `<tr class="${color_row}"${row_style}>
-			<td align="center" style="border-left:1px solid grey;border-bottom:1px solid grey;" class="label-cell">${no}</td>
-			<td align="center" style="border-left:1px solid grey;border-bottom:1px solid grey;" class="label-cell">${moment(val.tanggal_transaksi).format('DD-MMM-YYYY')}</td>
-			<td align="left" style="border-left:1px solid grey;border-bottom:1px solid grey;" class="label-cell">${val.kategori_acc || ''}</td>
-			${kolom_ket}
-			<td align="right" style="border-left:1px solid grey;border-bottom:1px solid grey;border-right:1px solid gray;" class="label-cell">${nominal_tampil}</td>
-			<td align="right" style="border-bottom:1px solid grey;border-right:1px solid gray;" class="label-cell">${number_format(val.admin_acc)}</td>
-			${paymentCell}
-			${detailCell}
-			${deleteCell}
-		</tr>`;
-	}
-
-	function updateDOM(htmlContent, data, nominal_debet, nominal_kredit) {
-		localStorage.removeItem('pending_filter_kas');
-		localStorage.removeItem('pending_filter_kas_page');
-
-		$hideTotal.show();
-		$totalAccounting.html(number_format(nominal_debet - nominal_kredit));
-		$dataTransaksiAccounting.html(htmlContent);
-		$totalTransaksi.html(data.data.length);
-
-		// Store kas values
-		['kas_utama', 'kas_tunai', 'kas_marketing', 'kas_backup'].forEach(key => {
-			if (data[key]) localStorage.setItem(key, data[key]);
-		});
-	}
-
-	function showEmptyState() {
-		$hideTotal.show();
-		$totalAccounting.html(number_format(0));
-		$dataTransaksiAccounting.html('<tr><td colspan="8" align="center">Tidak Ada Data</td></tr>');
-		$totalTransaksi.html(0);
-	}
-
-	function showErrorState() {
-		$dataTransaksiAccounting.html('<tr><td colspan="8" align="center">Gagal memuat data</td></tr>');
-		$totalAccounting.html(number_format(0));
-		$totalTransaksi.html(0);
-	}
 }
 
 function getDetailPerusahaanAcc(perusahaan_acc, perusahaan_pic, perusahaan_no_hp, perusahaan_no_plat, perusahaan_uraian) {
@@ -1405,8 +1442,6 @@ function getDetailTransaksiAcc(id_transaksi_acc, id_perusahaan_acc) {
 		},
 		beforeSend: function () {
 			// clear isi value
-			internetCheckQueue.check();
-			try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
 			jQuery("#form_detail_transaksi_acc .value").text("");
 			jQuery("#wa-text").text(""); // ✅ JANGAN hapus isi #detail_nohp_btn
 			jQuery("#show_button_valid").hide();
@@ -1417,7 +1452,6 @@ function getDetailTransaksiAcc(id_transaksi_acc, id_perusahaan_acc) {
 			);
 		},
 		success: function (data) {
-			app.dialog.close();
 			var d = data.data || {};
 
 			// show/hide tombol valid/reject
@@ -1455,8 +1489,6 @@ function getDetailTransaksiAcc(id_transaksi_acc, id_perusahaan_acc) {
 			jQuery("#detail_perusahaan").text(d.perusahaan_acc || "-");
 			jQuery("#detail_pic").text(d.perusahaan_pic || "-");
 			jQuery("#detail_plat").text(d.perusahaan_no_plat || "-");
-			jQuery("#detail_tipe_bayar").text(d.type_pembayaran || "-");
-			jQuery("#detail_referensi_number").text(d.referensi_number || "-");
 
 			// No HP → button hijau
 			var nohp = d.perusahaan_no_hp || "-";
@@ -1481,9 +1513,9 @@ function getDetailTransaksiAcc(id_transaksi_acc, id_perusahaan_acc) {
 			jQuery("#detail_expedisi_dari").text(d.perusahaan_dari || "-");
 			jQuery("#detail_expedisi_tujuan").text(d.perusahaan_tujuan || "-");
 			jQuery("#detail_alamat").text(d.perusahaan_alamat || "");
-			jQuery("#detail_bank_rekening_acc").val(d.perusahaan_nama_bank || d.perusahaan_bank_rekening || "-");
-			jQuery("#detail_no_rekening_acc").val(d.perusahaan_no_rekening || "-");
-			jQuery("#detail_nama_rekening_acc").val(d.perusahaan_nama_rekening || "-");
+			jQuery("#detail_bank_rekening").text(d.perusahaan_bank_rekening || "-");
+			jQuery("#detail_no_rekening").text(d.perusahaan_no_rekening || "-");
+			jQuery("#detail_nama_rekening").text(d.perusahaan_nama_rekening || "-");
 			jQuery("#detail_expedisi_keterangan").html(
 				(d.perusahaan_uraian || "")
 					.replace(/\n{2,}/g, "\n")   // hilangkan gap newline double+
@@ -1587,14 +1619,13 @@ function getEditTransaksiAcc(id_transaksi_acc, id_perusahaan_acc) {
 			id_transaksi_acc: id_transaksi_acc
 		},
 		beforeSend: function () {
-			internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
 			jQuery('#clear_edit_transaksi').html('');
 			$('.edit_keterangan_reject_transaksi').hide();
 			gambarAcc(1, 'edit');
 			jQuery('#file_bukti_edit_view_now').attr('src', 'https://tasindo-sale-webservice.digiseminar.id/noimage.jpg');
 		},
 		success: function (data) {
-			app.dialog.close();
+
 			jQuery("#show_button_update").show();
 			$('#button_edit_fill_camera').show();
 			$('#button_edit_fill_file').show();
@@ -1636,11 +1667,9 @@ function getEditTransaksiAcc(id_transaksi_acc, id_perusahaan_acc) {
 			jQuery("#edit_pic").val(data.data.perusahaan_pic);
 			jQuery("#edit_plat").val(data.data.perusahaan_no_plat);
 			jQuery("#edit_nohp").val(data.data.perusahaan_no_hp);
-			jQuery("#edit_bank_rekening").val(data.data.perusahaan_nama_bank);
+			jQuery("#edit_bank_rekening").val(data.data.perusahaan_bank_rekening);
 			jQuery("#edit_no_rekening").val(data.data.perusahaan_no_rekening);
 			jQuery("#edit_nama_rekening").val(data.data.perusahaan_nama_rekening);
-			jQuery("#edit_metode_bayar").val(data.data.type_pembayaran || "");
-			jQuery("#edit_referensi_number").val(data.data.referensi_number || "");
 			jQuery("#edit_expedisi_keterangan").val(data.data.perusahaan_uraian);
 			jQuery("#edit_keterangan").val(data.data.keterangan);
 			jQuery("#edit_nominal").val(number_format(data.data.nominal_acc));
@@ -1697,8 +1726,9 @@ function comboKategoriTambah() {
 }
 
 function comboPerusahaanTambah() {
+	// start koding ajax
 	jQuery.ajax({
-		type: "POST",
+		type: "POST", //pake post jangan  get rawan di hack
 		url: "" + BASE_API + "/get-perusahaan-acc",
 		dataType: 'JSON',
 		timeout: 10000,
@@ -1711,46 +1741,10 @@ function comboPerusahaanTambah() {
 		success: function (data) {
 			var optionsValues = "";
 			optionsValues += '<option value="">Pilih Perusahaan</option>';
-
 			jQuery.each(data.data, function (i, item) {
-				// ✅ TAMBAHKAN data attributes untuk auto-fill
-				optionsValues += '<option value="' + item.id_perusahaan_acc + '" ' +
-					'data-pic="' + (item.perusahaan_pic || '') + '" ' +
-					'data-plat="' + (item.perusahaan_no_plat || '') + '" ' +
-					'data-hp="' + (item.perusahaan_no_hp || '') + '" ' +
-					'data-bank="' + (item.perusahaan_nama_bank || '') + '" ' +
-					'data-norek="' + (item.perusahaan_no_rekening || '') + '" ' +
-					'data-namarek="' + (item.perusahaan_nama_rekening || '') + '" ' +
-					'data-uraian="' + (item.perusahaan_uraian || '') + '" ' +
-					'>' + item.perusahaan_acc + '</option>';
+				optionsValues += '<option value="' + item.id_perusahaan_acc + '" >' + item.perusahaan_acc + '</option>';
 			});
-
 			jQuery('#tambah_perusahaan').html(optionsValues);
-
-			// ✅ TAMBAHKAN onChange event handler
-			jQuery('#tambah_perusahaan').off('change').on('change', function () {
-				var selectedOption = $(this).find('option:selected');
-
-				if (selectedOption.val()) {
-					// Auto-fill fields dari data attributes
-					$('#tambah_pic').val(selectedOption.data('pic') || '');
-					$('#tambah_plat').val(selectedOption.data('plat') || '');
-					$('#tambah_hp').val(selectedOption.data('hp') || '');
-					$('#tambah_bank_rekening').val(selectedOption.data('bank') || '');
-					$('#tambah_no_rekening').val(selectedOption.data('norek') || '');
-					$('#tambah_nama_rekening').val(selectedOption.data('namarek') || '');
-					$('#tambah_uraian').val(selectedOption.data('uraian') || '');
-				} else {
-					// Clear fields jika pilih "Pilih Perusahaan"
-					$('#tambah_pic').val('');
-					$('#tambah_plat').val('');
-					$('#tambah_hp').val('');
-					$('#tambah_bank_rekening').val('');
-					$('#tambah_no_rekening').val('');
-					$('#tambah_nama_rekening').val('');
-					$('#tambah_uraian').val('');
-				}
-			});
 		},
 		error: function (xmlhttprequest, textstatus, message) {
 		}
@@ -1792,8 +1786,9 @@ function comboKategoriDetail(id_kategori_acc, type) {
 }
 
 function comboPerusahaanDetail(id_perusahaan_acc, type) {
+	// start koding ajax
 	jQuery.ajax({
-		type: "POST",
+		type: "POST", //pake post jangan  get rawan di hack
 		url: "" + BASE_API + "/get-perusahaan-acc",
 		dataType: 'JSON',
 		timeout: 10000,
@@ -1806,86 +1801,20 @@ function comboPerusahaanDetail(id_perusahaan_acc, type) {
 		success: function (data) {
 			var optionsValues = "";
 			optionsValues += '<option value="">Pilih Perusahaan</option>';
-
 			jQuery.each(data.data, function (i, item) {
-				var isSelected = (id_perusahaan_acc == item.id_perusahaan_acc);
-
-				// ✅ TAMBAHKAN data attributes
-				optionsValues += '<option value="' + item.id_perusahaan_acc + '" ' +
-					(isSelected ? 'selected' : '') + ' ' +
-					'data-pic="' + (item.perusahaan_pic || '') + '" ' +
-					'data-plat="' + (item.perusahaan_no_plat || '') + '" ' +
-					'data-hp="' + (item.perusahaan_no_hp || '') + '" ' +
-					'data-bank="' + (item.perusahaan_nama_bank || '') + '" ' +
-					'data-norek="' + (item.perusahaan_no_rekening || '') + '" ' +
-					'data-namarek="' + (item.perusahaan_nama_rekening || '') + '" ' +
-					'data-uraian="' + (item.perusahaan_uraian || '') + '" ' +
-					'>' + item.perusahaan_acc + '</option>';
-			});
-
-			jQuery('#' + type + '_perusahaan').html(optionsValues);
-
-			// ✅ TAMBAHKAN onChange event handler untuk EDIT/DETAIL
-			jQuery('#' + type + '_perusahaan').off('change').on('change', function () {
-				var selectedOption = $(this).find('option:selected');
-
-				if (selectedOption.val()) {
-					// Auto-fill fields
-					$('#' + type + '_pic').val(selectedOption.data('pic') || '');
-					$('#' + type + '_plat').val(selectedOption.data('plat') || '');
-					$('#' + type + '_hp').val(selectedOption.data('hp') || '');
-					$('#' + type + '_bank_rekening').val(selectedOption.data('bank') || '');
-					$('#' + type + '_no_rekening').val(selectedOption.data('norek') || '');
-					$('#' + type + '_nama_rekening').val(selectedOption.data('namarek') || '');
-					$('#' + type + '_uraian').val(selectedOption.data('uraian') || '');
+				if (id_perusahaan_acc == item.id_perusahaan_acc) {
+					optionsValues += '<option value="' + item.id_perusahaan_acc + '" selected>' + item.perusahaan_acc + '</option>';
 				} else {
-					// Clear fields
-					$('#' + type + '_pic').val('');
-					$('#' + type + '_plat').val('');
-					$('#' + type + '_hp').val('');
-					$('#' + type + '_bank_rekening').val('');
-					$('#' + type + '_no_rekening').val('');
-					$('#' + type + '_nama_rekening').val('');
-					$('#' + type + '_uraian').val('');
+					optionsValues += '<option value="' + item.id_perusahaan_acc + '" >' + item.perusahaan_acc + '</option>';
 				}
 			});
+			jQuery('#' + type + '_perusahaan').html(optionsValues);
 		},
 		error: function (xmlhttprequest, textstatus, message) {
 		}
 	});
 	$$('.item_after_' + type + '_perusahaan').html('Pilih Perusahaan');
 }
-
-function comboKasFilter() {
-	// start koding ajax
-	jQuery.ajax({
-		type: "POST", //pake post jangan  get rawan di hack
-		url: "" + BASE_API + "/get-kas-acc",
-		dataType: 'JSON',
-		timeout: 10000,
-		data: {
-			user_id: localStorage.getItem("user_id"),
-		},
-		beforeSend: function () {
-
-			jQuery('#filter_kas').html('');
-		},
-		success: function (data) {
-			var optionsValues = "";
-			jQuery.each(data.data, function (i, item) {
-				if (localStorage.getItem("primary_kas") == item.id_kas_acc || localStorage.getItem("pending_filter_kas") == item.id_kas_acc) {
-					optionsValues += '<option value="' + item.id_kas_acc + '" selected>' + item.kas_acc + '</option>';
-				} else {
-					optionsValues += '<option value="' + item.id_kas_acc + '">' + item.kas_acc + '</option>';
-				}
-			});
-			jQuery('#filter_kas').html(optionsValues);
-		},
-		error: function (xmlhttprequest, textstatus, message) {
-		}
-	});
-}
-
 /**
  * ========================================
  * 1. INTEGRASI KE simpanTransaksi()
@@ -1934,16 +1863,21 @@ async function simpanTransaksi() {
 				return;
 			}
 
-			// ✅ NO COMPRESSION: Use original file
-			fotoBlob = file;
-			console.log('✅ Using original photo (no compression):', formatBytes(fotoBlob.size));
+			// Compress
+			fotoBlob = await compressImage(file, {
+				maxSizeMB: 4,
+				maxWidthOrHeight: 1920,
+				quality: 0.8
+			});
+
+			console.log('✅ Photo compressed:', formatBytes(fotoBlob.size));
 		} else {
-			// Gunakan foto dari localStorage
+			// Gunakan foto dari localStorage (sudah tercompress sebelumnya)
 			console.log('📦 Using photo from localStorage');
 			fotoBlob = base64ToBlob(fotoFromStorage);
 		}
 
-		// ✅ PERUBAHAN 3: Buat FormData dengan foto original
+		// ✅ PERUBAHAN 3: Buat FormData dengan foto tercompress
 		var formData = new FormData(jQuery("#form_tambah_transaksi_acc")[0]);
 
 		// Remove old foto field jika ada
@@ -1984,10 +1918,9 @@ async function simpanTransaksi() {
 				return xhr;
 			},
 			beforeSend: function () {
-				internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
+				app.dialog.preloader('Mengunggah transaksi...');
 			},
 			success: function (data) {
-				app.dialog.close();
 				app.dialog.close();
 				$$('.clear_tambah_transaksi').val('');
 
@@ -2017,11 +1950,7 @@ async function simpanTransaksi() {
 				app.dialog.close();
 				app.dialog.alert('Ada kendala pada koneksi server, Silahkan Coba Kembali');
 				console.error('Upload error:', textstatus, message);
-			},
-			complete: function () {
-				try { app.dialog.close(); } catch (e) { }
 			}
-
 		});
 
 	} catch (error) {
@@ -2075,9 +2004,14 @@ async function updateTransaksi() {
 				return;
 			}
 
-			// ✅ NO COMPRESSION: Use original file
-			fotoBlob = file;
-			console.log('✅ Using original photo (no compression):', formatBytes(fotoBlob.size));
+			// Compress
+			fotoBlob = await compressImage(file, {
+				maxSizeMB: 4,
+				maxWidthOrHeight: 1920,
+				quality: 0.8
+			});
+
+			console.log('✅ Photo compressed:', formatBytes(fotoBlob.size));
 
 		} else if (fotoFromStorage) {
 			hasNewPhoto = true;
@@ -2124,7 +2058,7 @@ async function updateTransaksi() {
 				return xhr;
 			},
 			beforeSend: function () {
-				internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
+				app.dialog.preloader('Mengunggah update...');
 			},
 			success: function (data) {
 				app.dialog.close();
@@ -2154,11 +2088,7 @@ async function updateTransaksi() {
 				app.dialog.close();
 				app.dialog.alert('Ada kendala pada koneksi server, Silahkan Coba Kembali');
 				console.error('Update error:', textstatus, message);
-			},
-			complete: function () {
-				try { app.dialog.close(); } catch (e) { }
 			}
-
 		});
 
 	} catch (error) {
@@ -2183,7 +2113,7 @@ function deleteTransaksiAcc(id_transaksi_acc, kategori_acc) {
 					id_transaksi_acc: id_transaksi_acc,
 				},
 				beforeSend: function () {
-					internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
+					app.dialog.preloader('Harap Tunggu');
 				},
 				success: function (data) {
 					app.dialog.close();
@@ -2196,11 +2126,7 @@ function deleteTransaksiAcc(id_transaksi_acc, kategori_acc) {
 				},
 				error: function (xmlhttprequest, textstatus, message) {
 					app.dialog.alert('Ada kendala pada koneksi server, Silahkan Coba Kembali');
-				},
-				complete: function () {
-					try { app.dialog.close(); } catch (e) { }
 				}
-
 			});
 
 		}
@@ -2228,7 +2154,7 @@ function validTransaksi(type) {
 					valid: type
 				},
 				beforeSend: function () {
-					internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
+					app.dialog.preloader('Harap Tunggu');
 				},
 				success: function (data) {
 					app.dialog.close();
@@ -2246,11 +2172,7 @@ function validTransaksi(type) {
 				error: function (xmlhttprequest, textstatus, message) {
 					app.dialog.alert('Ada kendala pada koneksi server, Silahkan Coba Kembali');
 					app.popup.close();
-				},
-				complete: function () {
-					try { app.dialog.close(); } catch (e) { }
 				}
-
 			});
 
 		}
@@ -2278,138 +2200,97 @@ window.detailPembayaranPhotoData = {
  * 3. INTEGRASI KE prosesPembayaranMultiple()
  * ========================================
  */
-function prosesPembayaranMultiple(pembayaran_id, number) {
-	console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-	console.log('🎯 prosesPembayaranMultiple CALLED');
-	console.log('   - Pembayaran ID:', pembayaran_id);
-	console.log('   - Number:', number);
-	console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-	var storageKey = 'foto_pembayaran_' + pembayaran_id + '_' + number;
-
-	// ... existing code ...
-
+async function prosesPembayaranMultiple(pembayaran_id, number) {
 	var $pay = jQuery('#pembayaran_' + number + '_' + pembayaran_id);
 	var $adm = jQuery('#pembayaran_admin_' + number + '_' + pembayaran_id);
 	var $bank = jQuery('#bank_' + number + '_' + pembayaran_id);
 	var $tgl = jQuery('#tanggal_' + number + '_' + pembayaran_id);
-	var $btn = jQuery('#btn_bayar_' + number + '_' + pembayaran_id);
-	var $rowEls = jQuery('#pembayaran_' + number + '_' + pembayaran_id + ', #pembayaran_admin_' + number + '_' + pembayaran_id + ', #bank_' + number + '_' + pembayaran_id + ', #tanggal_' + number + '_' + pembayaran_id);
+	var $btn = jQuery('label[for="foto_bukti_' + number + '_' + pembayaran_id + '"]');
+	var $rowEls = jQuery([
+		'#pembayaran_' + number + '_' + pembayaran_id,
+		'#pembayaran_admin_' + number + '_' + pembayaran_id,
+		'#bank_' + number + '_' + pembayaran_id,
+		'#tanggal_' + number + '_' + pembayaran_id,
+		'#keterangan_' + number + '_' + pembayaran_id,
+		'#foto_bukti_' + number + '_' + pembayaran_id
+	].join(','));
 
-	console.log('📋 Form fields check:');
-	console.log('   - Pembayaran value:', $pay.val());
-	console.log('   - Admin value:', $adm.val());
-	console.log('   - Bank value:', $bank.val());
-	console.log('   - Tanggal value:', $tgl.val());
+	var storageKey = 'foto_pembayaran_' + pembayaran_id + '_' + number;
 
-	// Validasi form fields
-	if (!$pay.val() || !$bank.val() || !$tgl.val()) {
-		app.dialog.close();
+	// Prevent double trigger
+	if ($btn.hasClass('is-uploading')) {
+		return false;
+	}
+
+	// Validasi field
+	if ($pay.val() == "" || $bank.val() == "" || $tgl.val() == "") {
 		app.dialog.alert('Isi Data Pembayaran Dengan Lengkap (Nominal, Bank, Tanggal)');
 		return false;
 	}
 
-	// ✅ CRITICAL: Validasi foto dengan logging detail
+	// ✅ PERUBAHAN: Validasi foto dengan support file input juga
 	const fotoInput = document.getElementById('foto_bukti_' + number + '_' + pembayaran_id);
 	const fotoFromStorage = localStorage.getItem(storageKey);
 
-	console.log('📸 Foto check:');
-	console.log('   - Storage key:', storageKey);
-	console.log('   - Foto from storage exists?', !!fotoFromStorage);
-	console.log('   - Foto from storage length:', fotoFromStorage ? fotoFromStorage.length : 0);
-	console.log('   - Foto input element exists?', !!fotoInput);
-	console.log('   - Foto input has files?', fotoInput ? !!fotoInput.files : false);
-	console.log('   - Foto input files[0] exists?', fotoInput && fotoInput.files ? !!fotoInput.files[0] : false);
-
-	if (fotoInput && fotoInput.files && fotoInput.files[0]) {
-		console.log('   - File object name:', fotoInput.files[0].name);
-		console.log('   - File object size:', (fotoInput.files[0].size / 1024).toFixed(2) + ' KB');
-		console.log('   - File object type:', fotoInput.files[0].type);
-	}
-
 	if (!fotoFromStorage && (!fotoInput || !fotoInput.files || !fotoInput.files[0])) {
-		app.dialog.close();
-		console.error('❌ Foto validation failed: No foto from camera or gallery');
 		app.dialog.alert('Isi Data Pembayaran Dengan Lengkap (Foto Bukti Belum Ada)');
 		return false;
 	}
 
-	console.log('✅ Foto validation passed');
+	// Validasi nominal
+	var total_harus_bayar = parseInt(jQuery('#total_harus_bayar_' + pembayaran_id).val());
+	var sudah_bayar = parseInt(jQuery('#sudah_bayar_' + pembayaran_id).val()) + parseInt($pay.val().replace(/\,/g, ''));
+	var sisa_harus_bayar = total_harus_bayar - sudah_bayar;
 
-	// ... rest of existing code ...
+	if (sisa_harus_bayar < 0) {
+		var lebih_bayar = sudah_bayar - total_harus_bayar;
+		app.dialog.alert('Pembayaran Melebihi Nominal <br> <br> Nominal Lebih : ' + number_format(lebih_bayar) + ' <br><br>Bagi Pada Angsuran Berikutnya');
+		return false;
+	}
 
 	try {
-		app.dialog.preloader('Memproses foto untuk upload...');
+		// ✅ PERUBAHAN: Compress foto sebelum upload
+		app.dialog.preloader('Memproses foto...');
 
 		let fotoBlob;
 
-		// ✅ PRIORITAS: File input dulu (gallery), baru localStorage (camera)
 		if (fotoInput && fotoInput.files && fotoInput.files[0]) {
-			// GALLERY FLOW
-			console.log('📁 Using foto from GALLERY (file input)');
+			// Compress foto baru dari input
+			console.log('🔄 Compressing payment photo from input...');
 			const file = fotoInput.files[0];
 
-			console.log('   - File name:', file.name);
-			console.log('   - File size:', (file.size / 1024).toFixed(2) + ' KB');
-			console.log('   - File type:', file.type);
-
-			// Validasi file type
-			const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-			if (!validTypes.includes(file.type)) {
+			// Validasi
+			if (!validateFileType(file)) {
 				app.dialog.close();
-				console.error('❌ Invalid file type:', file.type);
-				app.dialog.alert('File harus berupa gambar (JPG, PNG, GIF, WEBP)');
 				return false;
 			}
 
-			// Validasi file size (max 50MB)
-			const maxSize = 50 * 1024 * 1024;
-			if (file.size > maxSize) {
+			if (!validateFileSize(file, 50)) {
 				app.dialog.close();
-				console.error('❌ File too large:', (file.size / (1024 * 1024)).toFixed(2) + ' MB');
-				app.dialog.alert('Ukuran file maksimal 50MB');
 				return false;
 			}
 
-			console.log('✅ Gallery file validation passed');
+			// Compress
+			fotoBlob = await compressImage(file, {
+				maxSizeMB: 4,
+				maxWidthOrHeight: 1920,
+				quality: 0.8
+			});
 
-			// ✅ NO COMPRESSION: Use original file
-			fotoBlob = file;
-			console.log('✅ Using original file from gallery (no compression)');
+			console.log('✅ Payment photo compressed:', formatBytes(fotoBlob.size));
 
-		} else if (fotoFromStorage) {
-			// CAMERA FLOW
-			console.log('📷 Using foto from CAMERA (localStorage)');
-			console.log('   - Base64 length:', fotoFromStorage.length);
-
-			try {
-				fotoBlob = base64ToBlob(fotoFromStorage);
-				console.log('✅ Converted base64 to blob');
-				console.log('   - Blob size:', (fotoBlob.size / 1024).toFixed(2) + ' KB');
-				console.log('   - Blob type:', fotoBlob.type);
-			} catch (conversionError) {
-				app.dialog.close();
-				console.error('❌ Failed to convert base64 to blob:', conversionError);
-				app.dialog.alert('Gagal memproses foto dari kamera. Silakan coba lagi.');
-				return false;
-			}
 		} else {
-			// Ini seharusnya tidak pernah terjadi karena sudah ada validasi di atas
-			app.dialog.close();
-			console.error('❌ Critical error: No foto source available');
-			app.dialog.alert('Error: Foto tidak ditemukan. Silakan coba lagi.');
-			return false;
+			// Gunakan foto dari localStorage
+			console.log('📦 Using payment photo from localStorage');
+			fotoBlob = base64ToBlob(fotoFromStorage);
 		}
-
-		console.log('✅ Foto blob ready for upload:', (fotoBlob.size / 1024).toFixed(2) + ' KB');
 
 		// Build FormData
 		var formData = new FormData();
 
-		// Append foto
+		// Append compressed foto
 		var fileName = 'foto_pembayaran_' + pembayaran_id + '_' + number + '_' + Date.now() + '.jpg';
 		formData.append('foto_bukti', fotoBlob, fileName);
-		console.log('📦 FormData created with foto:', fileName);
 
 		// Append other fields
 		formData.append('pembayaran', $pay.val());
@@ -2427,7 +2308,6 @@ function prosesPembayaranMultiple(pembayaran_id, number) {
 			console.log('✅ Added id_kategori_acc:', window.current_id_kategori_acc);
 		} else {
 			app.dialog.close();
-			console.error('❌ Missing id_kategori_acc');
 			app.dialog.alert('Error: Data kategori tidak ditemukan. Silakan tutup dan buka kembali detail pembayaran.');
 			return false;
 		}
@@ -2437,12 +2317,13 @@ function prosesPembayaranMultiple(pembayaran_id, number) {
 		if (localStorage.getItem("user_id") == 262) {
 			formData.append('primary_kas', localStorage.getItem("primary_kas"));
 			formData.append('transfer_kas', transfer_kas);
-			console.log('   - Added kas data for user 262');
 		}
 
 		formData.append('karyawan_nama', localStorage.getItem("karyawan_nama"));
 
-		console.log('✅ FormData complete, ready to upload');
+		console.log('✅ FormData prepared for payment upload');
+		console.log('   Foto blob size:', formatBytes(fotoBlob.size));
+		console.log('   Foto filename:', fileName);
 
 		// Disable UI
 		var originalBtnText = $btn.text();
@@ -2451,8 +2332,6 @@ function prosesPembayaranMultiple(pembayaran_id, number) {
 			.text('UPLOADING 0%');
 		$rowEls.prop('disabled', true);
 
-		console.log('🚀 Starting AJAX upload...');
-
 		jQuery.ajax({
 			type: 'POST',
 			url: "" + BASE_API + "/proses-pembayaran-operasional-multiple",
@@ -2460,7 +2339,6 @@ function prosesPembayaranMultiple(pembayaran_id, number) {
 			data: formData,
 			contentType: false,
 			processData: false,
-			timeout: 60000, // ✅ Timeout 60 detik
 			xhr: function () {
 				var xhr = new window.XMLHttpRequest();
 				if (xhr.upload) {
@@ -2468,25 +2346,19 @@ function prosesPembayaranMultiple(pembayaran_id, number) {
 						if (e.lengthComputable) {
 							var pct = Math.round((e.loaded / e.total) * 100);
 							$btn.text('UPLOADING ' + pct + '%');
-							console.log('📊 Upload progress:', pct + '%');
 						}
 					}, false);
 				}
 				return xhr;
 			},
 			beforeSend: function () {
-				console.log('📤 AJAX beforeSend');
-				internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
+				try { app.dialog.preloader('Mengunggah pembayaran...'); } catch (e) { }
 			},
 			success: function (data) {
-				console.log('✅ AJAX success');
-				console.log('   Response:', data);
-				app.dialog.close();
-				app.dialog.close();
-				// Cleanup localStorage jika dari camera
-				if (fotoFromStorage && localStorage.getItem(storageKey)) {
+				// Cleanup localStorage
+				if (localStorage.getItem(storageKey)) {
 					localStorage.removeItem(storageKey);
-					console.log('🗑️ Cleaned up localStorage:', storageKey);
+					console.log('✅ Cleaned up localStorage:', storageKey);
 				}
 
 				// Clear preview
@@ -2501,39 +2373,26 @@ function prosesPembayaranMultiple(pembayaran_id, number) {
 					fotoInput.value = '';
 				}
 
-
-				app.dialog.close();
-				app.dialog.close();
-
 				resetDataTransaksi(1);
 				jQuery('#filter_kas').val(transfer_kas).trigger('change');
 
+				try { app.dialog.close(); } catch (e) { }
+				try { app.popup.close(); } catch (e) { }
+
 				if (data.status == 'done' || data.status == 'success') {
-					app.dialog.alert(data.message || 'Pembayaran berhasil diproses');
+					app.dialog.alert(data.message || 'Berhasil diproses');
 				} else if (data.status == 'failed') {
-					console.error('❌ Backend returned failed status:', data.message);
 					app.dialog.alert(data.message || 'Gagal memproses pembayaran');
 				} else {
-					app.dialog.alert('Pembayaran berhasil diproses');
+					app.dialog.alert('Selesai diproses');
 				}
 			},
-			error: function (xhr, textstatus, message) {
-				console.error('❌ AJAX error');
-				console.error('   Status:', textstatus);
-				console.error('   Message:', message);
-				console.error('   Response:', xhr.responseText);
-
-				app.dialog.close();
-
-				if (textstatus === 'timeout') {
-					app.dialog.alert('Upload timeout. File terlalu besar atau koneksi lambat. Silakan coba lagi.');
-				} else {
-					app.dialog.alert('Gagal mengunggah pembayaran. Coba lagi.');
-				}
+			error: function (xmlhttprequest, textstatus, message) {
+				try { app.dialog.close(); } catch (e) { }
+				app.dialog.alert('Gagal mengunggah pembayaran. Coba lagi.');
+				console.error('Upload error:', textstatus, message);
 			},
 			complete: function () {
-				console.log('🏁 AJAX complete');
-
 				// Re-enable UI
 				$btn.removeClass('is-uploading disabled')
 					.css({ 'pointer-events': '', 'opacity': '' })
@@ -2544,9 +2403,8 @@ function prosesPembayaranMultiple(pembayaran_id, number) {
 
 	} catch (error) {
 		app.dialog.close();
-		console.error('❌ Critical error in prosesPembayaranMultiple:', error);
-		console.error('   Stack:', error.stack);
 		app.dialog.alert('Gagal memproses foto: ' + error.message);
+		console.error('Payment error:', error);
 		return false;
 	}
 }
@@ -2555,38 +2413,8 @@ function prosesPembayaranMultiple(pembayaran_id, number) {
  * ========================================
  * 4. SETUP AUTO-COMPRESS UNTUK INPUT FILES
  * ========================================
- * ✅ DISABLED: Auto-compress saat user pilih foto DINONAKTIFKAN
- */
-function initializeImageCompression() {
-	console.log('⚠️ Image compression is DISABLED - using original images');
-
-	// ✅ COMMENT OUT: Auto-compress dinonaktifkan
-	/*
-	// Transaksi tambah
-	setupCompressedFileInput(
-		'tambah_file_acc_1',
-		'file_foto_terima_pabrik',
-		'tambah_file_acc_1_view',
-		{ maxSizeMB: 4, quality: 0.8 }
-	);
-
-	// Transaksi edit
-	setupCompressedFileInput(
-		'edit_file_acc_1',
-		'file_foto_update_terima_pabrik',
-		'edit_file_acc_1_view',
-		{ maxSizeMB: 4, quality: 0.8 }
-	);
-
-	// Pembayaran multiple (dynamic - setup saat popup dibuka)
-	// Ini perlu dipanggil ulang setiap kali popup pembayaran dibuka
-	// karena element-nya dinamis
-	*/
-
-	console.log('✅ Using original images without compression');
-}
-
-// === Template row input (belum ada pembayaran) ===
+ * Panggil ini saat halaman load untuk auto-compress saat user pilih foto
+ */// === Template row input (belum ada pembayaran) ===
 // Parameter sisa: jumlah yang belum terbayar
 // Parameter totalOperasional: total nominal yang harus dibayar
 function tplInputRow(idx, val, sisa, totalOperasional, id_transaksi_acc) {
@@ -2595,330 +2423,90 @@ function tplInputRow(idx, val, sisa, totalOperasional, id_transaksi_acc) {
 	// Default nilai pembayaran = sisa yang belum terbayar
 	const defaultBayar = sisa > 0 ? fmt(sisa) : '0';
 
-	// Rekomendasi keterangan
+	// Rekomendasi keterangan berdasarkan apakah pembayaran ini akan melunasi
 	const rekomendasiKet = (sisa > 0 && sisa <= totalOperasional) ? 'Lunas' : 'Bayar';
-	console.log()
+
 	// Generate reference number format
 	const refNumber = val.referensi_number || '';
 	const refFormat = idx === 1 ? `DP-${refNumber}` : `B${idx - 1}-${refNumber}`;
 
-	// ========================================
-	// CEK: Apakah data pembayaran sudah tersimpan?
-	// ========================================
-	const pembayaran = Number(val[`pembayaran_${idx}`] || 0);
-	const pembayaranTgl = val[`pembayaran${idx}_tgl`] || null;
-	const bank = val[`bank_${idx}`] || null;
-	const foto = val[`foto_${idx}`] || null;
-
-	// Data dianggap tersimpan jika ada tanggal ATAU bank
-	const isDataSaved = pembayaranTgl || bank;
-	const isFotoUploaded = foto && foto !== 'null' && foto !== '';
-
-	// Tentukan state: empty, data-saved, atau complete
-	let state = 'empty';
-	let statusBadgeHtml = '<i class="f7-icons" style="font-size:14px;">circle</i> Belum Diisi';
-	let statusBadgeClass = 'badge-empty';
-
-	if (isFotoUploaded) {
-		state = 'complete';
-		statusBadgeHtml = '<i class="f7-icons" style="font-size:14px;">checkmark_circle_fill</i> Selesai';
-		statusBadgeClass = 'badge-complete';
-	} else if (isDataSaved) {
-		state = 'data-saved';
-		statusBadgeHtml = '<i class="f7-icons" style="font-size:14px;">checkmark_circle_fill</i> Data Tersimpan';
-		statusBadgeClass = 'badge-data-saved';
-	}
-
-	// ========================================
-	// RENDER HTML dengan TOMBOL DINAMIS (SIMPAN/FOTO)
-	// ========================================
 	return `
-		<form id="pembayaran_form_multiple_${idx}_${id}">
-			<tr>
-				<!-- Reference Number -->
-				<td style="border:1px solid white;" class="numeric-cell text-align-center">
-					<div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-						<span>${refFormat}</span>
-						<i class="f7-icons" 
-						   style="font-size: 18px; cursor: pointer; color: #4CAF50;" 
-						   onclick="copyRefNumber('${refFormat}')"
-						   title="Copy Ref Number">doc_on_doc</i>
-					</div>
-				</td>
-				
-				<!-- Label "Bayar N" + Status Badge -->
-				<td colspan="2" style="border:1px solid white;" class="numeric-cell text-align-left">
-					<div style="display: flex; align-items: center; gap: 8px;">
-						<span>Bayar ${idx}</span>
-					</div>
-					<input type="hidden" value="${id_transaksi_acc}" id="id_transaksi_acc_bayar" name="id_transaksi_acc_bayar">
-				</td>
-				
-				<!-- Tanggal -->
-				<td style="border:1px solid white;" class="numeric-cell text-align-center">
-					<input style="width:105px;text-align:center;" 
-					       id="tanggal_${idx}_${id}" 
-					       name="tanggal_${idx}_${id}"
-					       type="date" 
-					       class="date-multiple-pembayaran" 
-					       value="${pembayaranTgl || moment().format('YYYY-MM-DD')}" 
-					       ${state !== 'empty' ? 'disabled' : ''}>
-				</td>
-				
-				<!-- Bank -->
-				<td style="border:1px solid white;" class="numeric-cell text-align-center">
-					<select style="width:60%; background-color:#1c1c1d;" 
-					        class="hide_bank performa-input input-item-bank"
-					        id="bank_${idx}_${id}" 
-					        name="bank_${idx}_${id}"
-					        ${state !== 'empty' ? 'disabled' : ''}>
-						<option value="">BANK</option>
-						<option value="BCA" ${bank === 'BCA' ? 'selected' : ''}>BCA</option>
-						<option value="MANDIRI" ${bank === 'MANDIRI' ? 'selected' : ''}>MANDIRI</option>
-						<option value="BNI" ${bank === 'BNI' ? 'selected' : ''}>BNI</option>
-						<option value="BRI" ${bank === 'BRI' ? 'selected' : ''}>BRI</option>
-						<option value="CIMB" ${bank === 'CIMB' ? 'selected' : ''}>CIMB</option>
-						<option value="PERMATA" ${bank === 'PERMATA' ? 'selected' : ''}>PERMATA</option>
-						<option value="DANAMON" ${bank === 'DANAMON' ? 'selected' : ''}>DANAMON</option>
-						<option value="TUNAI" ${bank === 'TUNAI' ? 'selected' : ''}>TUNAI</option>
-					</select>
-				</td>
-				
-				<!-- Nominal -->
-				<td style="border:1px solid white;" class="numeric-cell text-align-right">
-					<input style="width:100%;text-align:right;" 
-					       class="input-pembayaran-multiple" 
-					       id="pembayaran_${idx}_${id}" 
-					       name="pembayaran_${idx}_${id}" 
-					       type="text" 
-					       value="${pembayaran > 0 ? fmt(pembayaran) : defaultBayar}" 
-					       onclick="if(this.value==='0') this.value='';" 
-					       onblur="if(this.value==='') this.value='0';" 
-					       oninput="updateJumlahPembayaran(${idx}, ${id})"
-					       onchange="updateKeteranganRekomendasi(${idx}, ${id}, ${sisa})"
-					       ${state !== 'empty' ? 'disabled' : ''}>
-				</td>
-				
-				<!-- Admin -->
-				<td style="border:1px solid white;" class="numeric-cell text-align-right">
-					<input style="width:100%;text-align:right;" 
-					       class="input-pembayaran-multiple" 
-					       id="pembayaran_admin_${idx}_${id}" 
-					       name="pembayaran_admin_${idx}_${id}" 
-					       type="text" 
-					       value="${val[`admin_${idx}`] ? fmt(val[`admin_${idx}`]) : '0'}" 
-					       onclick="if(this.value==='0') this.value='';" 
-					       onblur="if(this.value==='') this.value='0';"
-					       oninput="updateJumlahPembayaran(${idx}, ${id})"
-					       ${state !== 'empty' ? 'disabled' : ''}>
-				</td>
-				
-				<!-- Jumlah (Total) -->
-				<td style="border:1px solid white;" class="numeric-cell text-align-right">
-					<input style="width:100%;text-align:right;" 
-					       class="input-pembayaran-multiple" 
-					       id="pembayaran_jumlah_${idx}_${id}" 
-					       name="pembayaran_jumlah_${idx}_${id}" 
-					       type="text" 
-					       readonly 
-					       value="${pembayaran > 0 ? fmt(pembayaran + (val[`admin_${idx}`] || 0)) : defaultBayar}">
-				</td>
-				
-				<!-- Keterangan -->
-				<td style="border:1px solid white;" class="numeric-cell text-align-center">
-					<input style="width:100%;" 
-					       id="keterangan_${idx}_${id}" 
-					       name="keterangan_${idx}_${id}" 
-					       type="text" 
-					       value="${val[`keterangan_${idx}`] || rekomendasiKet}" 
-					       placeholder="Lunas/Bayar"
-					       ${state !== 'empty' ? 'disabled' : ''}>
-				</td>
-				
-				<!-- ============================================ -->
-				<!-- OPSI SECTION dengan TOMBOL DINAMIS           -->
-				<!-- ============================================ -->
-				<td style="border:1px solid white;" class="numeric-cell text-align-center">
-					
-					<!-- Hidden file input (untuk gallery) -->
-					<input type="file" 
-					       id="foto_bukti_${idx}_${id}" 
-					       name="foto_bukti_${idx}_${id}"
-					       accept="image/*" 
-					       style="display:none;" />
-					
-					<!-- Preview Foto (jika sudah upload) -->
-					${isFotoUploaded ?
-			`<div style="margin-bottom: 5px;">
-							<img src="${BASE_PATH_IMAGE_FOTO_PEMBAYARAN}/${foto}" 
-							     alt="Foto" 
-							     style="width: 100%; max-width: 120px; border-radius: 4px; border: 2px solid #4CAF50;">
-						</div>`
-			:
-			`<img id="foto_preview_${idx}_${id}" 
-						     alt="Preview"
-						     style="display:none; width: 100%; max-width: 120px; border-radius: 4px; border: 2px solid #4CAF50; margin-bottom: 5px;" />`
-		}
-					
-					<!-- ============================================ -->
-					<!-- TOMBOL SIMPAN (Muncul jika data belum simpan) -->
-					<!-- ============================================ -->
-					<button type="button"
-					        id="btn_simpan_${idx}_${id}" 
-					        class="button button-small"
-					        onclick="simpanDataPembayaran('${id}', '${idx}')"
-					        style="width: 100%; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; font-weight: bold; font-size: 12px; display: ${state === 'empty' ? 'block' : 'none'};">
-						SIMPAN
-					</button>
-					
-					<!-- ============================================ -->
-					<!-- TOMBOL FOTO (Muncul jika data sudah simpan)  -->
-					<!-- ============================================ -->
-					<button type="button"
-					        id="btn_foto_${idx}_${id}" 
-					        class="button button-small bg-dark-gray-young text-add-colour-black-soft"
-					        onclick="showFotoOptions('${id}', '${idx}')"
-					        style="width: 100%; font-weight: bold; font-size: 12px; display: ${state === 'data-saved' && !isFotoUploaded ? 'block' : 'none'};">FOTO
-					</button>
-					
-					<!-- Status Selesai (jika foto sudah terupload) -->
-					${isFotoUploaded ?
-			`<div style="border-radius: 4px; font-weight: bold; font-size: 11px;">
-							<i class="f7-icons" style="font-size: 14px;">checkmark_circle_fill</i> SELESAI
-						</div>`
-			: ''
-		}
-					
-				</td>
-			</tr>
-		</form>
-	`;
+    <form id="pembayaran_form_multiple_${idx}_${id}">
+      <tr id="payment_row_${idx}_${id}">
+        <td style="border:1px solid white;" class="numeric-cell text-align-center">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+            <span>${refFormat}</span>
+            <i class="f7-icons" 
+               style="font-size: 18px; cursor: pointer; color: #4CAF50;" 
+               onclick="copyRefNumber('${refFormat}')"
+               title="Copy Ref Number">doc_on_doc</i>
+          </div>
+        </td>
+        <td colspan="2" style="border:1px solid white;" class="numeric-cell text-align-left">Bayar ${idx}</td>
+        <td style="border:1px solid white;" class="numeric-cell text-align-center">
+          <input style="width:105px;text-align:center;" id="tanggal_${idx}_${id}" name="tanggal_${idx}_${id}"
+            type="date" class="date-multiple-pembayaran" value="${moment().format('YYYY-MM-DD')}" readonly>
+        </td>
+        <td style="border:1px solid white;" class="numeric-cell text-align-center">
+          <select style="width:60%; background-color:#1c1c1d;" class="hide_bank performa-input input-item-bank"
+            id="bank_${idx}_${id}" name="bank_${idx}_${id}">
+            <option value="" selected>BANK</option>
+            <option value="BCA">BCA</option>
+            <option value="MANDIRI">MANDIRI</option>
+            <option value="TUNAI">TUNAI</option>
+          </select>
+        </td>
+        <td style="border:1px solid white;" class="numeric-cell text-align-right">
+          <input style="width:100%;text-align:right;" class="input-pembayaran-multiple" id="pembayaran_${idx}_${id}" name="pembayaran_${idx}_${id}" type="text" value="${defaultBayar}" onclick="if(this.value==='0') this.value='';" onblur="if(this.value==='') this.value='0';" onchange="updateKeteranganRekomendasi(${idx}, ${id}, ${sisa})">
+        </td>
+        <td style="border:1px solid white;" class="numeric-cell text-align-right">
+          <input style="width:100%;text-align:right;" class="input-pembayaran-multiple" id="pembayaran_admin_${idx}_${id}" name="pembayaran_admin_${idx}_${id}" type="text" value="0" onclick="if(this.value==='0') this.value='';" onblur="if(this.value==='') this.value='0';">
+        </td>
+        <td style="border:1px solid white;" class="numeric-cell text-align-right">
+          <input style="width:100%;text-align:right;" class="input-pembayaran-multiple" id="pembayaran_jumlah_${idx}_${id}" name="pembayaran_jumlah_${idx}_${id}" type="text" readonly value="${defaultBayar}">
+        </td>
+        <td style="border:1px solid white;" class="numeric-cell text-align-center">
+          <input style="width:100%;" id="keterangan_${idx}_${id}" name="keterangan_${idx}_${id}" type="text" value="${rekomendasiKet}" placeholder="Lunas/Bayar">
+        </td>
+        <td style="border:1px solid white;" class="numeric-cell text-align-center">
+          
+          <!-- ✅ STEP 1: Tombol SIMPAN untuk simpan data dulu -->
+          <button type="button"
+                  id="btn_simpan_${idx}_${id}"
+                  class="text-add-colour-black-soft bg-dark-gray-young button-small col button text-bold" 
+                  onclick="simpanDataPembayaran(${idx}, ${id})" 
+                  style="cursor:pointer; display:block;">
+            SIMPAN
+          </button>
+          
+          <!-- ✅ STEP 2: Tombol FOTO muncul setelah data tersimpan (hidden dulu) -->
+          <button type="button"
+                  id="btn_foto_${idx}_${id}"
+                  class="text-add-colour-black-soft card-color-blue button-small col button text-bold" 
+                  onclick="showUploadFotoOptions('foto_bukti_${idx}_${id}', ${id}, ${idx}, '', '');" 
+                  style="cursor:pointer; display:none; color:white;">
+            FOTO
+          </button>
+          
+          <!-- Input file (hidden) -->
+          <input type="file" 
+                 id="foto_bukti_${idx}_${id}" 
+                 name="foto_bukti_${idx}_${id}"
+                 accept="image/*" 
+                 style="display:none;" />
+          
+          <!-- Preview image -->
+          <div style="margin-top:5px;">
+            <img id="foto_bukti_${idx}_${id}_view" 
+                 alt="Preview"
+                 style="display:none; width:100%; max-width:150px; border-radius:4px; margin-top:5px; border:2px solid #4CAF50;" />
+          </div>
+          
+        </td>
+      </tr>
+    </form>
+  `;
 }
-
-function uploadFotoPembayaran(pembayaran_id, idx, fotoData, source) {
-	console.log('📤 uploadFotoPembayaran:', { pembayaran_id, idx, source });
-
-	const formData = new FormData();
-
-	if (source === 'camera') {
-		// Convert base64 to blob untuk camera
-		try {
-			const block = fotoData.split(";");
-			const contentType = block[0].split(":")[1];
-			const realData = block[1].split(",")[1];
-
-			const byteCharacters = atob(realData);
-			const byteNumbers = new Array(byteCharacters.length);
-			for (let i = 0; i < byteCharacters.length; i++) {
-				byteNumbers[i] = byteCharacters.charCodeAt(i);
-			}
-			const byteArray = new Uint8Array(byteNumbers);
-			const blob = new Blob([byteArray], { type: contentType });
-
-			const fileName = 'foto_pembayaran_' + Date.now() + '.jpg';
-			const file = new File([blob], fileName, { type: contentType });
-
-			formData.append('foto_bukti', file);  // ✅ UBAH: foto_bukti
-		} catch (error) {
-			console.error('❌ Error converting base64:', error);
-			app.dialog.alert('Error: Gagal memproses foto dari kamera');
-			return;
-		}
-	} else {
-		// Dari gallery, sudah dalam bentuk File object
-		formData.append('foto_bukti', fotoData);  // ✅ UBAH: foto_bukti
-	}
-
-	// ✅ UBAH: Parameter sesuai dengan endpoint baru
-	formData.append('pembayaran_id', pembayaran_id);  // ✅ UBAH: pembayaran_id
-	formData.append('pembayaran_ke', idx);             // ✅ UBAH: pembayaran_ke
-	formData.append('user_id', localStorage.getItem('user_id') || '');  // ✅ TAMBAH: user_id
-
-	// ✅ UBAH: Endpoint baru
-	const uploadUrl = BASE_API + '/upload-foto-pembayaran-operasional';
-
-	console.log('📤 Uploading to:', uploadUrl);
-	console.log('📋 FormData:', {
-		pembayaran_id: pembayaran_id,
-		pembayaran_ke: idx,
-		has_foto: formData.has('foto_bukti')
-	});
-
-	// Upload ke server
-	jQuery.ajax({
-		type: 'POST',
-		url: uploadUrl,
-		dataType: 'JSON',
-		data: formData,
-		contentType: false,
-		processData: false,
-		xhr: function () {
-			const dialog = app.dialog.progress('Mengupload ', 0);
-			dialog.setText('0%');
-			const xhr = new window.XMLHttpRequest();
-			xhr.upload.addEventListener("progress", function (evt) {
-				if (evt.lengthComputable) {
-					const percentComplete = evt.loaded / evt.total;
-					dialog.setProgress(Math.round(percentComplete * 100));
-					dialog.setText('' + (Math.round(percentComplete * 100)) + '%');
-				}
-			}, false);
-			return xhr;
-		},
-		beforeSend: function () {
-			internetCheckQueue.check();
-		},
-		success: function (data) {
-			app.dialog.close();
-			console.log('✅ Upload response:', data);
-
-			if (data.status === 'success') {
-				// Update UI: Sembunyikan tombol FOTO, tampilkan status SELESAI
-				jQuery(`#btn_foto_${idx}_${pembayaran_id}`).hide();
-
-				// Tampilkan status selesai
-				const tdOpsi = jQuery(`#btn_foto_${idx}_${pembayaran_id}`).closest('td');
-				tdOpsi.append(`
-					<div style="border-radius: 4px; font-weight: bold; font-size: 11px; margin-top: 5px;">
-						<i class="f7-icons" style="font-size: 14px;">checkmark_circle_fill</i> SELESAI
-					</div>
-				`);
-
-				// Clear localStorage
-				localStorage.removeItem(`foto_pembayaran_${pembayaran_id}_${idx}`);
-
-				// Refresh data
-				app.popup.close();
-
-				app.dialog.alert('Foto berhasil diupload!', 'Sukses', function () {
-					// Refresh list transaksi
-					getDataTransaksi();
-				});
-
-			} else {
-				app.dialog.alert(data.message || 'Gagal mengupload foto');
-			}
-		},
-		error: function (xhr, status, error) {
-			app.dialog.close();
-			console.error('❌ Upload error:', error);
-			console.error('❌ Response:', xhr.responseText);
-
-			let errorMsg = 'Terjadi kesalahan saat mengupload foto';
-			try {
-				const response = JSON.parse(xhr.responseText);
-				if (response.message) {
-					errorMsg = response.message;
-				}
-			} catch (e) {
-				errorMsg += ': ' + error;
-			}
-
-			app.dialog.alert(errorMsg);
-		}
-	});
-}
-
 
 function updateFotoPembayaranProcess() {
 	console.log('📤 updateFotoPembayaranProcess called');
@@ -3034,9 +2622,6 @@ function updateFotoPembayaranProcess() {
 				}, false);
 				return xhr;
 			},
-			beforeSend: function () {
-				internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
-			},
 			success: function (data) {
 				app.popup.close();
 				app.popup.close();
@@ -3067,37 +2652,34 @@ function updateFotoPembayaranProcess() {
 	}
 }
 
+// ===== EVENT HANDLER UNTUK FILE INPUT FOTO PEMBAYARAN =====
+// Preview foto ketika user pilih dari gallery
 jQuery(document).on('change', '#file_foto_pembayaran', function (e) {
 	const file = e.target.files[0];
-	if (!file) return;
+	if (file) {
+		console.log('📁 File foto pembayaran dipilih:', file.name);
 
-	console.log('📁 File dipilih dari galeri:', file.name);
+		// Validasi tipe file
+		if (!file.type.match('image.*')) {
+			app.dialog.alert('File harus berupa gambar');
+			jQuery(this).val('');
+			return;
+		}
 
-	// Validasi tipe file
-	if (!file.type.match('image.*')) {
-		app.dialog.alert('File harus berupa gambar');
-		jQuery(this).val('');
-		return;
+		// Validasi ukuran file (max 10MB)
+		// const maxSize = 10 * 1024 * 1024; // 10MB
+		// if (file.size > maxSize) {
+		// 	app.dialog.alert('Ukuran file maksimal 10MB');
+		// 	jQuery(this).val('');
+		// 	return;
+		// }
+
+		// ========================================
+		// LANGSUNG PROSES UPLOAD (NO PREVIEW, NO DELAY)
+		// ========================================
+		console.log('🚀 Langsung upload foto from gallery...');
+		updateFotoPembayaranProcess();
 	}
-
-	// Preview foto
-	const reader = new FileReader();
-	reader.onload = function (evt) {
-		const base64Image = evt.target.result;
-
-		// Tampilkan preview
-		jQuery('#file_foto_pembayaran_view')
-			.attr('src', base64Image)
-			.show();
-
-		// Hide foto existing (jika ada)
-		jQuery('#file_foto_pembayaran_view_now').hide();
-
-		console.log('✅ Preview foto dari galeri ditampilkan');
-	};
-	reader.readAsDataURL(file);
-	console.log('🚀 Langsung upload foto from gallery...');
-	updateFotoPembayaranProcess();
 });
 
 // === Helpers angka ===
@@ -3109,40 +2691,6 @@ function fmt(n) {
 function unfmt(s) {
 	if (s == null) return 0;
 	return Number(String(s).replace(/[^\d\-]/g, '')) || 0;
-}
-
-/**
- * Update field Jumlah (Nominal + Admin) secara real-time
- * Dipanggil setiap kali user mengetik di field Nominal atau Admin
- */
-function updateJumlahPembayaran(idx, id) {
-	try {
-		console.log(`🔄 updateJumlahPembayaran called: idx=${idx}, id=${id}`);
-
-		// Ambil nilai Nominal dan Admin
-		const nominalInput = jQuery(`#pembayaran_${idx}_${id}`);
-		const adminInput = jQuery(`#pembayaran_admin_${idx}_${id}`);
-		const jumlahInput = jQuery(`#pembayaran_jumlah_${idx}_${id}`);
-
-		if (!nominalInput.length || !adminInput.length || !jumlahInput.length) {
-			console.warn('⚠️ Input elements not found');
-			return;
-		}
-
-		// Unfmt: hapus format ribuan, ambil angka murni
-		const nominal = unfmt(nominalInput.val());
-		const admin = unfmt(adminInput.val());
-		const jumlah = nominal + admin;
-
-		console.log(`   - Nominal: ${nominal}, Admin: ${admin}, Jumlah: ${jumlah}`);
-
-		// Update field Jumlah dengan format ribuan
-		jumlahInput.val(fmt(jumlah));
-
-		console.log(`✅ Jumlah updated to: ${fmt(jumlah)}`);
-	} catch (error) {
-		console.error('❌ Error in updateJumlahPembayaran:', error);
-	}
 }
 
 // === Template row history (sudah ada pembayaran) ===
@@ -3257,25 +2805,13 @@ function tplTableEnd() {
 function detailPembayaran(
 	tanggal_pembelian,
 	bank_1, bank_2, bank_3, bank_4, bank_5, bank_6, bank_7, bank_8, bank_9, bank_10,
-	pembayaran1_tgl, pembayaran2_tgl, pembayaran3_tgl, pembayaran4_tgl, pembayaran5_tgl,
-	pembayaran6_tgl, pembayaran7_tgl, pembayaran8_tgl, pembayaran9_tgl, pembayaran10_tgl,
-	bank,
-	pembayaran_1, pembayaran_2, pembayaran_3, pembayaran_4, pembayaran_5,
-	pembayaran_6, pembayaran_7, pembayaran_8, pembayaran_9, pembayaran_10,
-	pembelian_jumlah_pembayaran, total_pembelian, pembelian_header_id,
-	pembelian_status_pembayaran, pembayaran_pembelian_id, kategori_acc,
-	keterangan_acc, admin_acc
+	pembayaran1_tgl, pembayaran2_tgl, pembayaran3_tgl, pembayaran4_tgl, pembayaran5_tgl, pembayaran6_tgl, pembayaran7_tgl, pembayaran8_tgl, pembayaran9_tgl, pembayaran10_tgl,
+	bank, pembayaran_1, pembayaran_2, pembayaran_3, pembayaran_4, pembayaran_5, pembayaran_6, pembayaran_7, pembayaran_8, pembayaran_9, pembayaran_10,
+	pembelian_jumlah_pembayaran, total_pembelian, pembelian_header_id, pembelian_status_pembayaran, pembayaran_pembelian_id, kategori_acc, keterangan_acc, admin_acc
 ) {
-	console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-	console.log('📋 detailPembayaran CALLED');
-	console.log('   - pembayaran_id:', pembayaran_pembelian_id);
-	console.log('   - id_transaksi_acc:', pembelian_header_id);
-	console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
 	// ===== Guard saldo kas berdasar filter_kas (blokir jika < 0) =====
 	var filterVal = String(jQuery('#filter_kas').val() || '');
 	var lsKey = null;
-
 	if (filterVal === '2') {
 		lsKey = 'kas_utama';
 	} else if (filterVal === '7') {
@@ -3283,307 +2819,151 @@ function detailPembayaran(
 	} else if (filterVal === '6') {
 		lsKey = 'kas_backup';
 	}
-
 	if (lsKey) {
 		var raw = localStorage.getItem(lsKey);
 		var num = 0;
 		try {
 			num = parseFloat(String(raw || '0').replace(/[^\d\-\.]/g, '')) || 0;
-		} catch (e) {
-			num = 0;
-		}
-
+		} catch (e) { num = 0; }
 		if (num < 0) {
 			try {
 				app.toast.create({
 					text: 'Saldo ' + lsKey.replace('_', ' ') + ' tidak mencukupi untuk membayar.',
 					closeTimeout: 3000
 				}).open();
-			} catch (err) {
-				alert('Saldo kas tidak mencukupi untuk membuka detail pembayaran.');
-			}
+			} catch (err) { alert('Saldo kas tidak mencukupi untuk membuka detail pembayaran.'); }
 			return false;
 		}
 	}
 
 	// ===== Lolos guard: buka popup detail-pembayaran =====
-	try {
-		app.popup.open('.popup.detail-pembayaran');
-	} catch (e) {
-		console.error('Error opening popup:', e);
-	}
+	try { app.popup.open('.popup.detail-pembayaran'); } catch (e) { }
 
-	// Clear existing history
 	jQuery('#history_pembayaran_multiple').html("");
 
-	// ===== FETCH DATA PEMBAYARAN DARI SERVER =====
 	jQuery.ajax({
 		type: 'POST',
-		url: BASE_API + "/detail-pembayaran-operasional-multiple",
+		url: "" + BASE_API + "/detail-pembayaran-operasional-multiple",
 		dataType: 'JSON',
-		data: {
-			id_transaksi_acc: pembelian_header_id
-		},
-		beforeSend: function () {
-			internetCheckQueue.check();
-			try {
-				app.dialog.preloader('Harap Tunggu...');
-			} catch (e) { }
-		},
+		data: { id_transaksi_acc: pembelian_header_id },
+		beforeSend: function () { app.dialog.preloader('Harap Tunggu'); },
 		success: function (data) {
 			app.dialog.close();
 
-			console.log('✅ Data pembayaran loaded:', data);
+			jQuery("#bayar_pembayaran").val('');
+			$$('#popup-pembayaran-td-kategori').html(kategori_acc);
+			$$('#popup-pembayaran-td-keterangan').html(keterangan_acc);
+			$$('#popup-pembayaran-bank').html(bank);
+			$$(".bank_pembayaran").val(bank);
 
-			// ===== CEK FLAG has_payment =====
-			if (!data.has_payment) {
-				console.log('🆕 CASE: BELUM ADA DATA PEMBAYARAN - Tampilkan Form Kosong');
-				renderEmptyPaymentForm(data, kategori_acc, keterangan_acc, bank, pembelian_header_id);
+			// ===== PENTING: Simpan id_kategori_acc untuk digunakan saat proses pembayaran =====
+			// Ambil dari data response atau dari data transaksi
+			if (data.pembayaran_data && data.pembayaran_data.length > 0) {
+				var id_kategori = data.pembayaran_data[0].id_kategori_acc;
+				console.log('💾 Saving id_kategori_acc for payment:', id_kategori);
+				// Simpan ke variabel global atau hidden field
+				window.current_id_kategori_acc = id_kategori;
+				window.current_kategori_acc = kategori_acc;
 			} else {
-				console.log('📦 CASE: SUDAH ADA DATA PEMBAYARAN - Load Data yang Ada');
-				renderExistingPayments(data, kategori_acc, keterangan_acc, bank, pembelian_header_id);
+				console.warn('⚠️ No pembayaran_data found, id_kategori_acc might be missing');
 			}
+
+			var out = '';
+			jQuery.each(data.pembayaran_data, function (i, val) {
+				// total terbayar = sum pembayaran_1..10 (angka murni)
+				let totalBayar = 0;
+				let totalAdmin = 0;
+				for (let k = 1; k <= 10; k++) {
+					totalBayar += Number(val[`pembayaran_${k}`] || 0);
+					totalAdmin += Number(val[`admin_${k}`] || 0);
+				}
+
+				const totalOperasional = Number(val.nominal_acc || 0);
+				const lunas = totalBayar >= totalOperasional;
+				const bg = val.valid_spy == 2 ? '#FF0000' : (lunas ? '#133788' : '');
+
+				out += tplStatusHeader(val, totalBayar, totalAdmin);
+				out += tplTableStart(i + 1);
+
+				// ===== LOGIKA SEQUENTIAL PAYMENT (UPDATED) =====
+				let lastPaidIndex = 0; // Track index pembayaran terakhir yang ada record
+
+				// Loop 1: Tampilkan semua pembayaran yang sudah ada record
+				for (let idx = 1; idx <= 10; idx++) {
+					const payValue = Number(val[`pembayaran_${idx}`] || 0);
+					const payTgl = val[`pembayaran${idx}_tgl`];
+					const payBank = val[`bank_${idx}`];
+
+					// ✅ Cek ada record (tanggal ATAU bank terisi)
+					// Ini adalah cara yang benar - tidak peduli nominal 0 atau tidak
+					const hasRecord = payTgl || payBank;
+
+					if (hasRecord) {
+						// Ada record → Tampilkan sebagai paid row
+						out += tplPaidRow(idx, val, bg);
+						lastPaidIndex = idx; // Update index terakhir yang punya record
+					}
+				}
+
+				// Loop 2: Tampilkan 1 FORM INPUT BARU (hanya jika belum lunas)
+				if (!lunas) {
+					const nextPaymentIndex = lastPaidIndex + 1; // Pembayaran berikutnya
+
+					if (nextPaymentIndex <= 10) {
+						const sisaBayar = totalOperasional - totalBayar;
+						out += tplInputRow(nextPaymentIndex, val, sisaBayar, totalOperasional, pembelian_header_id);
+					}
+				}
+				// ===== END LOGIKA SEQUENTIAL =====
+
+				out += tplTableEnd();
+			});
+
+			$$('#popup-pembayaran-penjualan_jumlah_pembayaran').html(fmt(data.pembelian_jumlah_pembayaran) + ' ,-');
+			$$('#popup-pembayaran-penjualan_grandtotal').html(fmt(parseInt(data.penjualan_grandtotal)) + ' ,-');
+			$$('#popup-pembayaran-admin').html(fmt(parseInt(data.penjualan_admin || 0)) + ' ,-');
+			$$('#popup-pembayaran-penjualan_kekurangan').html(fmt(parseInt(data.penjualan_grandtotal) - (parseInt(data.pembelian_jumlah_pembayaran) || 0)) + ' ,-');
+
+			if (((parseInt(data.penjualan_grandtotal) || 0) - (data.pembelian_jumlah_pembayaran || 0)) <= 0) {
+				$$('#popup-pembayaran-penjualan_status_pembayaran').html('<b>Lunas</b>')
+					.removeClass('card-color-green').addClass('card-color-blue');
+			} else {
+				$$('#popup-pembayaran-penjualan_status_pembayaran').html('<b>Belum Lunas</b>')
+					.removeClass('card-color-blue').addClass('card-color-green');
+			}
+
+			jQuery('#history_pembayaran_multiple').html(out);
+
+			// Set min date ke semua input tanggal dinamis
+			const today = moment().format('YYYY-MM-DD');
+			document.querySelectorAll('.date-multiple-pembayaran').forEach(function (el) {
+				el.setAttribute('min', today);
+			});
 		},
-		error: function (xhr, status, error) {
+		error: function () {
 			app.dialog.close();
-			console.error('❌ Error loading detail pembayaran:');
-			console.error('   - Status:', status);
-			console.error('   - Error:', error);
-			console.error('   - Response:', xhr.responseText);
-
-			app.dialog.alert('Gagal memuat detail pembayaran: ' + error);
 		}
 	});
 
-	// Set tanggal header
 	$$('#tanggal_pembayaran_choose').html(moment(tanggal_pembelian).format('DD-MMM-YYYY'));
-}
-/**
- * ========================================
- * RENDER EMPTY PAYMENT FORM (Belum Ada Data)
- * ========================================
- */
-function renderEmptyPaymentForm(data, kategori_acc, keterangan_acc, bank, id_transaksi_acc) {
-	console.log('🆕 Rendering Empty Payment Form');
-	console.log('📦 Data received:', data);
 
-	// Clear inputs
-	jQuery("#bayar_pembayaran").val('');
+	// ===== TIDAK PERLU prefill 10 blok lama (sudah digantikan oleh AJAX dinamis) =====
+	// Data ditampilkan otomatis dari database via logika sequential di atas
 
-	// Set header info dari transaksi_data
-	const transaksiData = data.transaksi_data;
+	$$('#pembayaran-penjualan_id').val(pembelian_header_id);
 
-	// ✅ FIX: Gunakan keterangan dari transaksi_data.keterangan (bukan keterangan_acc)
-	const displayKeterangan = transaksiData.keterangan || transaksiData.keterangan_acc || keterangan_acc || '-';
-
-	$$('#popup-pembayaran-td-kategori').html(transaksiData.kategori_acc);
-	$$('#popup-pembayaran-td-keterangan').html(displayKeterangan);
-	$$('#popup-pembayaran-bank').html(bank);
-	$$(".bank_pembayaran").val(bank);
-
-	// ===== Simpan id_kategori_acc untuk digunakan saat proses pembayaran =====
-	window.current_id_kategori_acc = transaksiData.id_kategori_acc;
-	window.current_kategori_acc = transaksiData.kategori_acc;
-	window.current_pembayaran_id = null; // Belum ada pembayaran_id
-
-	const nominalOperasional = Number(transaksiData.nominal_acc || 0);
-	const adminOperasional = Number(transaksiData.admin_acc || 0);
-
-	console.log('💰 Empty Form Data:');
-	console.log('   - ID Transaksi:', transaksiData.id_transaksi_acc);
-	console.log('   - Referensi Number:', transaksiData.referensi_number);
-	console.log('   - Nominal Operasional:', nominalOperasional);
-	console.log('   - Admin:', adminOperasional);
-
-	// ===== BUILD HTML untuk FORM KOSONG (Pembayaran Pertama) =====
-	var out = '';
-
-	// ✅ Status Header: Format seperti screenshot (Terbayar dan Sisa)
-	out += '<table align="center" width="100%" style="border-collapse:collapse;border:1px solid white;">';
-	out += '  <tr>';
-	out += '    <td width="50%" style="border:1px solid white;" class="numeric-cell text-align-center">';
-	out += '      Terbayar : <br>' + fmt(0);
-	out += '    </td>';
-	out += '    <td width="50%" style="border:1px solid white;" class="numeric-cell text-align-center">';
-	out += '      Sisa : <br>' + fmt(nominalOperasional);
-	out += '    </td>';
-	out += '  </tr>';
-	out += '</table>';
-
-	// ✅ FIX: Build object val yang sesuai dengan yang diharapkan tplInputRow()
-	const valObject = {
-		id_transaksi_acc: transaksiData.id_transaksi_acc,
-		id_kategori_acc: transaksiData.id_kategori_acc,
-		nominal_acc: nominalOperasional,
-		admin_acc: adminOperasional,
-		referensi_number: transaksiData.referensi_number || '',  // ✅ Tambahkan referensi_number
-		pembayaran_operasional_id: null, // Belum ada
-		// Tambahkan field-field lain yang mungkin dibutuhkan tplInputRow
-		pembayaran_1: 0,
-		pembayaran1_tgl: null,
-		bank_1: null,
-		foto_1: null,
-		admin_1: 0,
-		keterangan_1: null
-	};
-
-	console.log('🔧 Building valObject for tplInputRow:', valObject);
-
-	// Table: Pembayaran Ke-1 (Form Input Kosong)
-	out += tplTableStart(1);
-	out += tplInputRow(1, valObject, nominalOperasional, nominalOperasional, id_transaksi_acc);
-	out += tplTableEnd();
-
-	// ===== UPDATE SUMMARY INFO =====
-	const summaryData = data.summary || {};
-
-	$$('#popup-pembayaran-penjualan_jumlah_pembayaran').html('0 ,-');
-	$$('#popup-pembayaran-penjualan_grandtotal').html(fmt(nominalOperasional) + ' ,-');
-	$$('#popup-pembayaran-admin').html(fmt(adminOperasional) + ' ,-');
-	$$('#popup-pembayaran-penjualan_kekurangan').html(fmt(nominalOperasional) + ' ,-');
-
-	// Update status badge: Belum Lunas
-	$$('#popup-pembayaran-penjualan_status_pembayaran').html('<b>Belum Lunas</b>')
-		.removeClass('card-color-blue').addClass('card-color-green');
-
-	// Inject HTML ke DOM
-	jQuery('#history_pembayaran_multiple').html(out);
-
-	// ===== Set min date untuk input tanggal =====
-	const today = moment().format('YYYY-MM-DD');
-	document.querySelectorAll('.date-multiple-pembayaran').forEach(function (el) {
-		el.setAttribute('min', today);
-	});
-
-	console.log('✅ Empty Payment Form rendering complete');
+	setTimeout(function () {
+		if (localStorage.getItem("username") != 'Stn') {
+			// Hapus opsi "Tunai" (case-insensitive)
+			$$('.hide_bank option').each(function (idx, opt) {
+				if (String(opt.value).toLowerCase() === 'tunai') jQuery(opt).remove();
+			});
+		}
+	}, 500);
 }
 
-/**
- * ========================================
- * RENDER EXISTING PAYMENTS (Sudah Ada Data)
- * ========================================
- */
-function renderExistingPayments(data, kategori_acc, keterangan_acc, bank, id_transaksi_acc) {
-	console.log('📦 Rendering Existing Payments');
 
-	// Clear inputs
-	jQuery("#bayar_pembayaran").val('');
 
-	// Set header info
-	$$('#popup-pembayaran-td-kategori').html(kategori_acc);
-	$$('#popup-pembayaran-td-keterangan').html(keterangan_acc);
-	$$('#popup-pembayaran-bank').html(bank);
-	$$(".bank_pembayaran").val(bank);
-
-	// ===== PENTING: Simpan id_kategori_acc untuk digunakan saat proses pembayaran =====
-	if (data.pembayaran_data && data.pembayaran_data.length > 0) {
-		var id_kategori = data.pembayaran_data[0].id_kategori_acc;
-		console.log('💾 Saving id_kategori_acc for payment:', id_kategori);
-
-		// Simpan ke variabel global
-		window.current_id_kategori_acc = id_kategori;
-		window.current_kategori_acc = kategori_acc;
-		window.current_pembayaran_id = data.pembayaran_data[0].pembayaran_operasional_id;
-	} else {
-		console.warn('⚠️ No pembayaran_data found, id_kategori_acc might be missing');
-	}
-
-	var out = '';
-
-	// ===== LOOP SETIAP PEMBAYARAN DATA (EXISTING LOGIC) =====
-	jQuery.each(data.pembayaran_data, function (i, val) {
-		console.log('📦 Processing pembayaran data:', val);
-
-		// Calculate total terbayar
-		let totalBayar = 0;
-		let totalAdmin = 0;
-		for (let k = 1; k <= 10; k++) {
-			totalBayar += Number(val[`pembayaran_${k}`] || 0);
-			totalAdmin += Number(val[`admin_${k}`] || 0);
-		}
-
-		const totalOperasional = Number(val.nominal_acc || 0);
-		const lunas = totalBayar >= totalOperasional;
-		const bg = val.valid_spy == 2 ? '#FF0000' : (lunas ? '#133788' : '');
-
-		console.log('💰 Payment calculation:');
-		console.log('   - Total Bayar:', totalBayar);
-		console.log('   - Total Admin:', totalAdmin);
-		console.log('   - Total Operasional:', totalOperasional);
-		console.log('   - Lunas:', lunas);
-
-		// Generate HTML output
-		out += tplStatusHeader(val, totalBayar, totalAdmin);
-		out += tplTableStart(i + 1);
-
-		// ===== LOGIKA SEQUENTIAL PAYMENT (2-STEP FLOW) =====
-		let lastPaidIndex = 0; // Track index pembayaran terakhir yang ada record
-
-		// Loop 1: Tampilkan semua pembayaran yang sudah ada record
-		for (let idx = 1; idx <= 10; idx++) {
-			const payValue = Number(val[`pembayaran_${idx}`] || 0);
-			const payTgl = val[`pembayaran${idx}_tgl`];
-			const payBank = val[`bank_${idx}`];
-			const payFoto = val[`foto_${idx}`];
-
-			// ✅ Cek ada record (tanggal ATAU bank terisi)
-			const hasRecord = payTgl || payBank;
-
-			if (hasRecord) {
-				// Ada record → Tampilkan sebagai paid row
-				console.log(`   ✅ Payment ${idx}: Has record (shown as paid)`);
-				out += tplPaidRow(idx, val, bg);
-				lastPaidIndex = idx; // Update index terakhir yang punya record
-			} else {
-				console.log(`   ⚪ Payment ${idx}: No record (skip)`);
-			}
-		}
-
-		// Loop 2: Tampilkan 1 FORM INPUT BARU (hanya jika belum lunas)
-		if (!lunas) {
-			const nextPaymentIndex = lastPaidIndex + 1; // Pembayaran berikutnya
-
-			if (nextPaymentIndex <= 10) {
-				const sisaBayar = totalOperasional - totalBayar;
-				console.log(`   📝 Showing input for payment ${nextPaymentIndex} (sisa: ${sisaBayar})`);
-				out += tplInputRow(nextPaymentIndex, val, sisaBayar, totalOperasional, id_transaksi_acc);
-			} else {
-				console.log('   ⚠️ All 10 payment slots used');
-			}
-		} else {
-			console.log('   ✅ Payment LUNAS - no new input form');
-		}
-		// ===== END LOGIKA SEQUENTIAL =====
-
-		out += tplTableEnd();
-	});
-
-	// ===== UPDATE SUMMARY INFO =====
-	$$('#popup-pembayaran-penjualan_jumlah_pembayaran').html(fmt(data.summary.pembelian_jumlah_pembayaran) + ' ,-');
-	$$('#popup-pembayaran-penjualan_grandtotal').html(fmt(parseInt(data.summary.penjualan_grandtotal)) + ' ,-');
-	$$('#popup-pembayaran-admin').html(fmt(parseInt(data.summary.penjualan_admin || 0)) + ' ,-');
-	$$('#popup-pembayaran-penjualan_kekurangan').html(fmt(parseInt(data.summary.penjualan_grandtotal) - (parseInt(data.summary.pembelian_jumlah_pembayaran) || 0)) + ' ,-');
-
-	// Update status badge
-	if (((parseInt(data.summary.penjualan_grandtotal) || 0) - (data.summary.pembelian_jumlah_pembayaran || 0)) <= 0) {
-		$$('#popup-pembayaran-penjualan_status_pembayaran').html('<b>Lunas</b>')
-			.removeClass('card-color-green').addClass('card-color-blue');
-	} else {
-		$$('#popup-pembayaran-penjualan_status_pembayaran').html('<b>Belum Lunas</b>')
-			.removeClass('card-color-blue').addClass('card-color-green');
-	}
-
-	// Inject HTML ke DOM
-	jQuery('#history_pembayaran_multiple').html(out);
-
-	// ===== Set min date untuk semua input tanggal dinamis =====
-	const today = moment().format('YYYY-MM-DD');
-	document.querySelectorAll('.date-multiple-pembayaran').forEach(function (el) {
-		el.setAttribute('min', today);
-	});
-
-	console.log('✅ Existing Payments rendering complete');
-}
 
 // === Delegasi hitung jumlah (nominal + admin) untuk input dinamis ===
 jQuery(document)
@@ -3615,33 +2995,6 @@ applyMask(jQuery(document));
 jQuery(document).on('DOMNodeInserted', '#history_pembayaran_multiple', function () {
 	applyMask(jQuery('#history_pembayaran_multiple'));
 });
-
-
-function getBulanTransaksi() {
-	var m = moment.months();
-	var month_now = moment().month();
-	var n = 0;
-	for (var i = 0; i < 12; i++) {
-		n++
-		if (i == month_now) {
-			$('.transaksi_bulan').append($('<option selected/>').val(n).html(m[i]));
-		} else {
-			$('.transaksi_bulan').append($('<option />').val(n).html(m[i]));
-		}
-	}
-}
-
-function getYearTransaksi() {
-	let startYear = 2010;
-	let endYear = new Date().getFullYear();
-	for (i = endYear; i > startYear; i--) {
-		if (i == endYear) {
-			$('.transaksi_years').append($('<option selected/>').val(i).html(i));
-		} else {
-			$('.transaksi_years').append($('<option />').val(i).html(i));
-		}
-	}
-}
 function onPerusahaanChangedTambah(type) {
 	// --- resolve perusahaan value ---
 	var perusahaan;
@@ -3886,7 +3239,7 @@ function UpdateValidNeraca(id_transaksi_acc, type) {
 					valid: type_valid
 				},
 				beforeSend: function () {
-					internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
+					app.dialog.preloader('Harap Tunggu');
 				},
 				success: function (data) {
 					app.dialog.close();
@@ -3905,11 +3258,7 @@ function UpdateValidNeraca(id_transaksi_acc, type) {
 				error: function (xmlhttprequest, textstatus, message) {
 					app.dialog.alert('Ada kendala pada koneksi server, Silahkan Coba Kembali');
 					app.popup.close();
-				},
-				complete: function () {
-					try { app.dialog.close(); } catch (e) { }
 				}
-
 			});
 
 		}
@@ -3934,157 +3283,173 @@ function UpdateValidNeraca(id_transaksi_acc, type) {
 // ===== VARIABEL GLOBAL UNTUK TRACKING FOTO PEMBAYARAN =====
 var currentPhotoInputId = ''; // untuk menyimpan ID input foto pembayaran
 
-// ===== FUNGSI UNTUK MEMBUKA POPUP/TRIGGER UPLOAD FOTO PEMBAYARAN =====
-function showUploadFotoOptions(foto_element_id, pembayaran_id, idx, valid, valid_spy, keterangan_valid, existing_foto) {
+// =============================================
+// MODIFIKASI: showUploadFotoOptions
+// Sekarang langsung trigger upload setelah foto dipilih
+// =============================================
+function showUploadFotoOptions(inputId, pembayaran_id, foto_urutan, valid, valid_spy) {
 	console.log('📸 showUploadFotoOptions called');
-	console.log('   Foto Element ID:', foto_element_id);
-	console.log('   Pembayaran ID:', pembayaran_id);
-	console.log('   Index Pembayaran:', idx);
-	console.log('   Valid:', valid);
-	console.log('   Valid Spy:', valid_spy);
-	console.log('   Keterangan Valid:', keterangan_valid);
-	console.log('   Existing Foto:', existing_foto);
-	console.log('   Existing Foto Type:', typeof existing_foto);
+	console.log('   inputId:', inputId);
+	console.log('   pembayaran_id:', pembayaran_id);
+	console.log('   foto_urutan:', foto_urutan);
 
-	// Simpan informasi foto saat ini
-	currentPhotoInputId = foto_element_id;
-	window.detailPembayaranPhotoData = {
-		inputId: foto_element_id,
-		pembayaranId: pembayaran_id,
-		idx: idx,
-		valid: valid,
-		valid_spy: valid_spy,
-		keterangan_valid: keterangan_valid,
-		existingFoto: existing_foto
-	};
+	// Parse number dari inputId (format: foto_bukti_NUMBER_PEMBAYARAN_ID)
+	var parts = inputId.split('_');
+	var number = parts.length >= 3 ? parts[2] : foto_urutan;
 
-	// ========================================
-	// PENTING: SET HIDDEN VALUES untuk auto-submit
-	// ========================================
-	jQuery('#penjualan_id_foto_pembayaran').val(pembayaran_id);
-	jQuery('#foto_urutan').val(idx);
-	console.log('✅ Set hidden values - pembayaran_id:', pembayaran_id, 'foto_urutan:', idx);
+	console.log('   Extracted number:', number);
 
-	// ========================================
-	// CEK: Jika SUDAH ADA FOTO
-	// ========================================
-	var hasFoto = existing_foto &&
-		existing_foto !== '' &&
-		existing_foto !== 'null' &&
-		existing_foto !== 'undefined' &&
-		existing_foto !== null &&
-		existing_foto !== undefined;
+	// Show action sheet untuk pilih camera atau gallery
+	var buttons = [];
 
-	console.log('   Has Foto?', hasFoto);
-
-	if (hasFoto) {
-		console.log('✅ Foto sudah ada, langsung buka popup upload untuk lihat/ganti foto');
-
-		// ========================================
-		// ISI NILAI-NILAI DI POPUP
-		// ========================================
-
-		// 1. Tampilkan foto existing
-		const fotoUrl = BASE_PATH_IMAGE_FOTO_PEMBAYARAN + '/' + existing_foto;
-		jQuery('#file_foto_pembayaran_view_now').attr('src', fotoUrl).show();
-		console.log('   Foto URL:', fotoUrl);
-
-		// 2. Handle keterangan reject
-		if (valid_spy == 2 && keterangan_valid) {
-			// Jika reject, tampilkan keterangan dan tombol upload
-			jQuery('#keterangan_reject_cicilan').val(keterangan_valid);
-			jQuery('#hide_keterangan_reject').show();
-			jQuery('#btn_foto_pembayaran_upload').show();
-			jQuery('#btn_upload_foto_selesai').show();
-			console.log('   Status: REJECT - Tampilkan tombol upload');
-		} else {
-			// Jika tidak reject, sembunyikan keterangan dan tombol upload
-			jQuery('#keterangan_reject_cicilan').val('');
-			jQuery('#hide_keterangan_reject').hide();
-			jQuery('#btn_foto_pembayaran_upload').hide();
-			jQuery('#btn_upload_foto_selesai').hide();
-			console.log('   Status: OK - Hanya tampilkan foto');
-		}
-
-		// 3. Clear preview upload baru (jika ada)
-		jQuery('#file_foto_pembayaran').val('');
-		jQuery('#file_foto_pembayaran_view').attr('src', '').hide();
-		localStorage.removeItem('file_foto_pembayaran');
-
-		// 4. Buka popup
-		app.popup.open('.upload-foto-pembayaran');
-
-		return; // PENTING: Stop di sini, jangan lanjut ke bawah
-
-	} else {
-		// ========================================
-		// Jika BELUM ADA FOTO, tampilkan popup pilihan
-		// ========================================
-		console.log('❌ Belum ada foto, tampilkan popup pilihan');
-
-		// Clear previous values
-		jQuery('#file_foto_pembayaran').val('');
-		jQuery('#file_foto_pembayaran_view').attr('src', '').hide();
-		jQuery('#file_foto_pembayaran_view_now').attr('src', '').hide();
-		jQuery('#keterangan_reject_cicilan').val('');
-		jQuery('#hide_keterangan_reject').hide();
-		localStorage.removeItem('file_foto_pembayaran');
-
-		// Tampilkan tombol upload (karena belum ada foto)
-		jQuery('#btn_foto_pembayaran_upload').show();
-		jQuery('#btn_upload_foto_selesai').show();
-
-		// Buka popup upload langsung (atau bisa pakai popup choice jika ada)
-		// app.popup.open('.upload-foto-pembayaran');
-
-		showFotoOptions(pembayaran_id, idx);
+	// Check if camera available
+	if (typeof navigator.camera !== 'undefined' && typeof Camera !== 'undefined') {
+		buttons.push({
+			text: 'Camera',
+			onClick: function () {
+				openCameraFotoPembayaran_Step2(inputId, pembayaran_id, number);
+			}
+		});
 	}
+
+	// Gallery option (always available)
+	buttons.push({
+		text: 'Gallery',
+		onClick: function () {
+			// Trigger file input
+			jQuery('#' + inputId).click();
+
+			// Set up one-time change handler
+			jQuery('#' + inputId).off('change').on('change', function () {
+				if (this.files && this.files[0]) {
+					console.log('📁 File selected from gallery');
+
+					// Show preview
+					var reader = new FileReader();
+					reader.onload = function (e) {
+						var previewId = inputId + '_view';
+						jQuery('#' + previewId).attr('src', e.target.result).show();
+					};
+					reader.readAsDataURL(this.files[0]);
+
+					// Auto-upload
+					setTimeout(function () {
+						uploadFotoPembayaran_Step2(pembayaran_id, number);
+					}, 300);
+				}
+			});
+		}
+	});
+
+	// Cancel button
+	buttons.push({
+		text: 'Cancel',
+		color: 'red'
+	});
+
+	// Show action sheet
+	app.actions.create({
+		buttons: [buttons]
+	}).open();
 }
 
-// ===== FUNGSI HANDLE PILIHAN CAMERA ATAU GALLERY UNTUK PEMBAYARAN =====
+// =============================================
+// FUNGSI: Open Camera untuk Step 2
+// =============================================
+function openCameraFotoPembayaran_Step2(inputId, pembayaran_id, number) {
+	console.log('📸 Opening camera for payment foto - Step 2');
+	console.log('   inputId:', inputId);
+	console.log('   pembayaran_id:', pembayaran_id);
+	console.log('   number:', number);
 
+	// Validasi Camera plugin
+	if (typeof navigator.camera === 'undefined') {
+		console.error('❌ navigator.camera not available');
+		app.dialog.alert('Camera tidak tersedia. Silakan gunakan Gallery.', 'Error');
+		return;
+	}
+
+	if (typeof Camera === 'undefined') {
+		console.error('❌ Camera object not available');
+		app.dialog.alert('Camera plugin tidak tersedia. Silakan gunakan Gallery.', 'Error');
+		return;
+	}
+
+	var storageKey = 'foto_pembayaran_' + pembayaran_id + '_' + number;
+
+	var options = setOptionsTerima(Camera.PictureSourceType.CAMERA);
+
+	console.log('📷 Calling navigator.camera.getPicture...');
+
+	navigator.camera.getPicture(
+		function cameraSuccess(imageUri) {
+			console.log('✅ Camera success:', imageUri);
+
+			getFileContentAsBase64Terima(imageUri, function (base64Image) {
+				if (!base64Image) {
+					console.error('❌ Failed to convert to base64');
+					app.dialog.alert('Gagal memproses foto. Silakan coba lagi.');
+					return;
+				}
+
+				console.log('✅ Base64 conversion success');
+
+				// Save to localStorage
+				localStorage.setItem(storageKey, base64Image);
+				console.log('💾 Saved to localStorage:', storageKey);
+
+				// Show preview
+				var previewId = inputId + '_view';
+				jQuery('#' + previewId).attr('src', base64Image).show();
+
+				// Auto-upload
+				setTimeout(function () {
+					uploadFotoPembayaran_Step2(pembayaran_id, number);
+				}, 300);
+			});
+		},
+		function cameraError(error) {
+			console.error('❌ Camera error:', error);
+			app.dialog.alert('Gagal membuka kamera. Silakan gunakan Gallery.', 'Error Kamera');
+		},
+		options
+	);
+}
+
+console.log('✅ Modified payment flow loaded - 2 Step Process (SIMPAN → FOTO)');
+
+// ===== FUNGSI HANDLE PILIHAN CAMERA ATAU GALLERY UNTUK PEMBAYARAN =====
 function pilihFotoSourcePembayaran(source) {
-	console.log('📸 Foto source selected:', source);
+	console.log('Foto source selected:', source);
 
 	// Tutup popup pilihan
 	app.popup.close('.popup-foto-pembayaran-choice');
 
 	const photoData = window.detailPembayaranPhotoData || {};
-	const pembayaranId = photoData.pembayaranId;
-	const idx = photoData.idx;
+	const inputId = photoData.inputId || currentPhotoInputId;
 
-	console.log('📋 Photo data:', photoData);
-
-	if (!pembayaranId || !idx) {
+	if (!inputId) {
 		app.toast.create({
-			text: 'Error: Data pembayaran tidak ditemukan',
+			text: 'Error: Input ID tidak ditemukan',
 			closeTimeout: 2000
 		}).open();
 		return;
 	}
 
-	// ========================================
-	// PERBAIKAN: Gunakan input file yang sudah ada
-	// yaitu 'file_foto_pembayaran' dari popup
-	// ========================================
-	const fileInputId = 'file_foto_pembayaran';
-
 	if (source === 'camera') {
 		// Panggil fungsi kamera untuk pembayaran
-		console.log('📷 Opening camera...');
-		openCameraFotoPembayaran(fileInputId);
+		// Auto-submit sudah di-handle di dalam openCameraFotoPembayaran
+		console.log('Opening camera for:', inputId);
+		openCameraFotoPembayaran(inputId);
 	} else if (source === 'gallery') {
 		// Trigger input file untuk gallery
-		console.log('🖼️ Opening gallery...');
-		const fileInput = document.getElementById(fileInputId);
+		// Auto-submit sudah di-handle oleh global event handler
+		console.log('Opening gallery for:', inputId);
+		const fileInput = document.getElementById(inputId);
 		if (fileInput) {
 			fileInput.click();
 		} else {
-			console.error('❌ File input not found:', fileInputId);
-			app.toast.create({
-				text: 'Error: Input file tidak ditemukan',
-				closeTimeout: 2000
-			}).open();
+			console.error('File input not found:', inputId);
 		}
 	}
 }
@@ -4143,25 +3508,10 @@ function base64ToBlob(base64Data) {
 
 /**
  * Show toast notification
- */
-function showToast(message, duration) {
-	duration = duration || 2000;
-
-	if (typeof app !== 'undefined' && app.toast) {
-		app.toast.create({
-			text: message,
-			position: 'center',
-			closeTimeout: duration
-		}).open();
-	} else {
-		console.log('Toast:', message);
-	}
-}
-
-/**
- * Helper function untuk convert file URI to base64 (Cordova)
- * Jika belum ada, definisikan di sini
- */
+ *//**
+* Helper function untuk convert file URI to base64 (Cordova)
+* Jika belum ada, definisikan di sini
+*/
 if (typeof getFileContentAsBase64Terima === 'undefined') {
 	function getFileContentAsBase64Terima(path, callback) {
 		window.resolveLocalFileSystemURL(path, function (fileEntry) {
@@ -4176,491 +3526,444 @@ if (typeof getFileContentAsBase64Terima === 'undefined') {
 	}
 }
 
+// =============================================
+// FUNGSI BARU: Simpan Data Pembayaran (tanpa foto)
+// =============================================
+function simpanDataPembayaran(number, pembayaran_id) {
+	console.log('💾 Simpan data pembayaran - Step 1...');
+	console.log('   - Number:', number);
+	console.log('   - Pembayaran ID:', pembayaran_id);
 
-/**
- * ============================================================================
- * STEP 1: Simpan Data Pembayaran Saja (Tanpa Foto)
- * ============================================================================
- * 
- * Fungsi ini digunakan untuk menyimpan data pembayaran (nominal, bank, tanggal, dll)
- * tanpa foto bukti pembayaran.
- * 
- * @param {number} pembayaran_id - ID pembayaran operasional
- * @param {number} number - Urutan pembayaran (1-10)
- */
-// ========================================
-// FUNGSI SIMPAN DATA PEMBAYARAN
-// ========================================
-function simpanDataPembayaran(pembayaran_id, idx) {
-	console.log('💾 simpanDataPembayaran called:', { pembayaran_id, idx });
+	var $pay = jQuery('#pembayaran_' + number + '_' + pembayaran_id);
+	var $adm = jQuery('#pembayaran_admin_' + number + '_' + pembayaran_id);
+	var $bank = jQuery('#bank_' + number + '_' + pembayaran_id);
+	var $tgl = jQuery('#tanggal_' + number + '_' + pembayaran_id);
+	var $ket = jQuery('#keterangan_' + number + '_' + pembayaran_id);
+	var $btnSimpan = jQuery('#btn_simpan_' + number + '_' + pembayaran_id);
+	var $btnFoto = jQuery('#btn_foto_' + number + '_' + pembayaran_id);
 
-	// Ambil nilai dari form
-	const tanggal = jQuery(`#tanggal_${idx}_${pembayaran_id}`).val();
-	const bank = jQuery(`#bank_${idx}_${pembayaran_id}`).val();
-	const nominal = unfmt(jQuery(`#pembayaran_${idx}_${pembayaran_id}`).val());
-	const admin = unfmt(jQuery(`#pembayaran_admin_${idx}_${pembayaran_id}`).val());
-	const keterangan = jQuery(`#keterangan_${idx}_${pembayaran_id}`).val();
-	const id_transaksi_acc = unfmt(jQuery(`#id_transaksi_acc_bayar`).val());
-
-	// Validasi
-	if (!tanggal) {
-		app.dialog.alert('Harap pilih tanggal pembayaran');
-		return;
-	}
-	if (!bank) {
-		app.dialog.alert('Harap pilih bank pembayaran');
-		return;
-	}
-	if (nominal <= 0) {
-		app.dialog.alert('Nominal pembayaran harus lebih dari 0');
-		return;
+	// Prevent double click
+	if ($btnSimpan.hasClass('is-processing')) {
+		console.log('⚠️ Already processing...');
+		return false;
 	}
 
-	// Kirim data ke server
+	// ===== VALIDASI FIELD =====
+	if ($pay.val() == "" || $bank.val() == "" || $tgl.val() == "") {
+		app.dialog.alert('Isi Data Pembayaran Dengan Lengkap (Nominal, Bank, Tanggal)');
+		return false;
+	}
+
+	// Validasi nominal vs sisa
+	var total_harus_bayar = parseInt(jQuery('#total_harus_bayar_' + pembayaran_id).val() || 0);
+	var sudah_bayar = parseInt(jQuery('#sudah_bayar_' + pembayaran_id).val() || 0);
+	var nominal_bayar = parseInt($pay.val().replace(/\,/g, ''));
+	var admin_bayar = parseInt($adm.val().replace(/\,/g, '') || 0);
+	var total_bayar_baru = sudah_bayar + nominal_bayar;
+	var sisa_harus_bayar = total_harus_bayar - total_bayar_baru;
+
+	if (sisa_harus_bayar < 0) {
+		var lebih_bayar = total_bayar_baru - total_harus_bayar;
+		app.dialog.alert('Pembayaran Melebihi Nominal <br><br>Nominal Lebih : ' + number_format(lebih_bayar) + ' <br><br>Bagi Pada Angsuran Berikutnya');
+		return false;
+	}
+
+	// ===== BUILD DATA =====
+	var postData = {
+		pembayaran: $pay.val(),
+		admin: $adm.val(),
+		bank: $bank.val(),
+		tanggal: $tgl.val(),
+		keterangan: $ket.val() || '',
+		pembayaran_id: pembayaran_id,
+		pembayaran_ke: number,
+		user_id: localStorage.getItem("user_id") || '',
+		karyawan_nama: localStorage.getItem("karyawan_nama") || ''
+	};
+
+	// id_kategori_acc
+	if (window.current_id_kategori_acc) {
+		postData.id_kategori_acc = window.current_id_kategori_acc;
+		console.log('✅ Added id_kategori_acc:', window.current_id_kategori_acc);
+	} else {
+		app.dialog.alert('Error: Data kategori tidak ditemukan. Silakan tutup dan buka kembali detail pembayaran.');
+		return false;
+	}
+
+	// Khusus user 262
+	if (localStorage.getItem("user_id") == 262) {
+		var transfer_kas = jQuery('#filter_kas').val();
+		postData.primary_kas = localStorage.getItem("primary_kas");
+		postData.transfer_kas = transfer_kas;
+	}
+
+	console.log('📤 Sending data:', postData);
+
+	// ===== DISABLE UI =====
+	$btnSimpan.addClass('is-processing disabled')
+		.css({ 'pointer-events': 'none', 'opacity': 0.6 })
+		.text('MENYIMPAN...');
+
+	// Disable input fields
+	$pay.prop('disabled', true);
+	$adm.prop('disabled', true);
+	$bank.prop('disabled', true);
+	$tgl.prop('disabled', true);
+	$ket.prop('disabled', true);
+
+	// ===== AJAX CALL =====
 	jQuery.ajax({
 		type: 'POST',
-		url: BASE_API + '/simpan-pembayaran-operasional',
+		url: BASE_API + "/simpan-data-pembayaran-operasional",
 		dataType: 'JSON',
-		data: {
-			pembayaran_id: pembayaran_id,
-			urutan: idx,
-			tanggal: tanggal,
-			bank: bank,
-			nominal: nominal,
-			admin: admin,
-			keterangan: keterangan,
-			id_transaksi_acc: id_transaksi_acc || ''
-		},
+		data: postData,
 		beforeSend: function () {
-			internetCheckQueue.check();
 			try {
-				app.dialog.preloader('Menyimpan...');
+				app.dialog.preloader('Menyimpan data pembayaran...');
 			} catch (e) { }
 		},
-		success: function (data) {
-			app.dialog.close();
-			console.log('✅ Simpan response:', data);
+		success: function (response) {
+			console.log('✅ Response:', response);
 
-			if (data.status === 'success' || data.status === 'done') {
-				// Update UI: Ubah tombol SIMPAN jadi FOTO
-				jQuery(`#btn_simpan_${idx}_${pembayaran_id}`).hide();
-				jQuery(`#btn_foto_${idx}_${pembayaran_id}`).show();
+			try {
+				app.dialog.close();
+			} catch (e) { }
 
-				// Disable form inputs
-				jQuery(`#tanggal_${idx}_${pembayaran_id}`).prop('disabled', true);
-				jQuery(`#bank_${idx}_${pembayaran_id}`).prop('disabled', true);
-				jQuery(`#pembayaran_${idx}_${pembayaran_id}`).prop('disabled', true);
-				jQuery(`#pembayaran_admin_${idx}_${pembayaran_id}`).prop('disabled', true);
-				jQuery(`#keterangan_${idx}_${pembayaran_id}`).prop('disabled', true);
+			if (response.status === 'success') {
+				// ===== SUCCESS: Ubah tombol SIMPAN jadi FOTO =====
+				$btnSimpan.hide(); // Sembunyikan tombol SIMPAN
+				$btnFoto.show();   // Tampilkan tombol FOTO
 
-				// Update status badge
-				jQuery(`#status_${idx}_${pembayaran_id}`)
-					.removeClass('badge-empty')
-					.addClass('badge-data-saved')
-					.html('<i class="f7-icons" style="font-size:14px;">checkmark_circle_fill</i> Data Tersimpan');
+				app.toast.create({
+					text: 'Data pembayaran berhasil disimpan. Silakan upload foto bukti.',
+					closeTimeout: 3000,
+					position: 'center'
+				}).open();
 
-				app.dialog.alert('Data pembayaran berhasil disimpan!', 'Sukses', function () {
-					// Refresh data pembayaran
-					// detailPembayaran bisa dipanggil ulang di sini jika diperlukan
-				});
+				console.log('✅ Data saved, button changed to FOTO');
 
 			} else {
-				app.dialog.alert(data.message || 'Gagal menyimpan data pembayaran');
+				// ===== FAILED: Reset UI =====
+				$btnSimpan.removeClass('is-processing disabled')
+					.css({ 'pointer-events': '', 'opacity': 1 })
+					.text('SIMPAN');
+
+				$pay.prop('disabled', false);
+				$adm.prop('disabled', false);
+				$bank.prop('disabled', false);
+				$tgl.prop('disabled', false);
+				$ket.prop('disabled', false);
+
+				app.dialog.alert(response.message || 'Gagal menyimpan data');
 			}
 		},
 		error: function (xhr, status, error) {
-			app.dialog.close();
-			console.error('❌ Error simpan:', error);
-			app.dialog.alert('Terjadi kesalahan saat menyimpan data: ' + error);
+			console.error('❌ AJAX Error:', error);
+
+			try {
+				app.dialog.close();
+			} catch (e) { }
+
+			// Reset UI
+			$btnSimpan.removeClass('is-processing disabled')
+				.css({ 'pointer-events': '', 'opacity': 1 })
+				.text('SIMPAN');
+
+			$pay.prop('disabled', false);
+			$adm.prop('disabled', false);
+			$bank.prop('disabled', false);
+			$tgl.prop('disabled', false);
+			$ket.prop('disabled', false);
+
+			var errorMsg = 'Gagal menyimpan data';
+			if (xhr.responseJSON && xhr.responseJSON.message) {
+				errorMsg = xhr.responseJSON.message;
+			}
+
+			app.dialog.alert(errorMsg);
 		}
 	});
 }
 
-// ========================================
-// FUNGSI SHOW POPUP PILIHAN FOTO (Camera/Gallery)
-// VERSION: Extra Small & Compact
-// ========================================
-function showFotoOptions(pembayaran_id, idx) {
-	console.log('📋 showFotoOptionsModal:', { pembayaran_id, idx });
+// =============================================
+// MODIFIKASI: Upload Foto Saja (Step 2)
+// =============================================
+async function uploadFotoPembayaran_Step2(pembayaran_id, number) {
+	console.log('📸 Upload foto - Step 2...');
+	console.log('   - Pembayaran ID:', pembayaran_id);
+	console.log('   - Number:', number);
 
-	const modalId = 'foto-modal-' + pembayaran_id + '-' + idx;
+	var storageKey = 'foto_pembayaran_' + pembayaran_id + '_' + number;
+	var $btnFoto = jQuery('#btn_foto_' + number + '_' + pembayaran_id);
 
-	// Cek jika modal sudah ada, hapus dulu
-	const existingModal = document.getElementById(modalId);
-	if (existingModal) {
-		existingModal.remove();
+	// Prevent double trigger
+	if ($btnFoto.hasClass('is-uploading')) {
+		console.log('⚠️ Already uploading...');
+		return false;
 	}
 
-	const modalHTML = `
-        <div id="${modalId}" style="
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 99999;
-        " onclick="if(event.target.id === '${modalId}') closeFotoModal('${modalId}');">
-            <div style="
-                position: relative;
-                z-index: 2;
-                width: 90%;
-                max-width: 300px;
-                background: white;
-                border-radius: 12px;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-                padding: 16px;
-                animation: modalFadeIn 0.2s ease-out;
-            ">
-                <!-- Header dengan icon close -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: #333;">Upload Foto</h4>
-                    <a href="#" onclick="closeFotoModal('${modalId}'); return false;" style="color: #999; text-decoration: none;">
-                        <i class="f7-icons" style="font-size: 22px;">xmark_circle</i>
-                    </a>
-                </div>
+	// ===== VALIDASI FOTO =====
+	const fotoInput = document.getElementById('foto_bukti_' + number + '_' + pembayaran_id);
+	const fotoFromStorage = localStorage.getItem(storageKey);
 
-                <!-- Options -->
-                <div style="display: flex; gap: 8px;">
-                    <!-- Kamera -->
-                    <button type="button" 
-                            onclick="pilihKamera('${pembayaran_id}', '${idx}'); closeFotoModal('${modalId}');"
-                            style="
-                                flex: 1;
-                                height: 60px;
-                                background: #2196F3;
-                                border: none;
-                                border-radius: 8px;
-                                color: white;
-                                font-size: 12px;
-                                display: flex;
-                                flex-direction: column;
-                                align-items: center;
-                                justify-content: center;
-                                cursor: pointer;
-                                font-family: inherit;
-                            ">
-                        <i class="f7-icons" style="font-size: 26px; margin-bottom: 2px;">camera_fill</i>
-                        <span>Kamera</span>
-                    </button>
-
-                    <!-- Galeri -->
-                    <button type="button" 
-                            onclick="pilihGaleri('${pembayaran_id}', '${idx}'); closeFotoModal('${modalId}');"
-                            style="
-                                flex: 1;
-                                height: 60px;
-                                background: #4CAF50;
-                                border: none;
-                                border-radius: 8px;
-                                color: white;
-                                font-size: 12px;
-                                display: flex;
-                                flex-direction: column;
-                                align-items: center;
-                                justify-content: center;
-                                cursor: pointer;
-                                font-family: inherit;
-                            ">
-                        <i class="f7-icons" style="font-size: 26px; margin-bottom: 2px;">photo_fill</i>
-                        <span>Galeri</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-
-	// Tambahkan CSS animation jika belum ada
-	if (!document.getElementById('foto-modal-animations')) {
-		const style = document.createElement('style');
-		style.id = 'foto-modal-animations';
-		style.textContent = `
-            @keyframes modalFadeIn {
-                from {
-                    opacity: 0;
-                    transform: scale(0.9);
-                }
-                to {
-                    opacity: 1;
-                    transform: scale(1);
-                }
-            }
-        `;
-		document.head.appendChild(style);
+	if (!fotoFromStorage && (!fotoInput || !fotoInput.files || !fotoInput.files[0])) {
+		app.dialog.alert('Silakan pilih foto bukti pembayaran terlebih dahulu');
+		return false;
 	}
 
-	// Append modal ke body
-	const modalElement = document.createElement('div');
-	modalElement.innerHTML = modalHTML;
-	document.body.appendChild(modalElement.firstElementChild);
+	try {
+		// ===== COMPRESS FOTO =====
+		app.dialog.preloader('Memproses foto...');
 
-	console.log('✅ Modal foto options displayed at center');
-}
+		let fotoBlob;
 
-// ========================================
-// FUNGSI CLOSE MODAL
-// ========================================
-function closeFotoModal(modalId) {
-	console.log('🔒 Closing modal:', modalId);
-	const modal = document.getElementById(modalId);
-	if (modal) {
-		// Fade out animation
-		modal.style.opacity = '0';
-		modal.style.transition = 'opacity 0.2s ease-out';
+		if (fotoInput && fotoInput.files && fotoInput.files[0]) {
+			// Compress foto baru dari input
+			console.log('🔄 Compressing photo from input...');
+			const file = fotoInput.files[0];
 
-		setTimeout(() => {
-			modal.remove();
-		}, 200);
-	}
-}
-
-
-// ========================================
-// FUNGSI PILIH KAMERA
-// ========================================
-function pilihKamera(pembayaran_id, idx) {
-	console.log('📷 pilihKamera called:', { pembayaran_id, idx });
-
-	// Tutup popup
-	app.popup.close('.popup-foto-options');
-
-	// Buka kamera
-	openCameraForPembayaran(pembayaran_id, idx);
-}
-
-// ========================================
-// FUNGSI PILIH GALERI
-// ========================================
-window.pilihGaleri = function (pembayaran_id, idx) {
-	console.log('🖼️ [FIX] pilihGaleri called:', { pembayaran_id, idx });
-
-	const inputId = `foto_bukti_${idx}_${pembayaran_id}`;
-	let $fileInput = jQuery(`#${inputId}`);
-
-	console.log('🔍 Looking for input:', inputId);
-	console.log('📍 Input found:', $fileInput.length > 0);
-
-	// ✅ SOLUSI: Buat input baru jika tidak ditemukan
-	if ($fileInput.length === 0) {
-		console.log('⚠️ Input tidak ditemukan, membuat input baru...');
-
-		// Buat input file baru
-		const fileInput = document.createElement('input');
-		fileInput.type = 'file';
-		fileInput.id = inputId;
-		fileInput.name = inputId;
-		fileInput.accept = 'image/*';
-		fileInput.style.display = 'none';
-
-		// Tambahkan ke body
-		document.body.appendChild(fileInput);
-
-		// Update jQuery reference
-		$fileInput = jQuery(`#${inputId}`);
-
-		console.log('✅ Input baru dibuat:', inputId);
-
-		// Attach event handler langsung
-		$fileInput.on('change', function (e) {
-			const file = e.target.files[0];
-			if (!file) {
-				console.log('⚠️ Tidak ada file dipilih');
-				return;
+			// Validasi
+			if (!validateFileType(file)) {
+				app.dialog.close();
+				return false;
 			}
 
-			console.log('📁 File dipilih:', file.name);
-
-			// Validasi tipe file
-			if (!file.type.match('image.*')) {
-				app.dialog.alert('File harus berupa gambar');
-				jQuery(this).val('');
-				return;
+			if (!validateFileSize(file, 50)) {
+				app.dialog.close();
+				return false;
 			}
 
-			// Preview foto
-			const reader = new FileReader();
-			reader.onload = function (evt) {
-				const base64Image = evt.target.result;
+			// Compress
+			fotoBlob = await compressImage(file, {
+				maxSizeMB: 4,
+				maxWidthOrHeight: 1920,
+				quality: 0.8
+			});
 
-				// Tampilkan preview
-				const previewId = `foto_preview_${idx}_${pembayaran_id}`;
-				console.log('🖼️ Menampilkan preview di:', previewId);
+			console.log('✅ Photo compressed:', formatBytes(fotoBlob.size));
 
-				jQuery(`#${previewId}`)
-					.attr('src', base64Image)
-					.show();
-
-				console.log('✅ Preview ditampilkan');
-
-				// Upload foto (urutan parameter: pembayaran_id, idx)
-				console.log('📤 Memanggil uploadFotoPembayaran dengan:', {
-					pembayaran_id: pembayaran_id,
-					idx: idx,
-					fileName: file.name
-				});
-
-				uploadFotoPembayaran(pembayaran_id, idx, file, 'gallery');
-			};
-
-			reader.readAsDataURL(file);
-
-			// Reset input value
-			jQuery(this).val('');
-		});
-	}
-
-	// Trigger click
-	console.log('👆 Triggering file input click...');
-	setTimeout(function () {
-		$fileInput.click();
-		console.log('✅ File input clicked');
-	}, 200);
-};
-
-// OVERRIDE fungsi handleFileInputChange jika belum ada
-if (typeof window.handleFileInputChange !== 'function') {
-	window.handleFileInputChange = function (e, pembayaran_id, idx) {
-		const file = e.target.files[0];
-		if (!file) return;
-
-		console.log('📁 File dipilih dari galeri:', file.name);
-
-		// Validasi tipe file
-		if (!file.type.match('image.*')) {
-			app.dialog.alert('File harus berupa gambar');
-			jQuery(e.target).val('');
-			return;
+		} else {
+			// Gunakan foto dari localStorage (camera)
+			console.log('📦 Using photo from localStorage');
+			fotoBlob = base64ToBlob(fotoFromStorage);
 		}
 
-		// Preview foto
-		const reader = new FileReader();
-		reader.onload = function (evt) {
-			const base64Image = evt.target.result;
+		// ===== BUILD FORMDATA =====
+		var formData = new FormData();
 
-			jQuery(`#foto_preview_${idx}_${pembayaran_id}`)
-				.attr('src', base64Image)
-				.show();
+		// Append foto
+		var fileName = 'foto_pembayaran_' + pembayaran_id + '_' + number + '_' + Date.now() + '.jpg';
+		formData.append('foto_bukti', fotoBlob, fileName);
 
-			console.log('✅ Preview displayed');
+		// Append IDs
+		formData.append('pembayaran_id', pembayaran_id);
+		formData.append('pembayaran_ke', number);
+		formData.append('user_id', localStorage.getItem("user_id"));
 
-			// Upload (pastikan urutan parameter benar)
-			uploadFotoPembayaran(pembayaran_id, idx, file, 'gallery');
-		};
+		console.log('✅ FormData prepared for photo upload');
+		console.log('   Photo blob size:', formatBytes(fotoBlob.size));
+		console.log('   Photo filename:', fileName);
 
-		reader.readAsDataURL(file);
+		// ===== DISABLE UI =====
+		$btnFoto.addClass('is-uploading disabled')
+			.css({ 'pointer-events': 'none', 'opacity': 0.6 })
+			.text('UPLOADING 0%');
 
-		// Reset input
-		jQuery(e.target).val('');
-	};
-}
+		// ===== AJAX UPLOAD =====
+		jQuery.ajax({
+			type: 'POST',
+			url: BASE_API + "/upload-foto-pembayaran-operasional",
+			dataType: 'JSON',
+			data: formData,
+			contentType: false,
+			processData: false,
+			xhr: function () {
+				var xhr = new window.XMLHttpRequest();
+				if (xhr.upload) {
+					xhr.upload.addEventListener('progress', function (e) {
+						if (e.lengthComputable) {
+							var pct = Math.round((e.loaded / e.total) * 100);
+							$btnFoto.text('UPLOADING ' + pct + '%');
+						}
+					}, false);
+				}
+				return xhr;
+			},
+			beforeSend: function () {
+				try {
+					app.dialog.close();
+					app.dialog.preloader('Mengunggah foto...');
+				} catch (e) { }
+			},
+			success: function (data) {
+				console.log('✅ Upload success:', data);
 
-// ========================================
-// FUNGSI BUKA KAMERA UNTUK PEMBAYARAN
-// ========================================
-function openCameraForPembayaran(pembayaran_id, idx) {
-	console.log('📷 openCameraForPembayaran:', { pembayaran_id, idx });
+				try {
+					app.dialog.close();
+				} catch (e) { }
 
-	// Validasi Camera plugin
-	if (typeof navigator.camera === 'undefined' || typeof Camera === 'undefined') {
-		app.dialog.alert('Kamera tidak tersedia. Silakan gunakan opsi Galeri.', 'Error');
-		return;
+				// Cleanup localStorage
+				if (localStorage.getItem(storageKey)) {
+					localStorage.removeItem(storageKey);
+					console.log('✅ Cleaned up localStorage:', storageKey);
+				}
+
+				// Clear preview
+				var previewElement = document.getElementById('foto_bukti_' + number + '_' + pembayaran_id + '_view');
+				if (previewElement) {
+					previewElement.src = '';
+					previewElement.style.display = 'none';
+				}
+
+				// Clear input
+				if (fotoInput) {
+					fotoInput.value = '';
+				}
+
+				// Success message
+				if (data.status === 'success') {
+					app.toast.create({
+						text: 'Foto berhasil diupload!',
+						closeTimeout: 2000,
+						position: 'center'
+					}).open();
+
+					// Close popup dan reload
+					setTimeout(function () {
+						try {
+							app.popup.close('.popup.detail-pembayaran');
+						} catch (e) { }
+						resetDataTransaksi(1);
+					}, 500);
+
+				} else {
+					// Reset button
+					$btnFoto.removeClass('is-uploading disabled')
+						.css({ 'pointer-events': '', 'opacity': 1 })
+						.text('FOTO');
+
+					app.dialog.alert(data.message || 'Gagal upload foto');
+				}
+			},
+			error: function (xhr, status, error) {
+				console.error('❌ Upload error:', error);
+
+				try {
+					app.dialog.close();
+				} catch (e) { }
+
+				// Reset button
+				$btnFoto.removeClass('is-uploading disabled')
+					.css({ 'pointer-events': '', 'opacity': 1 })
+					.text('FOTO');
+
+				var errorMsg = 'Gagal upload foto';
+				if (xhr.responseJSON && xhr.responseJSON.message) {
+					errorMsg = xhr.responseJSON.message;
+				}
+
+				app.dialog.alert(errorMsg);
+			}
+		});
+
+	} catch (error) {
+		console.error('❌ Error:', error);
+
+		try {
+			app.dialog.close();
+		} catch (e) { }
+
+		app.dialog.alert('Gagal memproses foto: ' + error.message);
 	}
-
-	const options = {
-		quality: 80,
-		destinationType: Camera.DestinationType.DATA_URL,
-		sourceType: Camera.PictureSourceType.CAMERA,
-		encodingType: Camera.EncodingType.JPEG,
-		mediaType: Camera.MediaType.PICTURE,
-		correctOrientation: true,
-		saveToPhotoAlbum: false,
-		targetWidth: 1024,
-		targetHeight: 1024
-	};
-
-	navigator.camera.getPicture(
-		function cameraSuccess(imageData) {
-			console.log('✅ Camera success');
-			const base64Image = 'data:image/jpeg;base64,' + imageData;
-
-			// Preview foto
-			jQuery(`#foto_preview_${idx}_${pembayaran_id}`)
-				.attr('src', base64Image)
-				.show();
-
-			// Simpan ke localStorage untuk upload nanti
-			localStorage.setItem(`foto_pembayaran_${pembayaran_id}_${idx}`, base64Image);
-
-			// Langsung upload foto
-			uploadFotoPembayaran(pembayaran_id, idx, base64Image, 'camera');
-		},
-		function cameraError(error) {
-			console.error('❌ Camera error:', error);
-			app.dialog.alert(
-				'Tidak dapat membuka kamera. Pastikan aplikasi memiliki izin kamera atau gunakan opsi Galeri.',
-				'Error Kamera'
-			);
-		},
-		options
-	);
 }
 
+function comboKasFilter() {
+	// start koding ajax
+	jQuery.ajax({
+		type: "POST", //pake post jangan  get rawan di hack
+		url: "" + BASE_API + "/get-kas-acc",
+		dataType: 'JSON',
+		timeout: 10000,
+		data: {
+			user_id: localStorage.getItem("user_id"),
+		},
+		beforeSend: function () {
+
+			jQuery('#filter_kas').html('');
+		},
+		success: function (data) {
+			var optionsValues = "";
+			jQuery.each(data.data, function (i, item) {
+				if (localStorage.getItem("primary_kas") == item.id_kas_acc || localStorage.getItem("pending_filter_kas") == item.id_kas_acc) {
+					optionsValues += '<option value="' + item.id_kas_acc + '" selected>' + item.kas_acc + '</option>';
+				} else {
+					optionsValues += '<option value="' + item.id_kas_acc + '">' + item.kas_acc + '</option>';
+				}
+			});
+			jQuery('#filter_kas').html(optionsValues);
+		},
+		error: function (xmlhttprequest, textstatus, message) {
+		}
+	});
+}
 
 /**
- * ============================================================================
- * Event Handler: File Input Change (Gallery)
- * ============================================================================
+ * ========================================
+ * 4. SETUP AUTO-COMPRESS UNTUK INPUT FILES
+ * ========================================
+ * Panggil ini saat halaman load untuk auto-compress saat user pilih foto
  */
-jQuery(document).on('change', '[id^="foto_bukti_"]', function (e) {
-	const file = e.target.files[0];
-	if (!file) return;
+function initializeImageCompression() {
+	console.log('🔧 Initializing image compression for all file inputs...');
 
-	console.log('📁 File dipilih dari galeri:', file.name);
+	// Transaksi tambah
+	setupCompressedFileInput(
+		'tambah_file_acc_1',
+		'file_foto_terima_pabrik',
+		'tambah_file_acc_1_view',
+		{ maxSizeMB: 4, quality: 0.8 }
+	);
 
-	// Validasi tipe file
-	if (!file.type.match('image.*')) {
-		app.dialog.alert('File harus berupa gambar');
-		jQuery(this).val('');
-		return;
+	// Transaksi edit
+	setupCompressedFileInput(
+		'edit_file_acc_1',
+		'file_foto_update_terima_pabrik',
+		'edit_file_acc_1_view',
+		{ maxSizeMB: 4, quality: 0.8 }
+	);
+
+	// Pembayaran multiple (dynamic - setup saat popup dibuka)
+	// Ini perlu dipanggil ulang setiap kali popup pembayaran dibuka
+	// karena element-nya dinamis
+
+	console.log('✅ Image compression initialized');
+}
+
+function getBulanTransaksi() {
+	var m = moment.months();
+	var month_now = moment().month();
+	var n = 0;
+	for (var i = 0; i < 12; i++) {
+		n++
+		if (i == month_now) {
+			$('.transaksi_bulan').append($('<option selected/>').val(n).html(m[i]));
+		} else {
+			$('.transaksi_bulan').append($('<option />').val(n).html(m[i]));
+		}
 	}
+}
 
-	// Parse ID untuk mendapatkan pembayaran_id dan idx
-	const inputId = this.id; // format: foto_bukti_{idx}_{pembayaran_id}
-	const matches = inputId.match(/foto_bukti_(\d+)_(\d+)/);
-
-	if (!matches) {
-		console.error('❌ Invalid input ID format:', inputId);
-		return;
+function getYearTransaksi() {
+	let startYear = 2010;
+	let endYear = new Date().getFullYear();
+	for (i = endYear; i > startYear; i--) {
+		if (i == endYear) {
+			$('.transaksi_years').append($('<option selected/>').val(i).html(i));
+		} else {
+			$('.transaksi_years').append($('<option />').val(i).html(i));
+		}
 	}
-
-	const idx = matches[1];
-	const pembayaran_id = matches[2];
-
-	console.log('✅ Parsed data:', { idx, pembayaran_id });
-
-	// Preview foto
-	const reader = new FileReader();
-	reader.onload = function (evt) {
-		const base64Image = evt.target.result;
-
-		// ✅ FIX: Perbaiki syntax error (backtick di tempat yang salah)
-		jQuery(`#foto_preview_${idx}_${pembayaran_id}`)
-			.attr('src', base64Image)
-			.show();
-
-		console.log('✅ Preview displayed');
-
-		// Langsung upload foto
-		uploadFotoPembayaran(pembayaran_id, idx, file, 'gallery');
-	};
-
-	reader.readAsDataURL(file);
-});
-
-console.log('✅ Pembayaran 2-Step Flow Functions Loaded');
+}
 
 // ============================================================
 // INISIALISASI

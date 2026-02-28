@@ -18,7 +18,7 @@ function getDataUser() {
 					app.dialog.close();
 				}, 1000);
 			} else {
-				localStorage.setItem("versioon_app_now", "13.03");
+				localStorage.setItem("versioon_app_now", "13.04");
 				if (data.jabatan == 'Finance') {
 					console.log(data);
 					app.dialog.close();
@@ -34,6 +34,12 @@ function getDataUser() {
 					localStorage.setItem("sales_kota", data.kota);
 					localStorage.setItem("lokasi_pabrik", data.lokasi_pabrik);
 					localStorage.setItem("primary_kas", data.primary_kas);
+					localStorage.setItem("latitude_pabrik", data.latitude);
+					localStorage.setItem("longtitude_pabrik", data.longtitude);
+
+
+					//INIT NOTIF
+					initNotificationManagerAfterLogin();
 
 					if (localStorage.getItem("login") != "true") {
 						$$('#title-nama').html("Admin");
@@ -64,4 +70,47 @@ function getDataUser() {
 		error: function (xmlhttprequest, textstatus, message) {
 		}
 	});
+}
+
+
+/**
+ * Inisialisasi NotificationManager setelah login berhasil
+ * Fungsi ini memastikan FCM token di-generate dan di-register ke server
+ */
+function initNotificationManagerAfterLogin() {
+	var userId = localStorage.getItem("user_id");
+
+	if (!userId) {
+		console.error('[Login] No user_id found after login');
+		return;
+	}
+
+	console.log('[Login] Initializing NotificationManager for user:', userId);
+
+	// Tunggu sedikit untuk memastikan semua localStorage sudah tersimpan
+	setTimeout(function () {
+		if (typeof NotificationManager === 'undefined') {
+			console.error('[Login] NotificationManager not loaded');
+			return;
+		}
+
+		// Update API URL
+		if (typeof BASE_API !== 'undefined') {
+			NotificationManager.config.apiUrl = BASE_API;
+		}
+
+		// Inisialisasi dengan forceRefresh = true
+		NotificationManager.init(userId, true);
+
+		// Force get FCM token setelah delay tambahan
+		setTimeout(function () {
+			if (NotificationManager.isFirebaseAvailable()) {
+				console.log('[Login] Getting FCM token...');
+				NotificationManager.getFirebaseToken();
+			} else {
+				console.warn('[Login] Firebase plugin not available');
+			}
+		}, 1500);
+
+	}, 500);
 }

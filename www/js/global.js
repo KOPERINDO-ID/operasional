@@ -1,5 +1,3 @@
-
-
 // Configuration APP
 function checkConnection() {
 	var networkState = navigator.connection.type;
@@ -28,8 +26,6 @@ function checkConnection() {
 
 
 var BASE_API = 'https://tasindo-sale-webservice.digiseminar.id/api';
-
-var BASE_API2 = 'https://tasindo-sale-webservice.digiseminar.id/api';
 var BASE_PATH_IMAGE_ABSEN = 'https://tasindo-sale-webservice.digiseminar.id/absen';
 var BASE_PATH_IMAGE = 'https://tasindo-sale-webservice.digiseminar.id/kunjungan';
 var BASE_PATH_IMAGE_PERFORMA = 'https://tasindo-sale-webservice.digiseminar.id/performa_image';
@@ -41,58 +37,94 @@ var BASE_PATH_IMAGE_FOTO_PEMBAYARAN = 'https://tasindo-sale-webservice.digisemin
 var BASE_PATH_IMAGE_FOTO_ACCOUNTING = 'https://tasindo-sale-webservice.digiseminar.id/bukti_accounting';
 
 
+// var BASE_API = 'https://tasindo-service-staging.digiseminar.id/api';
+// var BASE_PATH_IMAGE_ABSEN = 'https://tasindo-service-staging.digiseminar.id/absen';
+// var BASE_PATH_IMAGE = 'https://tasindo-service-staging.digiseminar.id/kunjungan';
+// var BASE_PATH_IMAGE_PERFORMA = 'https://tasindo-service-staging.digiseminar.id/performa_image';
+// var BASE_PATH_IMAGE_CUSTOMER = 'https://tasindo-service-staging.digiseminar.id/customer_logo';
+// var BASE_PATH_IMAGE_PRODUCT = 'https://tasindo-service-staging.digiseminar.id/product_image';
+// var BASE_PATH_IMAGE_BROADCAST = 'https://tasindo-service-staging.digiseminar.id/gambar_broadcast';
+// var BASE_PATH_IMAGE_SURAT_JALAN = 'https://tasindo-service-staging.digiseminar.id/foto_surat_jalan';
+// var BASE_PATH_IMAGE_FOTO_PEMBAYARAN = 'https://tasindo-service-staging.digiseminar.id/foto_pembayaran';
+// var BASE_PATH_IMAGE_FOTO_ACCOUNTING = 'https://tasindo-service-staging.digiseminar.id/bukti_accounting';
+
+
 function refreshPage() {
 	return app.views.main.router.navigate(app.views.main.router.currentRoute.url, { reloadCurrent: true, ignoreCache: true, });
 }
 
-function checkInternet() {
-	console.log(app.views.main.router.currentRoute.url);
-	jQuery.ajax({
-		type: 'POST',
-		url: "" + BASE_API + "/check-internet-admin",
-		dataType: 'JSON',
-		data: {
-			karyawan_id: localStorage.getItem("user_id"),
-			password: localStorage.getItem("password")
-		},
-		beforeSend: function () {
-			// app.dialog.close();
-		},
-		success: function (data) {
-			console.log(data.password);
-			console.log(localStorage.getItem("password"));
-			if (data.version.config_value_string == localStorage.getItem("versioon_app_now")) {
-				if (localStorage.getItem("password") == data.password) {
-					console.log('Password Accept')
+var internetCheckQueue = {
+	isRunning: false,
+	hasPending: false,
+
+	check: function () {
+		if (this.isRunning) {
+			console.log('⏸️ checkInternet already running, marking as pending...');
+			this.hasPending = true;
+			return false;
+		}
+
+		this.isRunning = true;
+		this.hasPending = false;
+		console.log('✅ checkInternet started');
+
+		var self = this;
+
+		jQuery.ajax({
+			type: 'POST',
+			url: "" + BASE_API + "/check-internet-admin",
+			dataType: 'JSON',
+			data: {
+				karyawan_id: localStorage.getItem("user_id"),
+				password: localStorage.getItem("password")
+			},
+			timeout: 10000,
+			success: function (data) {
+				console.log(data.password);
+				console.log(localStorage.getItem("password"));
+
+				if (data.version.config_value_string == localStorage.getItem("versioon_app_now")) {
+					if (localStorage.getItem("password") == data.password) {
+						console.log('Password Accept')
+					} else {
+						app.dialog.alert('Password Anda Tidak Sesuai', function () {
+							logOut();
+						});
+					}
+					console.log('Version Accept');
 				} else {
-					app.dialog.alert('Password Anda Tidak Sesuai', function () {
+					app.dialog.alert(data.version.config_keterangan, function () {
 						logOut();
 					});
 				}
 
-				console.log('Version Accept');
-			} else {
-				app.dialog.alert(data.version.config_keterangan, function () {
-					logOut();
-				});
+				localStorage.setItem("internet_koneksi", "good");
+				$("#box_internet").css("background-color", "green");
+			},
+			error: function (xmlhttprequest, textstatus, message) {
+				if (textstatus === "timeout") {
+					$("#box_internet").css("background-color", "red");
+					localStorage.setItem("internet_koneksi", "fail");
+				} else {
+					$("#box_internet").css("background-color", "red");
+					localStorage.setItem("internet_koneksi", "fail");
+				}
+			},
+			complete: function () {
+				self.isRunning = false;
+				console.log('✅ checkInternet completed');
+
+				// Jika ada pending request, jalankan setelah delay singkat
+				if (self.hasPending) {
+					console.log('🔄 Running pending checkInternet...');
+					setTimeout(function () {
+						self.check();
+					}, 1000); // Delay 1 detik sebelum menjalankan pending request
+				}
 			}
-
-			localStorage.setItem("internet_koneksi", "good");
-			$("#box_internet").css("background-color", "green");
-		},
-		error: function (xmlhttprequest, textstatus, message) {
-			if (textstatus === "timeout") {
-				$("#box_internet").css("background-color", "red");
-				localStorage.setItem("internet_koneksi", "fail")
-
-			} else {
-				$("#box_internet").css("background-color", "red");
-				localStorage.setItem("internet_koneksi", "fail")
-
-			}
-		}
-	});
-}
+		});
+	}
+};
 
 function inputLog(id_transaksi, jenis, keterangan) {
 	jQuery.ajax({
@@ -105,6 +137,7 @@ function inputLog(id_transaksi, jenis, keterangan) {
 			keterangan: keterangan
 		},
 		beforeSend: function () {
+			// internetCheckQueue.check();
 		},
 		success: function (data) {
 		},
@@ -131,6 +164,8 @@ function checkLogin() {
 function logOut() {
 	localStorage.clear();
 	$$('#title-nama').html("Admin");
+	var badge = document.getElementById('notifBadge');
+	badge.textContent = 0;
 	return app.views.main.router.navigate('/login');
 }
 
@@ -153,7 +188,7 @@ function screenshot_me(client_nama) {
 	setTimeout(function () {
 		navigator.screenshot.save(function (error, res) {
 			if (error) {
-				app.dialog.preloader('Gagal');
+				// Screenshot failed
 				setTimeout(function () {
 					app.dialog.close();
 					app.popup.close();
@@ -161,7 +196,7 @@ function screenshot_me(client_nama) {
 				jQuery('.menu-detail-product').show();
 				jQuery('.navbar').show();
 			} else {
-				app.dialog.preloader('Berhasil');
+				// Screenshot success
 				setTimeout(function () {
 					app.dialog.close();
 					app.popup.close();
@@ -219,40 +254,12 @@ function number_format(number, decimals, dec_point, thousands_sep) {
 
 
 
-setInterval(function () {
-	checkInternet();
-}, 3000);
+// setInterval(function () {
+// 	// checkInternet();
+// 	// internetCheckQueue.check();
+// 	// localStorage.setItem("internet_koneksi", "good");
+// }, 10000);
 
-function getPengumuman() {
-	var pengumuman = '';
-	jQuery.ajax({
-		type: 'POST',
-		url: "" + BASE_API + "/get-pengumuman-absensi",
-		dataType: 'JSON',
-		data: {
-			user_id: localStorage.getItem("user_id"),
-		},
-		beforeSend: function () {
-		},
-		success: function (data) {
-			$("#count_pengumuman").html(data.data.length)
-
-			$.each(data.data, function (i, item) {
-
-				pengumuman += ' <div class="block block-strong">';
-				pengumuman += '    <a class="float-right" style="color:red;" onclick="updatePengumuman(\'' + item.id + '\');"><i class="f7-icons" style="font-size:18px;">xmark</i></a>';
-				pengumuman += '    <p>' + item.text + '</p>';
-				pengumuman += '    <p style="font-weight: bold;">' + moment(item.dt_record).locale('id').format("dddd, DD MMM YYYY") + '</p>';
-				pengumuman += ' </div> ';
-
-			});
-
-			jQuery('#data_pengumuman').html(pengumuman);
-		},
-		error: function (xmlhttprequest, textstatus, message) {
-		}
-	});
-}
 
 function getPengajuan() {
 	jQuery.ajax({
@@ -445,31 +452,6 @@ function applyPendingFilterKasWithRetry(maxTries = 30, intervalMs = 100) {
 	}, intervalMs);
 }
 
-function updatePengumuman(id) {
-	jQuery.ajax({
-		type: 'POST',
-		url: "" + BASE_API + "/update-pengumuman-absensi",
-		dataType: 'JSON',
-		data: {
-			id: id,
-			user_id: localStorage.getItem("user_id"),
-			user_record: localStorage.getItem("karyawan_nama")
-		},
-		beforeSend: function () {
-		},
-		success: function (data) {
-			if (data.status == 'success') {
-				getPengumuman();
-			} else {
-				getPengumuman();
-			}
-
-		},
-		error: function (xmlhttprequest, textstatus, message) {
-		}
-	});
-
-}
 
 $(document).on('input blur', '.input_nohp', function () {
 	var val = $(this).val().replace(/[^0-9]/g, ''); // hanya angka
@@ -545,7 +527,9 @@ function checkKasMinimum(month, year) {
 				6: parseFloat(res.kas_backup) || 0,  // Kas Backup
 				7: parseFloat(res.kas_tunai) || 0,  // Kas Tunai
 				8: parseFloat(res.kas_khusus) || 0,  // Kas Khusus
-				9: parseFloat(res.kas_payable) || 0   // Kas Payable
+				9: parseFloat(res.kas_payable) || 0,   // Kas Payable
+				10: parseFloat(res.kas_kecil) || 0,   // Kas Kecil
+				11: parseFloat(res.kas_kopra) || 0   // Kas Kopra
 			};
 
 			var listKurang = [];
@@ -624,6 +608,38 @@ function checkKasMinimum(month, year) {
 		},
 		error: function (xhr) {
 			console.log('Error AJAX get-data-amount-kas', xhr);
+		}
+	});
+}
+
+
+function getPlayAudio() {
+	jQuery.ajax({
+		type: 'POST',
+		url: "" + BASE_API + "/get-data-view-status",
+		dataType: 'JSON',
+		data: {
+			cabang_pembantu: localStorage.getItem("lokasi_pabrik"),
+		},
+		beforeSend: function () {
+			// internetCheckQueue.check();
+		},
+		success: function (data) {
+			var today = new Date();
+			if (today.getHours() == 8 || today.getHours() == 12) {
+				if (data.data > 0) {
+					var audio = new Audio('img/sound/audio.wav');
+					audio.play();
+					setTimeout(() => {
+						audio.pause();
+						audio.currentTime = 0; // Mengatur ulang waktu audio ke awal
+						console.log('Audio berhenti.');
+					}, 20000);
+				}
+			}
+
+		},
+		error: function (xmlhttprequest, textstatus, message) {
 		}
 	});
 }

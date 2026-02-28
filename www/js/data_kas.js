@@ -254,9 +254,12 @@ function getDataTransaksiKas() {
 			year: year,
 			lokasi_pabrik: localStorage.getItem("lokasi_pabrik"),
 		},
-		beforeSend: function () {
+		beforeSend: function () { 
+			//internetCheckQueue.check(); 
+			try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
 		},
 		success: function (data) {
+			app.dialog.close();
 			var data_tools = '';
 			console.log(data.data);
 			var no = 0;
@@ -329,10 +332,12 @@ function getDataTransaksiKas() {
 
 				jQuery("#data_transaksi_in_accounting").html(data_tools);
 				jQuery("#utama_value_kas").html(number_format(data.kas_utama));
-				jQuery("#backup_value_kas").html(number_format(data.kas_backup));
+				// jQuery("#backup_value_kas").html(number_format(data.kas_backup));
 				jQuery("#tunai_value_kas").html(number_format(data.kas_tunai));
+				jQuery("#kecil_value_kas").html(number_format(data.kas_kecil));
+				jQuery("#kopra_value_kas").html(number_format(data.kas_kopra));
 				jQuery("#marketing_value_kas").html(number_format(data.kas_marketing));
-				jQuery("#sisa_utama_value_kas").html(number_format(parseFloat(data.kas_tunai + data.kas_utama + data.kas_backup)));
+				jQuery("#sisa_utama_value_kas").html(number_format(parseFloat(data.kas_tunai + data.kas_utama + data.kas_kecil + data.kas_kopra + data.kas_marketing)));
 				cekMinusKas();
 			} else {
 				jQuery("#data_transaksi_in_accounting").html('<tr><td colspan="5" align="center">Tidak Ada Data</td></tr>');
@@ -405,10 +410,12 @@ function getDetailTransaksiKasAcc(id_transaksi_kas_acc) {
 			id_transaksi_kas_acc: id_transaksi_kas_acc
 		},
 		beforeSend: function () {
+			internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
 			jQuery('#clear_detail_transaksi_in').html('');
 			jQuery('#file_bukti_terima_view_now_kas').attr('src', 'https://tasindo-sale-webservice.digiseminar.id/noimage.jpg');
 		},
 		success: function (data) {
+			app.dialog.close();
 			jQuery("#detail_kas_asal").val(data.data.kas_asal);
 			jQuery("#detail_kas_transfer").val(data.data.kas_tujuan);
 			jQuery("#detail_kas_nominal").val(number_format(data.data.nominal_kas_acc));
@@ -435,11 +442,13 @@ function getEditTransaksiKasAcc(id_transaksi_kas_acc) {
 			id_transaksi_kas_acc: id_transaksi_kas_acc
 		},
 		beforeSend: function () {
+			internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
 			jQuery('#clear_edit_transaksi_in').html('');
 			gambarAccKas(1, 'edit');
 			jQuery('#file_bukti_terima_view_now_edit_kas').attr('src', 'https://tasindo-sale-webservice.digiseminar.id/noimage.jpg');
 		},
 		success: function (data) {
+			app.dialog.close();
 			$('#button_edit_fill_camera_kas').show();
 			$('#button_edit_fill_file_kas').show();
 			$("#button_edit_fill_camera_kas").removeClass("col-100");
@@ -611,7 +620,7 @@ function simpanTransaksiKas() {
 					contentType: false,
 					processData: false,
 					beforeSend: function () {
-						app.dialog.preloader('Harap Tunggu');
+						internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
 					},
 					success: function (data) {
 						app.dialog.close();
@@ -628,7 +637,11 @@ function simpanTransaksiKas() {
 					error: function (xmlhttprequest, textstatus, message) {
 						app.dialog.alert('Ada kendala pada koneksi server, Silahkan Coba Kembali');
 						app.popup.close();
+					},
+					complete: function () {
+						try { app.dialog.close(); } catch (e) { }
 					}
+
 
 				});
 			} else {
@@ -665,7 +678,7 @@ function updateTransaksiKas() {
 					contentType: false,
 					processData: false,
 					beforeSend: function () {
-						app.dialog.preloader('Harap Tunggu');
+						internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
 					},
 					success: function (data) {
 						app.dialog.close();
@@ -682,7 +695,11 @@ function updateTransaksiKas() {
 					error: function (xmlhttprequest, textstatus, message) {
 						app.dialog.alert('Ada kendala pada koneksi server, Silahkan Coba Kembali');
 						app.popup.close();
+					},
+					complete: function () {
+						try { app.dialog.close(); } catch (e) { }
 					}
+
 
 				});
 			} else if (localStorage.getItem("file_foto_update_terima_pabrik_kas") == null && jQuery('#edit_file_kas_acc_1').val() == '') {
@@ -701,7 +718,7 @@ function updateTransaksiKas() {
 					contentType: false,
 					processData: false,
 					beforeSend: function () {
-						app.dialog.preloader('Harap Tunggu');
+						internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
 					},
 					success: function (data) {
 						app.dialog.close();
@@ -717,7 +734,11 @@ function updateTransaksiKas() {
 					error: function (xmlhttprequest, textstatus, message) {
 						app.dialog.alert('Ada kendala pada koneksi server, Silahkan Coba Kembali');
 						app.popup.close();
+					},
+					complete: function () {
+						try { app.dialog.close(); } catch (e) { }
 					}
+
 
 				});
 			}
@@ -740,7 +761,7 @@ function deleteTransaksiKasAcc(id_tr_kas_acc) {
 					id_tr_kas_acc: id_tr_kas_acc,
 				},
 				beforeSend: function () {
-					app.dialog.preloader('Harap Tunggu');
+					internetCheckQueue.check(); try { app.dialog.preloader('Harap Tunggu...'); } catch (e) { }
 				},
 				success: function (data) {
 					app.dialog.close();
@@ -753,7 +774,11 @@ function deleteTransaksiKasAcc(id_tr_kas_acc) {
 				},
 				error: function (xmlhttprequest, textstatus, message) {
 					app.dialog.alert('Ada kendala pada koneksi server, Silahkan Coba Kembali');
+				},
+				complete: function () {
+					try { app.dialog.close(); } catch (e) { }
 				}
+
 			});
 
 		}
@@ -993,5 +1018,3 @@ function cleanupRekomendasiKeteranganKas(type) {
 
 	jQuery('#' + DROP_ID).remove();
 }
-
-

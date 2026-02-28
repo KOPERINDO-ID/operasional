@@ -29,6 +29,7 @@ function getDataPerusahaan() {
             perusahaan_filter: perusahaan_filter
         },
         beforeSend: function () {
+            // internetCheckQueue.check();
         },
         success: function (data) {
             var data_tools = '';
@@ -120,7 +121,10 @@ function processTambahPerusahaanAcc() {
                 contentType: false,
                 processData: false,
                 beforeSend: function () {
-                    app.dialog.preloader('Harap Tunggu');
+                    internetCheckQueue.check();
+                    try {
+                        app.dialog.preloader('Menyimpan data perusahaan...');
+                    } catch (e) { }
                 },
                 success: function (data) {
                     app.dialog.close();
@@ -157,7 +161,10 @@ function deletePerusahaanAcc(id_perusahaan_acc, perusahaan_acc) {
                     id_perusahaan_acc: id_perusahaan_acc,
                 },
                 beforeSend: function () {
-                    app.dialog.preloader('Harap Tunggu');
+                    internetCheckQueue.check();
+                    try {
+                        app.dialog.preloader('Menghapus data perusahaan...');
+                    } catch (e) { }
                 },
                 success: function (data) {
                     app.dialog.close();
@@ -197,7 +204,10 @@ function processEditPerusahaanAcc() {
                 contentType: false,
                 processData: false,
                 beforeSend: function () {
-                    app.dialog.preloader('Harap Tunggu');
+                    internetCheckQueue.check();
+                    try {
+                        app.dialog.preloader('Menyimpan perubahan perusahaan...');
+                    } catch (e) { }
                 },
                 success: function (data) {
                     app.dialog.close();

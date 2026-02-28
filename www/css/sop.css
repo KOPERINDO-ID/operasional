@@ -1,0 +1,60 @@
+.navbar-sop {
+    height: 55px;
+}
+
+.navbar-name-sop {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.navbar-name-date {
+    font-size: 14px;
+    color: #dcdcdcfa;
+    font-size: 14px;
+    padding: 8px;
+    float: right;
+}
+
+.header-card-table {
+    height: 38px;
+    padding: 6px;
+    gap: 4px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.header-card-table h3 {
+    font-size: 18px;
+}
+
+thead {
+    height: 40px;
+    font-size: 14px;
+    text-align: center;
+    font-weight: bold;
+}
+
+tbody {
+    height: 35px;
+    font-size: 14px;
+}
+
+.btn-table {
+    height: 32px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.btn-function {
+    border-radius: 12px;
+    height: 50px;
+    width: 100%;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.row.no-gap-sop {
+    --f7-grid-gap: 5px;
+}

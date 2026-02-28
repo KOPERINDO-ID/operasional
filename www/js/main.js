@@ -49,6 +49,9 @@ function checkReminderKategoriAcc() {
       karyawan_id: localStorage.getItem("user_id"),
       primary_kas: localStorage.getItem("primary_kas")
     },
+    beforeSend: function () {
+      // internetCheckQueue.check();
+    },
     success: function (res) {
       if (!(res && res.status === 'success' && Array.isArray(res.data))) return;
 

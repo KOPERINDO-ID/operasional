@@ -1,4 +1,3 @@
-
 jQuery('.nominal_master').mask('000,000,000,000', { reverse: true });
 
 var delayTimer;
@@ -46,6 +45,7 @@ function getDataKategori() {
             keterangan_filter: keterangan_filter
         },
         beforeSend: function () {
+            // internetCheckQueue.check();
         },
         success: function (data) {
             var data_tools = '';
@@ -149,7 +149,10 @@ function processTambahKategoriAcc() {
                 contentType: false,
                 processData: false,
                 beforeSend: function () {
-                    app.dialog.preloader('Harap Tunggu');
+                    internetCheckQueue.check();
+                    try {
+                        app.dialog.preloader('Menyimpan kategori...');
+                    } catch (e) { }
                 },
                 success: function (data) {
                     app.dialog.close();
@@ -186,7 +189,10 @@ function deleteKategoriAcc(id_kategori_acc, kategori_acc) {
                     id_kategori_acc: id_kategori_acc,
                 },
                 beforeSend: function () {
-                    app.dialog.preloader('Harap Tunggu');
+                    internetCheckQueue.check();
+                    try {
+                        app.dialog.preloader('Menghapus kategori...');
+                    } catch (e) { }
                 },
                 success: function (data) {
                     app.dialog.close();
@@ -222,7 +228,10 @@ function processUpdateKasAcc(nama_kategori, no_check, status_check) {
                     status_check: status_check
                 },
                 beforeSend: function () {
-                    app.dialog.preloader('Harap Tunggu');
+                    internetCheckQueue.check();
+                    try {
+                        app.dialog.preloader('Memperbarui tipe kategori...');
+                    } catch (e) { }
                 },
                 success: function (data) {
                     app.dialog.close();
@@ -261,7 +270,10 @@ function processEditKategoriAcc() {
                 contentType: false,
                 processData: false,
                 beforeSend: function () {
-                    app.dialog.preloader('Harap Tunggu');
+                    internetCheckQueue.check();
+                    try {
+                        app.dialog.preloader('Menyimpan perubahan kategori...');
+                    } catch (e) { }
                 },
                 success: function (data) {
                     app.dialog.close();
