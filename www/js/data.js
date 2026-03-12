@@ -2798,50 +2798,79 @@ function tplInputRow(idx, val, sisa, totalOperasional, id_transaksi_acc) {
 function uploadFotoPembayaran(pembayaran_id, idx, fotoData, source) {
 	console.log('📤 uploadFotoPembayaran:', { pembayaran_id, idx, source });
 
-	const formData = new FormData();
+	var formData = new FormData();
+	var blob = null;
+	var fileName = 'foto_pembayaran_' + Date.now() + '.jpg';
 
+	// ========================================
+	// FIXED: Handle camera (base64 string)
+	// ========================================
 	if (source === 'camera') {
-		// Convert base64 to blob untuk camera
-		try {
-			const block = fotoData.split(";");
-			const contentType = block[0].split(":")[1];
-			const realData = block[1].split(",")[1];
+		console.log('📷 Source: CAMERA - converting base64 to blob');
+		console.log('   fotoData type:', typeof fotoData);
+		console.log('   fotoData length:', fotoData ? fotoData.length : 0);
+		console.log('   fotoData prefix:', fotoData ? fotoData.substring(0, 30) : 'null');
 
-			const byteCharacters = atob(realData);
-			const byteNumbers = new Array(byteCharacters.length);
-			for (let i = 0; i < byteCharacters.length; i++) {
-				byteNumbers[i] = byteCharacters.charCodeAt(i);
-			}
-			const byteArray = new Uint8Array(byteNumbers);
-			const blob = new Blob([byteArray], { type: contentType });
-
-			const fileName = 'foto_pembayaran_' + Date.now() + '.jpg';
-			const file = new File([blob], fileName, { type: contentType });
-
-			formData.append('foto_bukti', file);  // ✅ UBAH: foto_bukti
-		} catch (error) {
-			console.error('❌ Error converting base64:', error);
-			app.dialog.alert('Error: Gagal memproses foto dari kamera');
+		if (!fotoData) {
+			app.dialog.alert('Error: Data foto dari kamera kosong');
 			return;
 		}
+
+		try {
+			// Gunakan base64ToBlob yang sudah difix
+			blob = base64ToBlob(fotoData, 'image/jpeg');
+			console.log('✅ base64 converted to blob, size:', (blob.size / 1024).toFixed(2) + ' KB');
+		} catch (error) {
+			console.error('❌ Error converting base64 to blob:', error);
+			app.dialog.alert('Error: Gagal memproses foto dari kamera. ' + error.message);
+			return;
+		}
+
+		// ========================================
+		// Handle gallery (File object)
+		// ========================================
+	} else if (source === 'gallery') {
+		console.log('🖼️ Source: GALLERY - using File object directly');
+
+		if (!fotoData) {
+			app.dialog.alert('Error: File foto dari galeri kosong');
+			return;
+		}
+
+		// fotoData sudah berupa File object dari gallery
+		blob = fotoData;
+		fileName = fotoData.name || fileName;
+		console.log('✅ Using gallery file:', fileName, 'size:', (blob.size / 1024).toFixed(2) + ' KB');
+
 	} else {
-		// Dari gallery, sudah dalam bentuk File object
-		formData.append('foto_bukti', fotoData);  // ✅ UBAH: foto_bukti
+		console.error('❌ Unknown source type:', source);
+		app.dialog.alert('Error: Sumber foto tidak dikenal');
+		return;
 	}
 
-	// ✅ UBAH: Parameter sesuai dengan endpoint baru
-	formData.append('pembayaran_id', pembayaran_id);  // ✅ UBAH: pembayaran_id
-	formData.append('pembayaran_ke', idx);             // ✅ UBAH: pembayaran_ke
-	formData.append('user_id', localStorage.getItem('user_id') || '');  // ✅ TAMBAH: user_id
+	// Validasi blob
+	if (!blob || blob.size === 0) {
+		app.dialog.alert('Error: Foto kosong atau tidak valid, silakan coba lagi');
+		return;
+	}
 
-	// ✅ UBAH: Endpoint baru
-	const uploadUrl = BASE_API + '/upload-foto-pembayaran-operasional';
+	// Append foto ke FormData
+	// PENTING: Gunakan nama field 'foto_bukti' sesuai backend
+	formData.append('foto_bukti', blob, fileName);
+
+	// Append parameter lainnya
+	formData.append('pembayaran_id', pembayaran_id);
+	formData.append('pembayaran_ke', idx);
+	formData.append('user_id', localStorage.getItem('user_id') || '');
+
+	var uploadUrl = BASE_API + '/upload-foto-pembayaran-operasional';
 
 	console.log('📤 Uploading to:', uploadUrl);
-	console.log('📋 FormData:', {
+	console.log('📋 FormData params:', {
 		pembayaran_id: pembayaran_id,
 		pembayaran_ke: idx,
-		has_foto: formData.has('foto_bukti')
+		user_id: localStorage.getItem('user_id'),
+		foto_size_kb: (blob.size / 1024).toFixed(2)
 	});
 
 	// Upload ke server
@@ -2852,15 +2881,16 @@ function uploadFotoPembayaran(pembayaran_id, idx, fotoData, source) {
 		data: formData,
 		contentType: false,
 		processData: false,
+		timeout: 60000,
 		xhr: function () {
-			const dialog = app.dialog.progress('Mengupload ', 0);
+			var dialog = app.dialog.progress('Mengupload ', 0);
 			dialog.setText('0%');
-			const xhr = new window.XMLHttpRequest();
-			xhr.upload.addEventListener("progress", function (evt) {
+			var xhr = new window.XMLHttpRequest();
+			xhr.upload.addEventListener('progress', function (evt) {
 				if (evt.lengthComputable) {
-					const percentComplete = evt.loaded / evt.total;
-					dialog.setProgress(Math.round(percentComplete * 100));
-					dialog.setText('' + (Math.round(percentComplete * 100)) + '%');
+					var pct = Math.round((evt.loaded / evt.total) * 100);
+					dialog.setProgress(pct);
+					dialog.setText(pct + '%');
 				}
 			}, false);
 			return xhr;
@@ -2874,24 +2904,22 @@ function uploadFotoPembayaran(pembayaran_id, idx, fotoData, source) {
 
 			if (data.status === 'success') {
 				// Update UI: Sembunyikan tombol FOTO, tampilkan status SELESAI
-				jQuery(`#btn_foto_${idx}_${pembayaran_id}`).hide();
+				jQuery('#btn_foto_' + idx + '_' + pembayaran_id).hide();
 
-				// Tampilkan status selesai
-				const tdOpsi = jQuery(`#btn_foto_${idx}_${pembayaran_id}`).closest('td');
-				tdOpsi.append(`
-					<div style="border-radius: 4px; font-weight: bold; font-size: 11px; margin-top: 5px;">
-						<i class="f7-icons" style="font-size: 14px;">checkmark_circle_fill</i> SELESAI
-					</div>
-				`);
+				// Tampilkan status selesai di td opsi
+				var tdOpsi = jQuery('#btn_foto_' + idx + '_' + pembayaran_id).closest('td');
+				tdOpsi.append(
+					'<div style="border-radius:4px; font-weight:bold; font-size:11px; margin-top:5px;">' +
+					'<i class="f7-icons" style="font-size:14px;">checkmark_circle_fill</i> SELESAI' +
+					'</div>'
+				);
 
 				// Clear localStorage
-				localStorage.removeItem(`foto_pembayaran_${pembayaran_id}_${idx}`);
+				localStorage.removeItem('foto_pembayaran_' + pembayaran_id + '_' + idx);
 
-				// Refresh data
+				// Tutup popup & refresh data
 				app.popup.close();
-
 				app.dialog.alert('Foto berhasil diupload!', 'Sukses', function () {
-					// Refresh list transaksi
 					getDataTransaksi();
 				});
 
@@ -2904,12 +2932,10 @@ function uploadFotoPembayaran(pembayaran_id, idx, fotoData, source) {
 			console.error('❌ Upload error:', error);
 			console.error('❌ Response:', xhr.responseText);
 
-			let errorMsg = 'Terjadi kesalahan saat mengupload foto';
+			var errorMsg = 'Terjadi kesalahan saat mengupload foto';
 			try {
-				const response = JSON.parse(xhr.responseText);
-				if (response.message) {
-					errorMsg = response.message;
-				}
+				var response = JSON.parse(xhr.responseText);
+				if (response.message) errorMsg = response.message;
 			} catch (e) {
 				errorMsg += ': ' + error;
 			}
@@ -2918,6 +2944,7 @@ function uploadFotoPembayaran(pembayaran_id, idx, fotoData, source) {
 		}
 	});
 }
+
 
 
 function updateFotoPembayaranProcess() {
@@ -4114,30 +4141,39 @@ function getFotoDataForUpload(storageKey) {
 /**
  * Convert base64 to blob
  */
-function base64ToBlob(base64Data) {
-	// Remove data:image prefix if exists
-	var base64 = base64Data.split(',')[1] || base64Data;
+function base64ToBlob(base64Data, defaultMimeType) {
+	defaultMimeType = defaultMimeType || 'image/jpeg';
+
+	var mimeType = defaultMimeType;
+	var base64String = base64Data;
+
+	// Cek apakah ada prefix "data:...;base64,"
+	if (base64Data.indexOf('data:') === 0) {
+		var parts = base64Data.split(',');
+		if (parts.length >= 2) {
+			// Ambil mime type dari prefix
+			var mimeMatch = parts[0].match(/data:([^;]+);base64/);
+			if (mimeMatch && mimeMatch[1]) {
+				mimeType = mimeMatch[1];
+			}
+			base64String = parts[1];
+		}
+	}
 
 	// Decode base64
-	var byteCharacters = atob(base64);
-	var byteNumbers = new Array(byteCharacters.length);
+	try {
+		var byteCharacters = atob(base64String);
+	} catch (e) {
+		console.error('❌ base64ToBlob: atob() failed, base64 string tidak valid', e);
+		throw new Error('Base64 string tidak valid: ' + e.message);
+	}
 
+	var byteNumbers = new Array(byteCharacters.length);
 	for (var i = 0; i < byteCharacters.length; i++) {
 		byteNumbers[i] = byteCharacters.charCodeAt(i);
 	}
 
 	var byteArray = new Uint8Array(byteNumbers);
-
-	// Determine MIME type
-	var mimeType = 'image/jpeg'; // default
-	if (base64Data.indexOf('data:image/png') === 0) {
-		mimeType = 'image/png';
-	} else if (base64Data.indexOf('data:image/jpg') === 0) {
-		mimeType = 'image/jpeg';
-	} else if (base64Data.indexOf('data:image/jpeg') === 0) {
-		mimeType = 'image/jpeg';
-	}
-
 	return new Blob([byteArray], { type: mimeType });
 }
 
@@ -4195,12 +4231,15 @@ function simpanDataPembayaran(pembayaran_id, idx) {
 	console.log('💾 simpanDataPembayaran called:', { pembayaran_id, idx });
 
 	// Ambil nilai dari form
-	const tanggal = jQuery(`#tanggal_${idx}_${pembayaran_id}`).val();
-	const bank = jQuery(`#bank_${idx}_${pembayaran_id}`).val();
-	const nominal = unfmt(jQuery(`#pembayaran_${idx}_${pembayaran_id}`).val());
-	const admin = unfmt(jQuery(`#pembayaran_admin_${idx}_${pembayaran_id}`).val());
-	const keterangan = jQuery(`#keterangan_${idx}_${pembayaran_id}`).val();
-	const id_transaksi_acc = unfmt(jQuery(`#id_transaksi_acc_bayar`).val());
+	// CATATAN: saat pembayaran pertama, pembayaran_id bisa 'null' (string) atau null
+	var tanggal = jQuery('#tanggal_' + idx + '_' + pembayaran_id).val();
+	var bank = jQuery('#bank_' + idx + '_' + pembayaran_id).val();
+	var nominal = unfmt(jQuery('#pembayaran_' + idx + '_' + pembayaran_id).val());
+	var admin = unfmt(jQuery('#pembayaran_admin_' + idx + '_' + pembayaran_id).val());
+	var keterangan = jQuery('#keterangan_' + idx + '_' + pembayaran_id).val();
+	var id_transaksi_acc = unfmt(jQuery('#id_transaksi_acc_bayar').val());
+
+	console.log('📋 Form values:', { tanggal, bank, nominal, admin, keterangan, id_transaksi_acc });
 
 	// Validasi
 	if (!tanggal) {
@@ -4215,6 +4254,10 @@ function simpanDataPembayaran(pembayaran_id, idx) {
 		app.dialog.alert('Nominal pembayaran harus lebih dari 0');
 		return;
 	}
+	if (!id_transaksi_acc) {
+		app.dialog.alert('Error: ID transaksi tidak ditemukan. Silakan tutup dan buka ulang popup.');
+		return;
+	}
 
 	// Kirim data ke server
 	jQuery.ajax({
@@ -4222,47 +4265,75 @@ function simpanDataPembayaran(pembayaran_id, idx) {
 		url: BASE_API + '/simpan-pembayaran-operasional',
 		dataType: 'JSON',
 		data: {
-			pembayaran_id: pembayaran_id,
+			pembayaran_id: (pembayaran_id === 'null' || pembayaran_id === null) ? '' : pembayaran_id,
 			urutan: idx,
 			tanggal: tanggal,
 			bank: bank,
 			nominal: nominal,
 			admin: admin,
 			keterangan: keterangan,
-			id_transaksi_acc: id_transaksi_acc || ''
+			id_transaksi_acc: id_transaksi_acc,
+			user_id: localStorage.getItem('user_id') || ''
 		},
 		beforeSend: function () {
 			internetCheckQueue.check();
-			try {
-				app.dialog.preloader('Menyimpan...');
-			} catch (e) { }
+			try { app.dialog.preloader('Menyimpan...'); } catch (e) { }
 		},
 		success: function (data) {
 			app.dialog.close();
 			console.log('✅ Simpan response:', data);
 
 			if (data.status === 'success' || data.status === 'done') {
-				// Update UI: Ubah tombol SIMPAN jadi FOTO
-				jQuery(`#btn_simpan_${idx}_${pembayaran_id}`).hide();
-				jQuery(`#btn_foto_${idx}_${pembayaran_id}`).show();
 
-				// Disable form inputs
-				jQuery(`#tanggal_${idx}_${pembayaran_id}`).prop('disabled', true);
-				jQuery(`#bank_${idx}_${pembayaran_id}`).prop('disabled', true);
-				jQuery(`#pembayaran_${idx}_${pembayaran_id}`).prop('disabled', true);
-				jQuery(`#pembayaran_admin_${idx}_${pembayaran_id}`).prop('disabled', true);
-				jQuery(`#keterangan_${idx}_${pembayaran_id}`).prop('disabled', true);
+				// ============================================================
+				// KRITIS: Ambil pembayaran_id BARU dari response backend
+				// Backend harus mengembalikan pembayaran_operasional_id
+				// ============================================================
+				var newPembayaranId = null;
 
-				// Update status badge
-				jQuery(`#status_${idx}_${pembayaran_id}`)
-					.removeClass('badge-empty')
-					.addClass('badge-data-saved')
-					.html('<i class="f7-icons" style="font-size:14px;">checkmark_circle_fill</i> Data Tersimpan');
+				if (data.data && data.data.pembayaran_operasional_id) {
+					newPembayaranId = data.data.pembayaran_operasional_id;
+				} else if (data.pembayaran_operasional_id) {
+					newPembayaranId = data.pembayaran_operasional_id;
+				} else if (data.id) {
+					newPembayaranId = data.id;
+				}
 
-				app.dialog.alert('Data pembayaran berhasil disimpan!', 'Sukses', function () {
-					// Refresh data pembayaran
-					// detailPembayaran bisa dipanggil ulang di sini jika diperlukan
-				});
+				console.log('🆔 New pembayaran_id from server:', newPembayaranId);
+
+				if (!newPembayaranId) {
+					// Backend tidak mengembalikan ID — tampilkan warning tapi tetap update UI
+					console.warn('⚠️ Backend tidak mengembalikan pembayaran_operasional_id!');
+					console.warn('   Pastikan endpoint /simpan-pembayaran-operasional mengembalikan pembayaran_operasional_id di response');
+					// Lanjutkan dengan pembayaran_id lama (mungkin sudah ada)
+					newPembayaranId = pembayaran_id;
+				}
+
+				// ============================================================
+				// UPDATE UI: Ganti semua element ID lama (null) dengan ID baru
+				// ============================================================
+				if (newPembayaranId && newPembayaranId !== pembayaran_id) {
+					console.log('🔄 Updating element IDs:', pembayaran_id, '→', newPembayaranId);
+					updateElementIds(pembayaran_id, newPembayaranId, idx);
+					// Gunakan newPembayaranId untuk update UI selanjutnya
+					pembayaran_id = newPembayaranId;
+				}
+
+				// Update UI: Disable form inputs
+				jQuery('#tanggal_' + idx + '_' + pembayaran_id).prop('disabled', true);
+				jQuery('#bank_' + idx + '_' + pembayaran_id).prop('disabled', true);
+				jQuery('#pembayaran_' + idx + '_' + pembayaran_id).prop('disabled', true);
+				jQuery('#pembayaran_admin_' + idx + '_' + pembayaran_id).prop('disabled', true);
+				jQuery('#keterangan_' + idx + '_' + pembayaran_id).prop('disabled', true);
+
+				// Update UI: Sembunyikan SIMPAN, tampilkan FOTO
+				jQuery('#btn_simpan_' + idx + '_' + pembayaran_id).hide();
+				jQuery('#btn_foto_' + idx + '_' + pembayaran_id).show();
+
+				// Simpan pembayaran_id baru ke global untuk digunakan showFotoOptions
+				window.current_pembayaran_id = pembayaran_id;
+
+				app.dialog.alert('Data pembayaran berhasil disimpan! Silakan upload foto bukti.', 'Sukses');
 
 			} else {
 				app.dialog.alert(data.message || 'Gagal menyimpan data pembayaran');
@@ -4271,133 +4342,109 @@ function simpanDataPembayaran(pembayaran_id, idx) {
 		error: function (xhr, status, error) {
 			app.dialog.close();
 			console.error('❌ Error simpan:', error);
+			console.error('   Response:', xhr.responseText);
 			app.dialog.alert('Terjadi kesalahan saat menyimpan data: ' + error);
 		}
 	});
 }
+
+// ============================================================
+// FUNGSI HELPER BARU: Update semua element ID di DOM
+// Dipanggil setelah simpan berhasil dan dapat pembayaran_id baru
+// ============================================================
+function updateElementIds(oldId, newId, idx) {
+	console.log('🔄 updateElementIds: old=' + oldId + ' new=' + newId + ' idx=' + idx);
+
+	// Daftar semua element yang ID-nya perlu diupdate
+	var elementIds = [
+		'tanggal_' + idx + '_' + oldId,
+		'bank_' + idx + '_' + oldId,
+		'pembayaran_' + idx + '_' + oldId,
+		'pembayaran_admin_' + idx + '_' + oldId,
+		'pembayaran_jumlah_' + idx + '_' + oldId,
+		'keterangan_' + idx + '_' + oldId,
+		'btn_simpan_' + idx + '_' + oldId,
+		'btn_foto_' + idx + '_' + oldId,
+		'foto_bukti_' + idx + '_' + oldId,
+		'foto_preview_' + idx + '_' + oldId,
+	];
+
+	elementIds.forEach(function (oldElementId) {
+		var el = document.getElementById(oldElementId);
+		if (el) {
+			var newElementId = oldElementId.replace('_' + oldId, '_' + newId);
+			el.id = newElementId;
+			console.log('   ✅ Updated:', oldElementId, '→', newElementId);
+		}
+	});
+
+	// Update juga onclick di btn_foto jika ada
+	var btnFoto = document.getElementById('btn_foto_' + idx + '_' + newId);
+	if (btnFoto) {
+		btnFoto.setAttribute('onclick', "showFotoOptions('" + newId + "', '" + idx + "')");
+	}
+
+	// Update form ID
+	var form = document.getElementById('pembayaran_form_multiple_' + idx + '_' + oldId);
+	if (form) {
+		form.id = 'pembayaran_form_multiple_' + idx + '_' + newId;
+	}
+}
+
 
 // ========================================
 // FUNGSI SHOW POPUP PILIHAN FOTO (Camera/Gallery)
 // VERSION: Extra Small & Compact
 // ========================================
 function showFotoOptions(pembayaran_id, idx) {
-	console.log('📋 showFotoOptionsModal:', { pembayaran_id, idx });
+	console.log('📋 showFotoOptions:', { pembayaran_id, idx });
 
-	const modalId = 'foto-modal-' + pembayaran_id + '-' + idx;
-
-	// Cek jika modal sudah ada, hapus dulu
-	const existingModal = document.getElementById(modalId);
-	if (existingModal) {
-		existingModal.remove();
+	// Validasi pembayaran_id
+	if (!pembayaran_id || pembayaran_id === 'null' || pembayaran_id === 'undefined') {
+		app.dialog.alert(
+			'Data pembayaran belum tersimpan.\n\nSilakan klik tombol SIMPAN terlebih dahulu, lalu klik FOTO.',
+			'Perhatian'
+		);
+		return;
 	}
 
-	const modalHTML = `
-        <div id="${modalId}" style="
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 99999;
-        " onclick="if(event.target.id === '${modalId}') closeFotoModal('${modalId}');">
-            <div style="
-                position: relative;
-                z-index: 2;
-                width: 90%;
-                max-width: 300px;
-                background: white;
-                border-radius: 12px;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-                padding: 16px;
-                animation: modalFadeIn 0.2s ease-out;
-            ">
-                <!-- Header dengan icon close -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: #333;">Upload Foto</h4>
-                    <a href="#" onclick="closeFotoModal('${modalId}'); return false;" style="color: #999; text-decoration: none;">
-                        <i class="f7-icons" style="font-size: 22px;">xmark_circle</i>
-                    </a>
-                </div>
+	var modalId = 'foto-modal-' + pembayaran_id + '-' + idx;
 
-                <!-- Options -->
-                <div style="display: flex; gap: 8px;">
-                    <!-- Kamera -->
-                    <button type="button" 
-                            onclick="pilihKamera('${pembayaran_id}', '${idx}'); closeFotoModal('${modalId}');"
-                            style="
-                                flex: 1;
-                                height: 60px;
-                                background: #2196F3;
-                                border: none;
-                                border-radius: 8px;
-                                color: white;
-                                font-size: 12px;
-                                display: flex;
-                                flex-direction: column;
-                                align-items: center;
-                                justify-content: center;
-                                cursor: pointer;
-                                font-family: inherit;
-                            ">
-                        <i class="f7-icons" style="font-size: 26px; margin-bottom: 2px;">camera_fill</i>
-                        <span>Kamera</span>
-                    </button>
+	// Hapus modal lama jika ada
+	var existingModal = document.getElementById(modalId);
+	if (existingModal) existingModal.remove();
 
-                    <!-- Galeri -->
-                    <button type="button" 
-                            onclick="pilihGaleri('${pembayaran_id}', '${idx}'); closeFotoModal('${modalId}');"
-                            style="
-                                flex: 1;
-                                height: 60px;
-                                background: #4CAF50;
-                                border: none;
-                                border-radius: 8px;
-                                color: white;
-                                font-size: 12px;
-                                display: flex;
-                                flex-direction: column;
-                                align-items: center;
-                                justify-content: center;
-                                cursor: pointer;
-                                font-family: inherit;
-                            ">
-                        <i class="f7-icons" style="font-size: 26px; margin-bottom: 2px;">photo_fill</i>
-                        <span>Galeri</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
+	var modalHTML = '<div id="' + modalId + '" style="' +
+		'position:fixed; top:0; left:0; width:100%; height:100%;' +
+		'background:rgba(0,0,0,0.5); display:flex; align-items:center;' +
+		'justify-content:center; z-index:99999;' +
+		'" onclick="if(event.target.id===\'' + modalId + '\') closeFotoModal(\'' + modalId + '\')">' +
+		'<div style="position:relative; z-index:2; width:90%; max-width:300px;' +
+		'background:white; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.3);' +
+		'padding:16px;">' +
+		'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">' +
+		'<h4 style="margin:0; font-size:16px; font-weight:600; color:#333;">Upload Foto</h4>' +
+		'<a href="#" onclick="closeFotoModal(\'' + modalId + '\'); return false;" style="color:#999; text-decoration:none;">' +
+		'<i class="f7-icons" style="font-size:22px;">xmark_circle</i></a>' +
+		'</div>' +
+		'<div style="display:flex; gap:8px;">' +
+		'<button type="button" onclick="pilihKamera(\'' + pembayaran_id + '\', \'' + idx + '\'); closeFotoModal(\'' + modalId + '\');"' +
+		' style="flex:1; height:60px; background:#2196F3; border:none; border-radius:8px;' +
+		'color:white; font-size:12px; display:flex; flex-direction:column;' +
+		'align-items:center; justify-content:center; cursor:pointer; font-family:inherit;">' +
+		'<i class="f7-icons" style="font-size:26px; margin-bottom:2px;">camera_fill</i>' +
+		'<span>Kamera</span></button>' +
+		'<button type="button" onclick="pilihGaleri(\'' + pembayaran_id + '\', \'' + idx + '\'); closeFotoModal(\'' + modalId + '\');"' +
+		' style="flex:1; height:60px; background:#4CAF50; border:none; border-radius:8px;' +
+		'color:white; font-size:12px; display:flex; flex-direction:column;' +
+		'align-items:center; justify-content:center; cursor:pointer; font-family:inherit;">' +
+		'<i class="f7-icons" style="font-size:26px; margin-bottom:2px;">photo_fill</i>' +
+		'<span>Galeri</span></button>' +
+		'</div></div></div>';
 
-	// Tambahkan CSS animation jika belum ada
-	if (!document.getElementById('foto-modal-animations')) {
-		const style = document.createElement('style');
-		style.id = 'foto-modal-animations';
-		style.textContent = `
-            @keyframes modalFadeIn {
-                from {
-                    opacity: 0;
-                    transform: scale(0.9);
-                }
-                to {
-                    opacity: 1;
-                    transform: scale(1);
-                }
-            }
-        `;
-		document.head.appendChild(style);
-	}
-
-	// Append modal ke body
-	const modalElement = document.createElement('div');
+	var modalElement = document.createElement('div');
 	modalElement.innerHTML = modalHTML;
 	document.body.appendChild(modalElement.firstElementChild);
-
-	console.log('✅ Modal foto options displayed at center');
 }
 
 // ========================================
@@ -4569,8 +4616,9 @@ function openCameraForPembayaran(pembayaran_id, idx) {
 		return;
 	}
 
-	const options = {
+	var options = {
 		quality: 80,
+		// PENTING: Gunakan DATA_URL agar langsung dapat base64
 		destinationType: Camera.DestinationType.DATA_URL,
 		sourceType: Camera.PictureSourceType.CAMERA,
 		encodingType: Camera.EncodingType.JPEG,
@@ -4584,15 +4632,36 @@ function openCameraForPembayaran(pembayaran_id, idx) {
 	navigator.camera.getPicture(
 		function cameraSuccess(imageData) {
 			console.log('✅ Camera success');
-			const base64Image = 'data:image/jpeg;base64,' + imageData;
+			console.log('   imageData type:', typeof imageData);
+			console.log('   imageData length:', imageData ? imageData.length : 0);
+			console.log('   imageData prefix:', imageData ? imageData.substring(0, 30) : 'null');
 
-			// Preview foto
-			jQuery(`#foto_preview_${idx}_${pembayaran_id}`)
+			// Ketika destinationType = DATA_URL, imageData adalah pure base64 TANPA prefix
+			// Kita perlu tambahkan prefix agar base64ToBlob bisa parse dengan benar
+			var base64Image;
+			if (imageData && imageData.indexOf('data:') === 0) {
+				// Sudah ada prefix
+				base64Image = imageData;
+			} else {
+				// Belum ada prefix, tambahkan
+				base64Image = 'data:image/jpeg;base64,' + imageData;
+			}
+
+			console.log('✅ base64Image ready, length:', base64Image.length);
+
+			// Preview foto di tabel
+			jQuery('#foto_preview_' + idx + '_' + pembayaran_id)
 				.attr('src', base64Image)
 				.show();
 
-			// Simpan ke localStorage untuk upload nanti
-			localStorage.setItem(`foto_pembayaran_${pembayaran_id}_${idx}`, base64Image);
+			// Simpan ke localStorage sebagai backup
+			try {
+				localStorage.setItem('foto_pembayaran_' + pembayaran_id + '_' + idx, base64Image);
+				console.log('💾 Saved to localStorage');
+			} catch (storageErr) {
+				// localStorage mungkin penuh, tapi lanjut upload
+				console.warn('⚠️ localStorage save failed (mungkin penuh):', storageErr.message);
+			}
 
 			// Langsung upload foto
 			uploadFotoPembayaran(pembayaran_id, idx, base64Image, 'camera');
